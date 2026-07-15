@@ -1,0 +1,323 @@
+<style>
+  .chosen-container {
+    margin-bottom: 10px;
+  }
+
+  .cajas {
+    padding-top: 15px;
+    margin-bottom: 10px;
+    border-color: #428bca;
+  }
+    .fieldset-label {
+    color: #fff;
+    background-color: #428bca;
+    border-radius: 4px;
+    font-weight: normal;
+    padding: 5px 10px;
+    top: -13px;
+  }
+
+  .panel-heading{
+    /*padding: 0px 10px 0px 10px !important;*/
+  }
+
+  .panel-default>.panel-heading {
+    background-color: #428bca !important;
+  }
+
+  .slideable_content{
+    background-color: #fff !important;
+  }
+
+  .panel-group, section .panel:not(.panel-primary):not(.panel-danger):not(.panel-success):not(.panel-warning):not(.panel-info) {
+    margin-bottom: 0px !important;
+  }
+
+  tr th{
+    text-align: center;
+  }
+</style>
+<div ng-app="appConciliacionFacturasMultiples" ng-controller="ctrlConciliacionFacturasMultiples"
+  ng-init="HTML_CurrentVersion = 1.00; init()">
+  <red-toolbar titulo="Conciliacion de Facturas de Servicios - {{title}}">
+    <div ng-show ="sn_Disabled">
+      <button ng-click="agregar()" class="btn-icon25p btn-agregar25p" title="Agregar" ng-show="sn_Listado"></button>
+      <button ng-click="regresar()" class="btn-icon25p btn-regresar25p" title="Regresar" ng-show="!sn_Listado"></button>
+      <!-- <ng-excel name="Conciliacion_Facturas_Servicios" extension="xlsx" ng-click="generarReporte(1)" button-type="icon" scale="80" ng-show="sn_Listado">
+        <ng-sheet name="ListadoFacturas" dataset="dataReporte"> </ng-sheet>
+      </ng-excel> -->
+    </div>
+  </red-toolbar>
+  <br>
+
+    <div red-panel ng-show="sn_Listado">
+
+      <div class="row">
+        <div class="col-md-12">
+          <fieldset class="cajas">
+
+            <label class="fieldset-label">Filtros</label>
+            <div class="col-md-4">
+              <label>Conciliación:</label>
+              <input type="text" placeholder="Ej. 123" ng-model="filtros.id_Conciliacion" class="contenido_numerico form-control"
+                change-focus>
+            </div>
+
+            <div class="col-md-4">
+              <label>Estación:</label>
+              <select chosen ng-model="filtros.estacion" id="estacion" class="form-control" change-focus
+              ng-options="item.NB_ESTACION for item in estacionesArray"
+              >
+                <option value="">Seleccionar</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label>Proveedor:</label>
+              <select ng-model="filtros.proveedor" class="form-control" change-focus
+              ng-options="item.NB_PROVEEDOR for item in proveedoresArray">
+                <option value="">Seleccionar</option>
+              </select>
+            </div>
+
+          </fieldset>
+        </div>
+
+        <div class="col-md-12">
+          <div class="col-md-8" style="padding-left: 0px;">
+            <fieldset class="cajas">
+
+              <label class="fieldset-label">Fecha de Registro</label>
+              <div class="col-md-5">
+                <label>Fecha Inicial:</label>
+                <red-calendar ng-model="fh_Inicio" focus-open="false" format="dd/MM/yyyy"></red-calendar>
+              </div>
+
+              <div class="col-md-5">
+                <label>Fecha Inicial:</label>
+                <red-calendar ng-model="fh_Fin" focus-open="false" format="dd/MM/yyyy"></red-calendar>
+              </div>
+
+              <div class="col-md-2" style="padding-top:18px; text-align:center;">
+                <button ng-model="buscar" class="contenido btn-icon25p btn-buscar25p" ng-click="buscar()" title="Buscar datos"></button>
+              </div>
+
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </br>
+    <div style="max-height:350px;" ng-grid="gridListado" class="gridStyle" red-grid></div>
+    <br>
+  </div>
+
+  <div ng-show="!sn_Listado">
+    <div red-panel >
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="col-md-1">
+            <label for="">Empresa:</label>
+          </div>
+          <div class="col-md-11">
+            <label>{{nb_RazonSocial}}</label>
+          </div>
+        </div>
+        <br>
+        <div class="col-md-12">
+          <div class="col-md-1">
+            <label for="" style="line-height: 3;">Proveedor:</label>
+          </div>
+          <div class="col-md-11">
+            <label  style="line-height: 3;" ng-if="sn_Visualizar">{{nb_Proveedor}}</label>
+            <select ng-model="dataConciliacion.proveedor" class="form-control" change-focus ng-disabled="ar_XMLFiles.length" ng-if="!sn_Editar && !sn_Visualizar"
+              ng-options="item.NB_PROVEEDOR for item in proveedoresArray">
+                <option value="">Seleccionar</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" ng-show="!sn_Visualizar">
+        <div class="col-md-12">
+          <fieldset class="cajas">
+            <br>
+            <label class="fieldset-label">Facturas de Servicios</label>
+            <div class="row">
+              <div class="col-md-10">
+                <label>Selección de Documentos</label>
+                <input
+                    ng-disabled="!dataConciliacion.proveedor"
+                    type="file"
+                    multiple
+                    class="form-control"
+                    ng-model="ar_XMLFiles"
+                    red-filemodel="ar_XMLFiles"
+                    ng-change="loadXMLS()">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary" ng-click="SubirArchivos()"
+                    ng-hide="DocumentoXML || sn_Visualizar"
+                    ng-disabled="!ar_XMLFiles.length" style="margin-top: 18px; margin-left: -15px;" title="Subir Archivos XML">
+                    Subir Archivos
+                    <span class="glyphicon glyphicon-cloud-upload"></span>
+                </button>
+              </div>
+            </div>
+            <div class="row" ng-show="sn_SubiendoXML || sn_TerminoSubirXMls">
+              <div class="col-md-12">
+                <div class="progress">
+                  <div    class="progress-bar progress-bar-striped active"
+                          role="progressbar"
+                          aria-valuenow="{{ FileUploadIndex }}"
+                          aria-valuemin="0"
+                          aria-valuemax="{{ ar_XMLFiles.length }}"
+                          style="width: {{((FileUploadIndex + 1) / ar_XMLFiles.length) * 100 }}%;" >
+                      <span class="">{{((FileUploadIndex + 1)  / ar_XMLFiles.length) * 100 | number : 2 }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row" ng-show="sn_SubiendoXML || sn_TerminoSubirXMls">
+              <div class="col-md-12">
+                  <label ng-show="sn_SubiendoXML">Revisando Documento {{FileUploadIndex + 1}} de {{ar_XMLFiles.length}}.</label>
+                  <label ng-show="sn_TerminoSubirXMls">Documentos cargados {{FileUploadIndex + 1}} de {{ar_XMLFiles.length}}.</label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="bs-callout bs-callout-primary">
+                  <span style="color:#428bca">
+                    <i class="fas fa-exclamation-triangle"></i><i> <b>Para asociar el XML al PDF es requerido que ambos compartan el mismo nombre.</b></i>
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-2" ng-if="sn_facturaConciliacion">
+                <select
+                ng-model="factura.id_SucursalGCC"
+                class="form-control"
+                change-focus
+                ng-change="changeEstacion(factura)"
+                ng-if="!factura.de_Mensaje"
+                ng-options="item.ID_SUCURSALGCC as item.NB_ESTACION for item in estacionesArray"
+                ng-disabled="sn_Visualizar">
+                <option value="">Seleccionar</option>
+              </select>
+            </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <br>
+
+      <div class="row" ng-repeat="item in files" ng-if="files.length > 0">
+        <div class="col-md-12">
+          <uib-accordion close-others="oneAtATime"> <!-- pay attention to this line -->
+
+            <div uib-accordion-group is-open="item.isOpen" style="background-color: #428bca !important; padding: 0px;">
+              <uib-accordion-heading ng-click="item.isOpen = !item.isOpen">
+
+                  <label style="color: #fff !important; cursor: pointer;">
+                    {{item.nb_Estacion}}
+                  </label>
+
+                  <div class="pull-right" style="color: #fff; cursor: pointer;">
+                    <!-- <i class="pull-right fa" style="color: #fff;" ng-class="{'fa fa-angle-down' : item.isOpen, 'fa fa-angle-right' : !item.isOpen}" ></i> -->
+                    <label>Total: </label> {{(item.documentos | arraySum:"im_Total") | number : 2}}
+                  </div>
+
+              </uib-accordion-heading>
+
+              <div class="row" ng-if="item.documentos">
+                <div class="col-md-12">
+                  <table class="table table-condensed table-striped table-hover" cellpadding="0" cellspacing="0">
+                    <thead>
+                      <tr>
+                        <th width = "10%;">Estación</th>
+                        <th width = "10%;">Fecha Recolección</th>
+                        <th width = "8%;">Documento</th>
+                        <th width = "10%;">Fecha Documento</th>
+                        <th width = "10%;">UUID</th>
+                        <th width = "8%;">Subtotal</th>
+                        <th width = "8%;">Iva</th>
+                        <th width = "8%;">Retenciones</th>
+                        <th width = "8%;">Total</th>
+                        <th width = "10%;">Mensaje</th>
+                        <th width = "10%;"></th>
+                        <th width = "10%;">Requisicion</th>
+                        <th width = "10%;">OC</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr ng-repeat="factura in item.documentos">
+                        <td align="center">
+                          <select ng-model="factura.id_SucursalGCC" class="form-control" change-focus ng-change="changeEstacion(factura)" ng-if="!factura.de_Mensaje"
+                          ng-options="item.ID_SUCURSALGCC as item.NB_ESTACION for item in estacionesArray" ng-disabled="sn_Visualizar">
+                            <option value="">Seleccionar</option>
+                          </select>
+                        </td>
+                        <td align="center">{{factura.fh_Recoleccion}}</td>
+                        <td align="left">{{factura.fl_Documento}}</td>
+                        <td align="center">{{factura.fh_Documento}}</td>
+                        <td align="center">{{factura.de_UUID}}</td>
+                        <td align="right">{{factura.im_Subtotal | number:2}}</td>
+                        <td align="right">{{factura.im_Iva | number:2}}</td>
+                        <td align="right">{{factura.im_Retencion | number:2}}</td>
+                        <td align="right">{{factura.im_Total | number:2}}</td>
+                        <td align="left">{{factura.de_Mensaje}}</td>
+                        <td align="center">
+                          <button ng-click="eliminar(factura)" class="btn-icon15p btn-eliminar15p" title="Quitar Factura" ng-show="!factura.id_ConciliacionDetalle"></button>
+                        </td>
+                        <td align="left">{{factura.id_Requisicion}}</td>
+                        <td align="left">{{factura.id_OrdenCompra}}</td>
+                      </tr>
+                    </tbody>
+                    <tfoot style="font-weight: bold;">
+                      <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td align="right">Total:</td>
+                        <td align="right">{{(item.documentos | arraySum:"im_Subtotal") | number : 2}}</td>
+                        <td align="right">{{(item.documentos | arraySum:"im_Iva") | number : 2}}</td>
+                        <td align="right">{{(item.documentos | arraySum:"im_Retencion") | number : 2}}</td>
+                        <td align="right">{{(item.documentos | arraySum:"im_Total") | number : 2}}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+
+                  </table>
+                </div>
+              </div>
+
+            </div>
+
+          </uib-accordion>
+
+        </div>
+      </div>
+
+    </div>
+    <div class="row" style="padding-top:35px;padding-bottom:35px;">
+      <div class="col-md-12 alignRight">
+        <button class="btn btn-primary" ng-click="GuardarConciliacion()" ng-if="!sn_Visualizar" title="Guardar Conciliacion" ng-disabled="!files.length">
+            <span class="glyphicon glyphicon-floppy-disk"></span>
+            Guardar
+        </button>
+        <button class="btn btn-success" ng-click="EnviarConciliacion()" ng-if="sn_Visualizar && !bloquear" title="Guardar Conciliacion">
+          <span class="glyphicon glyphicon-ok"></span>
+          Enviar
+        </button>
+        <button ng-click="regresar()" class="btn btn-warning" title="Regresar">
+          <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+            Regresar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

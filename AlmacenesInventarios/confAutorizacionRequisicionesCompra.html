@@ -1,0 +1,121 @@
+<style type="text/css">
+    .error{
+        border: solid 1px red !important;
+    }
+    #clearDep {
+     position : absolute;
+     top: 21%;
+     left: 96%;
+     cursor: pointer;
+    }
+    /*Border de color azul claro para señalar el grid con error*/
+    .errorInfo{
+        border: solid 2px #5bc0de !important;
+    }
+    /*Border transparente, para conservar el espacio que abarcara el border de error*/
+    .border{
+        border: solid 2px #f5f5f5;
+    }
+
+    .cajas{
+        border:1px solid rgba(14, 7, 99, 0.17);
+        padding:25px;
+        border-radius: 5px;
+    }
+
+    .sinpadding{
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+</style>
+<div  ng-app="appConfAutRequisicionesCompra" ng-controller="ctrlConfAutRequisicionesCompra">
+    <red-Toolbar titulo="Autorización de Requisiciones - Configuración">
+        <button class="btn-icon25p btn-regresar25p" ng-click="toList()" title="Regresar al listado"></button>
+        <button class="btn-icon25p btn-guardar25p" ng-click="guardarConfiguracion()" title="Guardar Configuración"></button>
+    </red-Toolbar>
+    <br>
+    <div class="row" red-panel>
+
+        <div class="row" style="margin-bottom: 10px;">
+            <div class="col-md-12">
+                <div class="col-md-1"></div>
+                <div class="col-md-10 cajas sinpadding">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <legend>&nbsp;&nbsp;&nbsp;Configuración de Autorizacion de Requisición</legend>
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <br>
+                                Divisiones:
+                                <select ng-model="id_tipodivision" class="form-control">
+                                    <option value="">Seleccionar</option>
+                                    <option ng-repeat="tipoDivision in tiposDivisiones" value="{{tipoDivision.ID_TIPODIVISION}}">{{tipoDivision.DE_TIPODIVISION}}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <br>
+                                Sucursal:
+                                <select ng-model="id_sucursal"
+                                        class="form-control"
+                                        red-validatorName="agregar"
+                                        red-validator
+                                        alias="sucursal"
+                                        change-focus
+                                        required>
+                                    <option value="">Seleccionar</option>
+                                    <option ng-repeat="sucursal in sucursales" value="{{sucursal.ID_SUCURSAL}}">{{sucursal.NB_SUCURSAL}}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <br>
+                                Puesto:
+                                <select ng-model="id_puesto"
+                                        class="form-control"
+                                        red-validatorName="agregar"
+                                        red-validator
+                                        alias="puesto"
+                                        change-focus
+                                        required>
+                                    <option value="0">Seleccionar</option>
+                                    <option ng-repeat="puesto in puestos" value="{{puesto.ID_PUESTO}}">{{puesto.NB_PUESTO}}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <br>
+                                Empleado:
+                                <select ng-model="id_empleado"
+                                        class="form-control"
+                                        red-bind="Empleados.getComboByPuesto(id_puesto=id_puesto@change)"
+                                        ng-change="filtrarDepartamentos()"
+                                        red-validatorName="agregar"
+                                        red-validator
+                                        alias="empleado"
+                                        change-focus
+                                        required
+                                        value="ID_EMPLEADO"
+                                        display="NB_EMPLEADOCOMPLETO">
+                                    <option value="0">Seleccionar</option>
+                                    <!-- <option ng-repeat="empleado in autEmpleados" value="{{empleado.ID_EMPLEADO}}">{{empleado.NB_EMPLEADO}}</option> -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;margin-bottom: 15px;">
+        <button class="btn btn-primary" ng-click="guardarConfiguracion()">Guardar</button>
+        <button class="btn btn-warning" ng-click="toList()">Regresar</button>
+    </div>
+                </div>
+                <div class="col-md-1"></div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+</div>

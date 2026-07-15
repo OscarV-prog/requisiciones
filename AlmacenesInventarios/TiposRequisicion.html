@@ -1,0 +1,101 @@
+<div  ng-app="appTiposRequisicion" ng-controller="ctrlTiposRequisicion">
+    <red-Toolbar titulo="Tipos de Requisición - Listado">
+        <button class="btn-icon25p btn-agregar25p" ng-click="abrirModal()"></button>
+    </red-Toolbar>
+    <br>
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-5">
+                    Clave:
+                    <input type="text"
+                           id="id_clave"
+                           placeholder="Clave"
+                           ng-model="id_TipoRequisicionListado"
+                           class="form-control contenido_numerico"
+                           change-focus
+                           maxlength='9'
+                           ng-focus="">
+                </div>
+                <div class="col-md-6">
+                    Tipo de Requisición:
+                    <input type="text"
+                           placeholder="Tipo de Requisición"
+                           ng-model="de_TipoRequisicionListado"
+                           class="form-control"
+                           change-focus
+                           maxlength='200'>
+                </div>
+                <div class="col-md-1" style="padding-top:18px; text-align: center;">
+                    <button ng-model="buscar" class="contenido btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+                </div>
+            </div>
+
+        </div>
+        <!-- <table width="100%">
+            <tr>
+                <td style="padding-right:5px;">
+                    Clave:
+                    <input type="text"
+                           id="id_clave"
+                           placeholder="Clave"
+                           ng-model="id_TipoRequisicionListado"
+                           class="form-control contenido_numerico"
+                           change-focus
+                           maxlength='20'
+                           ng-focus="">
+                </td>
+                <td style="padding-right:5px;">
+                   Tipo de Requisicion:
+                    <input type="text"
+                           placeholder="Tipo de Requisicion"
+                           ng-model="de_TipoRequisicionListado"
+                           class="form-control"
+                           change-focus>
+                </td>
+                <td style="vertical-align:bottom;width:28px;text-align:center">
+                    <button class="contenido btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+                </td>
+            </tr>
+        </table> -->
+    </div>
+    <br>
+
+    <div ng-grid="TiposRequisicionData" class="gridStyle" style="height: 250px;" red-grid></div>
+
+    <red-modal name="modal" titulo="Agregar Tipo de Requisición">
+        <table width="100%">
+            <tr>
+                <td colspan="2">
+                    Tipo de Requisición:
+                    <input id="TipoRequisicion"
+                           ng-model="de_TipoRequisicion"
+                           placeholder="Tipo de Requisición"
+                           type="text"
+                           class="form-control"
+                           change-focus
+                           maxlength="250"
+                           red-validatorName="agregar"
+                           red-validator="text"
+                           required
+                           alias="Tipo de Requisición">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="checkbox checkbox-primary">
+                          <input type="checkbox" checkbox
+                                 id="checkbox3"
+                                 ng-model="sn_Activo">
+                                <label for="checkbox3">
+                            Requisición Activa
+                        </label>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div class="modal-footer">
+            <button ng-model="btnGuardar" ng-click="guardar()" class="btn btn-primary">Guardar</button>
+        </div>
+    </red-modal>
+</div

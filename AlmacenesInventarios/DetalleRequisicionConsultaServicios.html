@@ -1,0 +1,362 @@
+<div id="controller" ng-app="appDetalleRequisicionConsultaServicios" ng-controller="ctrlDetalleRequisicionConsultaServicios" ng-init="init()">
+    <red-Toolbar titulo="Detalle de Requisición">
+        <!-- <button class="btn-icon25p btn-regresar25p" ng-click="regresar()"></button> -->
+    </red-Toolbar>
+    <br>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-2" style="padding-right: 0px;">
+                    Requisición:
+                    <input  type="text"
+                            ng-model="id_Requisicion"
+                            class="form-control"
+                            ng-disabled="true">
+                </div>
+                <div class="col-md-6" style="padding-left: 5px;">
+                    <table width="650%">
+                        Empleado:
+                        <tr>
+                            <td style="padding-right:5px; width: 80px;">
+                            <input type="text"
+                                    ng-model="id_Empleado"
+                                    class="form-control"
+                                    ng-disabled="true">
+
+                            </td>
+                            <td>
+                            <input type="text"
+                                    ng-model="nb_Empleado"
+                                    class="form-control"
+                                    ng-disabled="true">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+            <!-- <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-8">
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div> -->
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    Empresa:
+                    <input type="text"
+                        ng-model="nb_Empresa"
+                        class="form-control"
+                        ng-disabled="true">
+                </div>
+                <div class="col-md-2">
+                    Sucursal (Plaza):
+                    <input type="text"
+                        ng-model="nb_Sucursal"
+                        class="form-control"
+                        ng-disabled="true">
+                </div>
+                <div class="col-md-2">
+                    Departamentos:
+                    <input type="text"
+                        ng-model="nb_Departamento"
+                        class="form-control"
+                        ng-disabled="true">
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+            <!-- <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-8">
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div> -->
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    Clasificado:
+                    <input type="text"
+                        ng-model="nb_Clasificado"
+                        class="form-control"
+                        ng-disabled="true">
+                </div>
+                <div class="col-md-4">
+                    Fecha Requerido:
+                    <input type="text"
+                            ng-model="fh_FechaRequerida"
+                            class="form-control"
+                            ng-disabled="true">
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    Tipo Requisición:
+                    <input type="text"
+                            ng-model="de_TipoRequisicion"
+                            class="form-control"
+                            ng-disabled="true">
+                </div>
+                <div class="col-md-4">
+                    Tipo División
+                    <input type="text"
+                            ng-model="de_TipoDivision"
+                            class="form-control"
+                            ng-disabled="true">
+                    </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-8">
+                    Observaciones:
+                    <textarea
+                            ng-model="de_Observaciones"
+                            class="form-control"
+                            ng-disabled="true">
+
+                    </textarea>
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+            <div class="col-md-12" ng-show="sn_ConfiguracionAlmacen">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <p style="color: red; font-size: 14px; font-weight: 700;">*Esta requisición fue generada automáticamente por el Sistema SIPP debido a la configuración de almacenes sin inventario.</p>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
+        </div>
+        <br>
+        <div class="row" ng-show="sn_Finalizada">
+            <div class="col-md-12">
+                <div class="bs-callout bs-callout-primary">
+                    <div>
+                        <span class="glyphicon glyphicon-exclamation-sign parpadea" aria-hidden="true" style="color:#FFA500"></span>
+                        <label >Requisición Finalizada.</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" ng-show="!sn_Finalizada && !sn_SurtidoCompletoReq">
+            <div class="col-md-10"></div>
+            <div class="col-md-2">
+                <button  ng-model="btnFinalizar" ng-click="abrirModalFinalizarRequisicion()" ng-show="(sn_ProcesoCompras == 0 || sn_CanceladaOC == 1) && sn_ConfiguracionAlmacen == 0 && sn_PerfilPermiso == 1" class="btn btn-danger" uib-tooltip="Las requisiciones sin surtir, afectan el disponible de tu inventario. Utilice esta opcion cuando la requisicion no se vaya a surtir y sea de su interes quitarla de los movimientos pendientes considerados en el almacen.">Finalizar Requisición</button>
+            </div>
+        </div>
+
+        <div>
+            <div style="margin-bottom: 5px;">
+                <b style="color: black;font-size: 14pt;">Insumos de la requisición</b>
+            </div>
+            <div style="height:450px;" ng-grid="DetalleRequisicionConsultaServiciosData" class="gridStyle" red-grid ></div>
+        </div>
+        <br>
+        <div style="text-align:right;">
+                <!-- <a ng-click="AutorizarConsumo()">Autorizar</a> -->
+                <button   ng-model="btnSolicitarCompra" ng-click="SolicitarCompra()" ng-show="sn_SurtidoCompleto && !sn_Finalizada" class="btn btn-primary">Solicitar Comprar Seleccionados</button>
+                <button   ng-model="btnSurtir" ng-click="Surtir()" ng-show="sn_SurtidoCompleto && !sn_Finalizada" class="btn btn-primary">Surtir Seleccionados</button>
+                <button   ng-model="btnRegresar" ng-click="Regresar()" class="btn btn-warning">Regresar</button>
+        </div>
+        <br>
+        <!-- <red-modal name="modalseries" titulo="Informacion de los insumos" width="900px" height="100px">
+                <div ng-show="sn_seriados" class="form-group" style="text-align:center; color:green; min-height:18px; margin-left:15px;">
+                    <span ng-show="showMsg">{{msg}}</span>
+                </div>
+
+                <div ng-show="sn_seriados"><label style="color:black;font-size: 10pt;">Series</label>
+                    <div style="padding-bottom: 25px;" ng-grid="gridseries"></div>
+                </div>
+
+                <div ng-show="sn_destino"><label style="color:black;font-size: 10pt;">Detalle de gastos</label></div>
+                <div  ng-grid="gridgastos" class="gridStyle" red-grid ></div>
+
+                <div ng-show="detalleinsumos.lenght" style="margin-top: 25px;">
+                    <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid></div>
+                        </div>
+                        <div class="col-md-7" ng-show="sn_detalle">
+                            <div ng-repeat="(key, detalle) in camposdetalles">
+                                <div class="row">
+                                    <div class="col-md-4" style="margin-top: 10px;">
+                                        {{detalle.NB_CAMPODETALLE}}
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE" class="form-control" id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="checkbox checkbox-primary">
+                                <input type="checkbox" checkbox
+                                        id="checkbox4"
+                                        ng-model="sn_asignarmismodetalle">
+                                <label for="checkbox4">
+                                    Asignar el detalle a los series del mismo insumo
+                                </label>
+                            </div>
+                            <div style="text-align:right;" ng-model="btnasignar2">
+                                <button  tabindex="15" ng-model="btnasignar2" ng-click="asignardetalle()" class="btn btn-success">Asignar detalle</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="modal-footer">
+                <button  tabindex="15" ng-model="btnGuardar" ng-click="guardar()" class="btn btn-primary">Guardar</button>
+            </div>
+        </red-modal> -->
+        <red-modal name="modalseries" titulo="Información de los insumos" width="900px" height="100px">
+            <div ng-show="sn_seriados" class="form-group" style="text-align:center; color:green; min-height:18px; margin-left:15px;">
+                <span ng-show="showMsg">{{msg}}</span>
+            </div>
+
+            <div ng-show="sn_seriados"><label style="color:black;font-size: 10pt;">Series</label>
+                <div style="height:300px; padding-bottom: 20px;" ng-grid="gridseries" class="gridStyle" red-grid ></div>
+            </div>
+            <p>&nbsp;</p>
+            <div ng-show="sn_GeneracionPolizas">
+                <label style="color:black;font-size: 10pt;">Detalle de gastos</label>
+                <div style="height:300px;" ng-grid="gridgastos" class="gridStyle" red-grid ></div>
+            </div>
+
+            <p>&nbsp;</p>
+            <div ng-show="detalleinsumos.length" style="margin-top: 25px;">
+                <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid ></div>
+                    </div>
+                    <div class="col-md-7" ng-show="sn_detalle">
+                        <div ng-repeat="(key, detalle) in camposdetalles">
+                            <div class="row">
+                                <div class="col-md-4" style="margin-top: 10px;">
+                                    {{detalle.NB_CAMPODETALLE}}
+                                </div>
+                                <div class="col-md-8" >
+                                    <input type="text" ng-disabled="true" ng-model="detalle.DE_VALORCAMPODETALLE" class="form-control" id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}" >
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="checkbox checkbox-primary" ng-show="detalleinsumos.length > 1">
+                            <input type="checkbox" checkbox
+                                    id="checkbox4"
+                                    ng-model="sn_asignarmismodetalle">
+                            <label for="checkbox4">
+                                Asignar el detalle a los series del mismo insumo
+                            </label>
+                        </div> -->
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="form-group" style="text-align:center; color:green; min-height:18px; margin-left:15px;">
+                <span ng-show="showMsg">{{msg}}</span>
+            </div>
+            <div style="height:300px; width:700px;  padding-bottom: 20px;" ng-grid="gridseries" class="gridStyle" red-grid ></div> -->
+            <div class="modal-footer">
+                <button  tabindex="15" ng-model="btnGuardar" ng-click="autorizarConsumo()" class="btn btn-primary">Guardar</button>
+            </div>
+        </red-modal>
+
+        <red-modal name="activosfijos"  >
+
+                <div ng-show="camposdetalles.length" style="margin-top:10px;">
+
+                    <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+                    <div class="row">
+
+                        <div class="col-md-12">
+                            <div ng-grid="camposdetallesData" class="gridStyle" red-grid style="height: 200px;" ></div>
+                        </div>
+
+                    </div>
+                </div>
+            <div class="modal-footer">
+            </div>
+        </red-modal>
+
+        <red-modal name="confirmarPass" with="600">
+            <div  ng-show="sn_GuardarSinLoginUsuario">
+                <div class="col-md-10"></div>
+                <div class="col-md-2">
+                    <button  ng-model="btnPlazaForanea" ng-click="guardar()" class="btn btn-warning">Guardar</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    Empleado Solicita: <br><b>{{id_Empleado}} - {{nb_Empleado}}</b>
+
+                </div>
+            </div>
+            <p>&nbsp;</p>
+            <div class="row">
+                <div class="col-md-6">
+                    Usuario de acceso al SIPP:
+                    <input  type="text"
+                        ng-model="de_UserName"
+                        class="form-control">
+
+                </div>
+                <div class="col-md-6">
+                    Contraseña:
+                    <input  type="password"
+                        ng-model="de_Password"
+                        class="form-control">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button  ng-model="btnGuardarAutorizar" ng-click="ValidarPassword()" class="btn btn-primary">Guardar</button>
+            </div>
+        </red-modal>
+
+        <red-modal name="comentariosFinalizarRequisicion"  >
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="col-md-12" style="padding-top:10px;">
+                        <label>Comentarios:</label>
+                        <textarea ng-model="de_ComentariosFinaliza"
+                            class="form-control contenido_nopage"
+                            rows="5"
+                            maxlength="300"
+                            placeholder="Comentarios">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button  ng-model="btnFinaliza" ng-click="FinalizarRequisicion()" ng-show="sn_ProcesoCompras == 0 || sn_CanceladaOC == 1" class="btn btn-danger">Finalizar Requisición</button>
+            </div>
+        </red-modal>
+
+    <red-modal name="modalInsumosConsignar" titulo="Insumos que Recibirán un Traspaso de Consignación" width="750px">
+        <div class="row">
+            <div class="col-md-12">
+                <div ng-grid="InsumosConsignacionGrid" class="gridStyle"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="validarInsumosConsignacion()">Guardar</button>
+        </div>
+    </red-modal>
+</div>

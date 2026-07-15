@@ -1,0 +1,209 @@
+<html>
+    <head>
+        <title></title>
+        <style type="text/css">
+            @page {
+                size:landscape;
+                margin-top: 0.5cm;
+                margin-right: 0.5cm;
+                margin-left: 0.5cm;
+                margin-bottom: 0.5cm;
+
+                @bottom-center{
+                    content: "Pagina " counter(page) " de " counter(pages);
+                }
+            }
+            .panelHeader {
+                background-color: #F5F5F5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 5px;
+            }
+            .Suc {
+                background-color: #E0E0E0;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 5px;
+            }
+            .Prov {
+                background-color: #F5F5F5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 5px;
+            }
+            body{
+                margin: 0px;
+                width: 100%;
+            }
+            .grid{
+                border-spacing: 0px;
+                border: solid 1px #C5C5C5;
+
+            }
+            .grid th{
+                background-color: #B5AEAE;
+                font-size: 10pt;
+                text-align: center;
+            }
+            .grid td{
+                border-left: solid 1px #B5AEAE;
+                border-right: solid 1px #B5AEAE;
+                border-bottom: solid 1px #B5AEAE;
+                font-size: 8pt;
+                /*text-align: center;*/
+            }
+            .noGrid td{
+                border: none;
+                border-spacing: 0px;
+                font-weight: bold;
+                background-color: #C5C5C5;
+                font-size: 10pt;
+            }
+            .text{
+                font-size: 11pt;
+                font-family: arial;
+                color: rgb(37, 37, 139);
+            }
+            .textBlack{
+                font-size: 12pt;
+                font-family: arial;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="panelHeader" style="border-radius: 0px;">
+                <table width="100%">
+                    <tr>
+                        <td colspan="2" align="left">
+                            
+                            <cfoutput><img id='logo' class='media' src="#session.AR_IMAGENREPORTE#" style='width: 30%' align="left" ></cfoutput>
+                        <td>
+                    </tr>
+                    <tr>
+                        <td align="right" style="width:51px"><b>Asunto:</b></td>
+                        <td align="left">Reporte de ordenes de compra por proveedor.</td>
+                        <td align="right"><b>Fecha de Impresi&oacute;n:</b><cfoutput>#dateFormat(now(),'dd/mm/yyyy')#</cfoutput></td>
+                    </tr>
+                </table>
+            </div>
+        <br><br>
+        <!-- <table width="100%">
+            <tr>
+                <td align="right" class="text">Sucursal:</td>
+                <td align="left" class="textBlack">#Arguments.nb_sucursal#</td>
+                <td align="right" class="text">Proveedor:</td>
+                <td align="left" class="textBlack">#Arguments.nb_proveedor#</td>
+            </tr>
+            <tr>
+                <td align="right" class="text">De:</td>
+                <td align="left" class="textBlack">#dateFormat(Arguments.fh_inicio,'dd/mm/yyyy')#</td>
+                <td align="right" class="text">A:</td>
+                <td align="left" class="textBlack">#dateFormat(Arguments.fh_fin,'dd/mm/yyyy')#</td>
+            </tr>
+        </table> -->
+            <cfoutput>
+                <table width="100%">
+                    <tr>
+                        <td align="right" style="width:16%"><b>Sucursal:</b></td>
+                        <td align="left"  style="width:34%"><cfoutput>#Arguments.nb_sucursal#</cfoutput></td>
+                        <td align="right" style="width:20%"><b>Proveedor:</b></td>
+                        <td align="left"  style="width:30%">#Arguments.nb_proveedor#</td>
+                    </tr>
+                    <tr>    
+                        <td align="right"><b>Departamento:</b></td>
+                        <td align="left">#Arguments.nb_Departamento#</td>
+                        <td align="right"><b>Almacen:</b></td>
+                        <td align="left">#Arguments.nb_Almacen#</td>
+                    </tr>
+                    <tr>                        
+                        <td align="right"><b>Familia Insumo:</b></td>
+                        <td align="left"><cfoutput>#Arguments.nb_FamiliaInsumo#</cfoutput></td>
+                        <td align="right"><b>SubFamilia Insumo:</b></td>
+                        <td align="left">#Arguments.nb_SubFamiliaInsumo#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Insumo:</b></td>
+                        <td align="left">#Arguments.nb_Insumo#</td>
+                        <td align="right"><b>Tipo Requisicion:</b></td>
+                        <td align="left">#Arguments.de_tipoRequisicion#</td>
+                    </tr>
+                    <tr>    
+                        <td align="right"><b>De:</b></td>
+                        <td align="left"><cfoutput>#dateFormat(Arguments.fh_inicio,'dd/mm/yyyy')#</cfoutput></td>
+                        <td align="right"><b>Hasta:</b></td>
+                        <td align="left"><cfoutput>#dateFormat(Arguments.fh_fin,'dd/mm/yyyy')#</cfoutput></td>
+                    </tr>
+                </table>
+            </cfoutput>
+        <br>
+        <table style="width:100%" class="grid">
+            <tr>
+                <!-- <th align="center">Sucursal</th>
+                <th align="center">Proveedor</th> -->
+                <th align="center">Orden de Compra</th>
+                <th align="center">Fecha Compra</th>
+                <th align="center">Fecha Factura</th>
+                <th align="center">No. Factura</th>
+                <th align="center" style="max-width:50px">C<cfoutput>#chr(243)#digo</cfoutput></th>
+                <th align="center">Nombre Insumo</th>
+                <th align="center" style="max-width:50px">Cantidad Solicitada</th>
+                <th align="center" style="max-width:50px">Cantidad Surtida</th>
+                <th align="center" style="min-width:50px">Precio Unitario</th>
+                <th align="center" style="min-width:75px">SubTotal</th>
+                <th align="center" style="min-width:75px">IVA</th>
+                <th align="center" style="min-width:75px">Total</th>
+            </tr>
+
+            <cfoutput query="Local.reporte.query" group="id_sucursal">
+                <tr>
+                    <td align="left" colspan="12" class="Suc">#Local.reporte.query.nb_sucursal#</td>
+                </tr>
+                <cfoutput group="id_proveedor">
+                    <tr>
+                        <td align="left" colspan="12" class="Prov">#Local.reporte.query.nb_proveedor#</td>
+                    </tr>
+                    <cfoutput group="num">
+                        <tr>
+                            <td align="left">#Local.reporte.query.id_OrdenDeCompra#</td>
+                            <td align="center">#Local.reporte.query.fh_RegistroOrdenCompra#</td>
+                            <td align="center">#Local.reporte.query.fh_Factura#</td>
+                            <td align="left">#Local.reporte.query.nu_Factura#</td>
+                            <td align="right">#Local.reporte.query.id_Insumo#</td>
+                            <td align="left">#Local.reporte.query.nb_NombreInsumo#</td>
+                            <td align="right">#Local.reporte.query.nu_Cantidad#</td>
+                            <td align="right">#Local.reporte.query.nu_CantidadSurtida#</td>
+                            <td align="right">#numberFormat(Local.reporte.query.IM_PRECIOUNITARIO,'$___,___.__')#</td>
+                            <td align="right">#numberFormat(Local.reporte.query.IM_SUBTOTAL,'$___,___.__')#</td>
+                            <td align="right">#numberFormat(Local.reporte.query.IM_IVA,'$___,___.__')#</td>
+                            <td align="right" style="border-right:solid 1px ##B5AEAE;">#numberFormat(Local.reporte.query.im_total,'$___,___.__')#</td>
+                        </tr>
+                    </cfoutput>
+                    <tr>
+                        <td align="right" colspan="9" class="Prov">Totales:</td>
+                        <td align="right" class="Prov">#numberFormat(Local.reporte.query.IM_SUBTOTALPROVEEDOR,'$___,___.__')#</td>
+                        <td align="right" class="Prov">#numberFormat(Local.reporte.query.IM_IVAPROVEEDOR,'$___,___.__')#</td>
+                        <td align="right" class="Prov">#numberFormat(Local.reporte.query.IM_TOTALPROVEEDOR,'$___,___.__')#</td>
+                    </tr>
+                </cfoutput>
+                <tr>
+                    <td align="right" colspan="9" class="Suc">Totales #Local.reporte.query.nb_sucursal#:</td>
+                    <td align="right" class="Suc">#numberFormat(Local.reporte.query.IM_SUBTOTALSUCURSAL,'$___,___.__')#</td>
+                    <td align="right" class="Suc">#numberFormat(Local.reporte.query.IM_IVASUCURSAL,'$___,___.__')#</td>
+                    <td align="right" class="Suc">#numberFormat(Local.reporte.query.IM_TOTALSUCURSAL,'$___,___.__')#</td>
+                </tr>
+            </cfoutput>
+            <cfoutput>
+                    <tr class="noGrid">
+                        <td colspan="9" align="right"  class="noGrid" style="border-left:none;">Gran Total:</td>
+                        <td align="right" class="noGrid">#numberFormat(Local.reporte.query.IM_SUBTOTALREPORTE,'$___,___.__')#</td>
+                        <td align="right" class="noGrid" style="border-left:none;">#numberFormat(Local.reporte.query.IM_IVAREPORTE,'$___,___.__')#</td>
+                        <td align="right" class="noGrid" style="border-left:none;">#numberFormat(Local.reporte.query.IM_TOTALREPORTE,'$___,___.__')#</td>
+                    </tr>
+                </cfoutput>
+            
+        </table>
+    </body>
+</html>

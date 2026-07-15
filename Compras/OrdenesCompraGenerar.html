@@ -1,0 +1,694 @@
+<style type="text/css">
+  a:visited {
+    color: #428bca;
+  }
+
+  .grid {
+    vertical-align: text-top;
+  }
+
+  .grid thead {
+    background: #CCCCCC;
+  }
+
+  .grid tbody {
+    background: #FFF;
+
+  }
+
+  .grid tbody tr td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 3px 3px 3px 3px;
+  }
+
+  .grid tbody tr td input {
+    width: 90%;
+    height: 25px;
+    margin: 0px auto 0px auto;
+  }
+
+  .legendText {
+    font-size: 18px;
+  }
+
+  .parpadea {
+      margin: 5px 0px;
+      animation-name: parpadeo;
+      animation-duration: 2s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+
+      -webkit-animation-name:parpadeo;
+      -webkit-animation-duration: 1s;
+      -webkit-animation-timing-function: linear;
+      -webkit-animation-iteration-count: infinite;
+    }
+
+    @-moz-keyframes parpadeo{
+      0% { opacity: 2.0; }
+      50% { opacity: 0.0; }
+      100% { opacity: 2.0; }
+    }
+
+    @-webkit-keyframes parpadeo {
+      0% { opacity: 2.0; }
+      50% { opacity: 0.0; }
+       100% { opacity: 2.0; }
+    }
+
+    @keyframes parpadeo {
+      0% { opacity: 2.0; }
+       50% { opacity: 0.0; }
+      100% { opacity: 2.0; }
+    }
+  
+  button.accordion {
+  background-color: #f5f5f5;
+  color: #428bca;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  }
+
+  button.accordion.active, button.accordion:hover {
+    background-color: #f5f5f5;
+  }
+
+  button.accordion:after {
+    content: '\02795';
+    font-size: 13px;
+    color: #f5f5f5;
+    float: right;
+    margin-left: 5px;
+  }
+
+  button.accordion.active:after {
+    content: "\2796";
+  }
+
+  div.sectionPanel {
+    padding: 0 18px;
+    padding-bottom: 5px;
+    max-height: 0;
+    overflow: hidden;
+    transition: 0.6s ease-in-out;
+    opacity: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    margin-top: 5px;
+  }
+
+  div.sectionPanel.show {
+    opacity: 1;
+    max-height: 500px;
+    overflow: auto;
+  }
+
+  #id_msgAlert {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: auto;
+      max-width: 50%;
+      z-index: 50000;
+      box-shadow: 1px 3px 10px #484848;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+  }
+  .mostrar { /* Clase para mostrar el elemento */
+      opacity: 1 !important;
+      visibility: visible !important;
+  }
+  @keyframes gradual {
+      from {
+          filter: opacity(0);
+      } to {
+          filter: opacity(1);
+      }
+  }
+
+</style>
+<div ng-app="appOrdenesCompraGenerar" ng-controller="ctrlOrdenesCompraGenerar">
+  <red-Toolbar titulo="Cotizaciones por Solicitudes de Compra - Generar">
+    <button class="btn-icon25p btn-regresar25p" ng-click="regresar()" title="Regresar (ALT+R)"></button>
+  </red-Toolbar>
+  <br>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="col-md-12">
+        <fieldset>
+          <button class="accordion active">Información General</button>
+          <div class="sectionPanel show">
+            <div class="row" red-panel>
+              <div class="col-md-12">
+                <fieldset>
+                  <div class="col-md-12">
+                    <div class="col-md-3">
+                      <label>Folio de Solicitud de compra:</label>
+                      <input type="text" value="{{id_solicitudCompra + ' - ' + nb_Empresa + ' ' +nb_Sucursal }}"
+                        class="form-control" disabled>
+                    </div>
+                    <div class="col-md-3">
+                      <label>Fecha reg. Solicitud Compra:</label>
+                      <input type="text" ng-model="fh_solicitudCompra" title="Fecha Registro solicitud Compra"
+                        class="form-control" disabled>
+                    </div>
+                    <div class="col-md-3">
+                      <label>Folio de Requisición Origen:</label>
+                      <input type="text" ng-model="id_requisicion" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-3">
+                      <label>Fecha registro Requisición:</label>
+                      <input type="text" ng-model="fh_requisicion" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-3" ng-show="sn_Siniestro">
+                      <label>Nro. de Siniestro:</label>
+                      <input type="text" ng-model="nu_Siniestro" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-12">
+                      <label>Comentarios:</label>
+                      <textarea ng-model="comentarios" class="form-control" disabled style="resize:none; min-height:70px;"
+                        rows="{{1 + (comentarios.length / 100)}}" maxlength="1000"></textarea>
+                    </div>
+                    <div class="col-md-3" ng-if="ArchivoSoporteRequisicion.nombre">
+                      <label>Archivo Soporte: </label>
+                      <ver-archivo dir="ArchivoSoporteRequisicion" ng-show="true" ng-model="btnEl3">
+                      </ver-archivo>
+                    </div>
+                    <div class="col-md-6" ng-if="!ArchivoSoporteRequisicion.nombre && id_requisicion !== '-'">
+                      <label style="color:red;font-size: 10pt;">ESTA REQUISICIÓN NO CUENTA CON ARCHIVO DE SOPORTE</label>
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="row">
+            <div class="col-md-12">
+              <fieldset ng-disabled="solicitudCompra.SN_COMPRADA">
+                <legend class="legendText">Insumos de la solicitud de compra</legend>
+                <!-- <div ng-grid="gridInsumosSolicitud" class="gridStyle" style="height: 200px !important;"></div> -->
+                <table class="table table-bordered grid">
+                  <thead>
+                    <tr>
+                      <th style="text-align:center; width:10%">ID</th>
+                      <th style="text-align:center; width:20%">Insumo</th>
+                      <th style="text-align:center; width:20%">Caracteristicas</th>
+                      <th style="text-align:center; width:10%">UnidadMedida</th>
+                      <th style="text-align:center; width:10%">Grupo CC</th>
+                      <th style="text-align:center; width:10%">Centro Costo</th>
+                      <th style="text-align:center; width:10%">Cantidad</th>
+                      <th style="text-align:center; width:10%">Cant. Comprado</th>
+                      <th style="text-align:center; width:10%">Cant. Pendiente</th>
+                      <th style="text-align:center; width:10%">Colaborador</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="item in insumosSolicitud">
+                      <td>
+                        {{item.ID_INSUMO}}
+                      </td>
+                      <td style="text-align:left;">
+                        {{item.NB_NOMBREINSUMO}}
+                      </td>
+                      <td>
+                        {{item.VALORESDETALLE}}
+                      </td>
+                      <td>
+                        {{item.NB_UNIDADMEDIDA}}
+                      </td>
+                      <td>
+                        {{item.NB_GRUPOCENTROCOSTO}}
+                      </td>
+                      <td>
+                        {{item.NB_CENTROCOSTO}}
+                      </td>
+                      <td>
+                        {{item.NU_CANTIDADSOLICITADA}}
+                      </td>
+                      <td>
+                        {{item.NU_CANTIDADCOMPRADA}}
+                      </td>
+                      <td>
+                        {{item.NU_CANTIDADPENDIENTECOMPRA}}
+                      </td>
+                      <td>
+                        {{item.DE_COLABORADOR}}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </fieldset>
+            </div>
+          </div>
+          <br>
+          <div red-panel class="row" ng-if="!solicitudCompra.SN_COMPRADA">
+            <div class="col-md-12">
+              <div class="col-md-3">
+                <button ng-model="btn" class="btn-icon25p btn-detalleAgregar25p"
+                  title="Solicitar cotización a proveedor" ng-click="toCotizaciones()"></button>
+                <span><strong>Clic para solicitar cotización</strong></span>
+              </div>
+              <div class="col-md-2" ng-if="cotizacionesEnviadas.length > 0">
+                <button class="btn-icon25p btn-pdf25p" style="color: #03467f;" ng-click="generarPDF()"></button>
+                <span>Imprimir Cotizaciones</span>
+              </div>
+              <div class="col-md-2" style="text-align: center" ng-if="!sn_NoComprar">
+                <button class="btn btn-warning form-control" title="Marcar la Solicitud como que no se trabajara"
+                  ng-click="modalNoTrabajar()">NO TRABAJAR</button>
+              </div>
+              <div class="col-md-3" style="text-align: center" ng-if="sn_NoComprar">
+                <button class="btn btn-warning form-control" title="Marcar la Solicitud Para Trabajarla de Nuevo"
+                  ng-click="MarcarSolicitudCompra()">VOLVER A TRABAJAR</button>
+              </div>
+              <div class="col-md-2" style="text-align: center">
+                <button class="btn btn-warning" title="Regresar (ALT+R)" ng-click="regresar()">Regresar</button>
+              </div>
+            </div>
+
+            <div class="col-md-12">
+              <div class="col-md-6"></div>
+              <div class="col-md-5">
+                <textarea type="text" ng-model="de_ObservacionesNoComprar" style="resize: none; height: 100px;"
+                  class="form-control" disabled="disabled" ng-show="de_ObservacionesNoComprar">
+                </textarea>
+              </div>
+            </div>
+          </div>
+          <br>
+          <button class="accordion active">
+            Cotizaciones enviadas para la Solicitud de Compra #<span
+            style="color: red">{{id_solicitudCompra}}</span>
+          </button>
+          <div class="sectionPanel show">
+            <div class="row">
+              <div class="row">
+                <fieldset style="margin-left:30px;margin-right:30px;"> <!-- ng-disabled="solicitudCompra.SN_COMPRADA"  -->
+                  <!-- **Alejandro Martinez** Titulo anterior de la seccion. Se cambio por el panel -->
+                  <!-- <legend class="legendText">Cotizaciones enviadas para la Solicitud de Compra #<span
+                      style="color: red">{{id_solicitudCompra}}</span></legend> -->
+                  <div ng-grid="gridCotizacionesEnviadas" red-grid class="gridStyle" ng-model="gridCotizaciones"></div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+          <br>
+          <div ng-hide="sn_comprada" red-panel class="row">
+            <div class="col-md-12">
+              <label>¿Qué desea hacer?</label>
+            </div>
+            <div class="col-md-12">
+              <div class="col-md-3">
+                <label style="cursor:pointer;">Registrar Precios
+                  <input type="radio" ng-model="sn_Operacion" value="regiprecios"
+                    ng-disabled="!insumosCotizacion.length > 0 ">
+                </label>
+              </div>
+              <div class="col-md-4">
+                <label style="cursor:pointer;">Generar Orden de Compra
+                  <input type="radio" ng-model="sn_Operacion" value="oc" ng-disabled="!insumosCotizacion.length > 0 ">
+                </label>
+              </div>
+            </div>
+          </div>
+          <br>
+          <button class="accordion active">
+            Precios por insumo de acuerdo al proveedor <span ng-bind="de_estatusSurtido"
+            style="color:red;" ng-show="sn_showLabel"></span>
+          </button>
+          <div class="sectionPanel show">
+            <div class="row">
+              <div class="row">
+                <fieldset ng-disabled="solicitudCompra.SN_COMPRADA" style="margin-left:30px;margin-right:30px;">
+                  <!-- **Alejandro Martinez** Titulo anterior de la seccion. Se cambio por el panel -->
+                  <!-- <legend class="legendText">Precios por insumo de acuerdo al proveedor <span ng-bind="de_estatusSurtido" -->
+                      <!-- style="color:red;" ng-show="sn_showLabel"></span></legend> -->
+                  <div ng-grid="gridInsumosCotizacion" red-grid class="gridStyle"></div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+          <br>
+          <button class="accordion active">
+            Importes totales referentes a {{operacion}}
+          </button>
+          <div class="sectionPanel show">
+            <!-- **Alejandro Martinez** Titulo anterior de la seccion. Se cambio por el panel -->
+            <!-- <div class="row">
+              <div class="col-md-6"></div>
+              <div class="col-md-6">
+                <legend class="legendText">
+                  Importes totales referentes a {{operacion}}
+                </legend>
+              </div>
+            </div> -->
+            <div class="row" ng-show = 'sn_RegimenConfianza'>
+              <div class="col-md-6"></div>
+              <div class="col-md-6">
+                <div class="bs-callout bs-callout-primary" style="margin-top: 0;">
+                  <span class="glyphicon glyphicon-exclamation-sign parpadea" aria-hidden="true" style="color:#FFA500"></span>
+                  <label >El proveedor tributa en el régimen simplificado de confianza</label>                
+                </div>
+              </div>
+            </div>
+            <div red-panel class="row" id="panelCalendar">
+              <div class="col-md-12" style="padding: 0px">
+                <div class="col-md-5">
+                  <div class="col-md-12">
+                    <label>Observaciones OC: </label>
+                    <textarea ng-model="de_observaciones" class="form-control" style="height: 200px!important"></textarea>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="col-md-12">
+                      <label>Archivo de Autorizacion:</label>
+                    </div>
+                    <div class="col-md-12">
+                      <div class="col-md-9">
+                        <input ng-model="ar_ArchivoAutorizacion" id="ar_ArchivoAutorizacion" placeholder="Archivo de Autorizacion" type="file" class="form-control" ng-change="validarArchivo(ar_ArchivoAutorizacion)" red-filemodel="ar_ArchivoAutorizacion" ng-disabled="insumosComprar.length === 0 || !sn_compra" >
+                      </div>
+                      <div class="col-md-3">
+                        <div class="cell" style="float:rigth">
+                          <div ng-show="sn_showArchivo" style="display: inline;">
+                            <ver-archivo dir="ArchivoAutorizacionOC" ng-model="btnEl3" style="margin-top:2px;"></ver-archivo>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+  
+                <div class="col-md-7" style="padding: 0px">
+                  <div class="col-md-12" style="margin-top: 2px;">
+                    <div class="col-md-5" style="margin-top: 13px; text-align: right;padding-right: 0px;">
+                      <label>Tipo Compra:</label>
+                    </div>
+                    <div class="col-md-7" style="margin-top:5px;">
+  
+                      <select class="form-control" ng-model="id_TipoComprobante"
+                        ng-options="item.ID_TIPOCOMPROBANTE as item.DE_TIPOCOMPROBANTE for item in tiposComprobantes | orderBy:'DE_TIPOCOMPROBANTE'"
+                        ng-change="getTiposComprobantesImpuestos()" ng-disabled="sn_compra">
+                        <option value="">Seleccionar</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-12" style="margin-top: 2px;">
+                    <div class="col-md-5" style="margin-top: 13px; text-align: right;padding-right: 0px;">
+                      <label>Moneda:</label></div>
+                    <div class="col-md-7" style="margin-top:5px;">
+                      <div class="col-md-8" style="padding: 0;padding-right: 4px;">
+                        <select ng-model="moneda"
+                          ng-options="moneda.NB_MONEDA for moneda in Monedas track by moneda.ID_MONEDA"
+                          class="form-control" change-focus ng-change="calcularTotal(false);setChange()"
+                          ng-disabled="sn_comprada || !insumosCotizacion.length > 0 ">
+                          <option value="">Seleccionar</option>
+                        </select>
+                      </div>
+                      <div class="col-md-4" style="padding: 0;">
+                        <input type="text" class="form-control contenido_moneda alignRight"
+                          ng-model="moneda.IM_TIPOCAMBIO" change-focus placeholder="Tipo cambio"
+                          ng-change="calcularTotal();setChange()" ng-disabled="true">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12" style="margin-top: 2px;">
+                    <div class="col-md-5" style="margin-top: 13px; text-align: right;padding-right: 0px;">
+                      <label>Sub-total:</label></div>
+                    <div class="col-md-7" style="margin-top:5px;">
+                      <input type="text" ng-model="im_subTotal" class="form-control contenido_moneda"
+                        style="text-align: right;" red-validatorname="footer" red-validator="money" required disabled>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="col-md-5" style="margin-top: 13px; text-align: right;padding-right: 0px;">
+                      <label>Descuento:</label></div>
+                    <div class="col-md-7" style="margin-top:5px;">
+                      <input type="text" ng-model="im_descuento" class="form-control contenido_moneda"
+                        style="text-align: right;" red-validatorname="footer" red-validator="money" disabled>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="col-md-5" style="margin-top: 13px; text-align: right;padding-right: 0px;">
+                      <label>Sub-Total</label> <span style="color:red;font-weight:bold;font-size:15px;">-</span>
+                      <label>Descuento:</label></div>
+                    <div class="col-md-7" style="margin-top:5px;">
+                      <input type="text" ng-model="im_subtotalDesc" class="form-control contenido_moneda"
+                        style="text-align: right;" red-validatorname="footer" red-validator="money" required disabled>
+                    </div>
+                  </div>
+                  <div class="col-md-12" ng-show="sn_Materiales">
+                    <div class="col-md-5" style="margin-top: 13px; text-align: right;padding-right: 0px;"><label>Gastos de
+                        Envio:</label></div>
+                    <div class="col-md-7" style="margin-top:5px;">
+                      <input type="text" ng-model="im_Envio" class="form-control contenido_moneda"
+                        style="text-align: right;" red-validatorname="footer" red-validator="money" required change-focus
+                        ng-blur="calcularTotal(false);setChange()"
+                        ng-disabled="sn_compra || !insumosCotizacion.length > 0 ">
+                    </div>
+                  </div>
+
+                  <div class="col-md-12">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-8">
+                      <div class="checkbox checkbox-primary" style="margin-left: 5px; margin-top:0px;">
+                        <input type="checkbox" checkbox id="sn_DescuentoNC" value="0" ng-model="sn_DescuentoNC" title="Se cuenta con nota de crédito." ng-disabled="sn_Operacion != 'oc'">
+                        <label for="sn_DescuentoNC">
+                          <strong>Descuento por Nota de Crédito</strong>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-12" style="margin-top: 2px;padding:0;border-bottom: solid 1px; margin-bottom: 12px;">
+                    <div class="col-md-2" style="padding: 0px"><label>Impuestos:</label></div>
+                  </div>
+                  <div ng-show="sn_regiprecios">
+                    <div class="col-md-12" ng-repeat="(key, item) in ImpuestosComboSC">
+                      <div class="col-md-5" style="text-align: right;margin-top: 10px;">
+                        <label>{{item.DE_IMPUESTO}}:</label>
+                      </div>
+                      <div class="col-md-4">
+                        <select class="form-control" ng-model="ImpuestosComboSC[$index]['TAZA']" id="id_taza{{$index}}"
+                          ng-change="calcularTotal();"
+                          ng-options="item2.DE_IMPUESTOTAZA for item2 in impuestosTazas | orderBy:'NU_TAZA' | filter:{ID_IMPUESTO : item.ID_IMPUESTO}">
+                          <option value="">Seleccione</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <input type="text" ng-model="ImpuestosComboSC[$index]['IM_IMPORTE']"
+                          class="form-control contenido_moneda impuestos" placeholder="$0.0000"
+                          ng-disabled="!ImpuestosComboSC[$index]['TAZA']" maxlength="12" ng-blur="calcularTotal()"
+                          style="text-align: right;">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div ng-show="sn_compra">
+                    <div class="col-md-12" ng-repeat="(key, item) in ImpuestosComboOC">
+                      <div class="col-md-5" style="text-align: right;margin-top: 10px;">
+                        <label>{{item.DE_IMPUESTO}}:</label>
+                      </div>
+                      <div class="col-md-4">
+                        <select class="form-control" ng-model="ImpuestosComboOC[$index]['TAZA']" id="id_taza{{$index}}"
+                          ng-options="item2.DE_IMPUESTOTAZA for item2 in impuestosTazas | orderBy:'NU_TAZA' | filter:{ID_IMPUESTO : item.ID_IMPUESTO}"
+                          ng-change="calcularTotal();">
+                          <option value="">Seleccione</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <input type="text" ng-model="ImpuestosComboOC[$index]['IM_IMPORTE']"
+                          class="form-control contenido_moneda impuestos" placeholder="$0.00" maxlength="12"
+                          ng-disabled="!ImpuestosComboOC[$index]['TAZA']" ng-blur="calcularTotal()" style="text-align: right;">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12" style="margin-top: 5px;">
+                    <div class="col-md-5" style="margin-top: 8px; text-align: right;padding-right: 0px;"><label>Importe
+                        total:</label></div>
+                    <div class="col-md-7">
+                      <input type="text" ng-model="im_total" class="form-control contenido_moneda" id="im_Total"
+                        style="text-align: right;" red-validatorname="footer" red-validator="money" required disabled>
+                    </div>
+                  </div>
+                  <div class="col-md-12" style="margin-top: 5px;">
+                    <div class="col-md-5" style="margin-top: 8px; text-align: right;padding-right: 0px;"><label>Fecha
+                        probable de entrega:</label></div>
+                    <div class="col-md-7">
+                      <red-calendar ng-model="fh_probEntrega" id="fh_probEntrega" format="dd/MM/yyyy"
+                        ng-click="setMarginPanel()" focus-open="false" red-validatorname="footer" red-validator required
+                        alias="Fecha" ng-disabled="sn_compra || !insumosCotizacion.length > 0">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <br>
+            </div>
+          </div>
+        </fieldset>
+        <div class="col-md-12" style="text-align:right; padding-top: 10px;">
+          <label style="color:red; font-weight:bold;" ng-show="insumosComprar.length>0 && sn_compra && !sn_NoComprar"><input
+              class="ngSelectionCheckbox" type="checkbox" ng-model="sn_CorreoProveedor" default="true"> NO ENVIAR A PROVEEDOR</label>
+          <button ng-show="insumosComprar.length>0 && sn_compra && !sn_NoComprar" id="btn_GenerarOC" class="btn btn-primary"
+            title="Generar Orden de Compra" ng-click="esMejorOpcion()">Generar Orden de Compra para Cotización seleccionada</button>
+          <button ng-show="btn_regiprecios && siprecios && insumosCotizacion.length > 0 && sn_change"
+            ng-if="!solicitudCompra.SN_COMPRADA" class="btn btn-success" title="Guardar Precios"
+            ng-click="guardarPrecios()">Guardar precios</button>
+          <button class="btn btn-warning" title="Regresar (ALT+R)" ng-click="regresar()">Regresar</button>
+        </div>
+
+        <red-modal name="modal" titulo="¿Porque se ha elegido esta cotización?">
+          <div class="row">
+            <div class="col-md-12">Cotización <label>#{{id_cotizacionSeleccionada}}</label></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <label>Comentarios:</label>
+              <textarea ng-model="de_comentarios" class="form-control" style="resize: none;height: 115px;"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button ng-model="btnGuardar" id="btn_Guardar" ng-click="setComents()" class="btn btn-primary">Guardar</button>
+          </div>
+        </red-modal>
+
+        <red-hotkey altkey="true" key="r" action="regresar">
+          <red-hotkey altkey="true" key="c" action="foco">
+
+            <red-modal name="modalImpuestos" titulo="Impuestos para Cotizacion #{{id_cotizacionSeleccionada}}">
+              <br>
+              <div class="gridStyle" ng-grid="gridImpuestos" style="height:200px;width:100%"></div>
+              <div class="modal-footer">
+              </div>
+            </red-modal>
+
+            <red-modal name="modalImpuestosOC" titulo="Impuestos para aplicar a la orden de compra">
+              <br>
+              <div class="gridStyle" ng-grid="gridImpuestosOC" style="height:200px;width:100%"></div>
+              <div class="modal-footer">
+              </div>
+            </red-modal>
+
+            <red-modal name="activosfijos" width="900px" height="100px">
+
+              <div ng-show="detalleinsumos.length" style="margin-top:10px;">
+
+                <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+                <div class="row">
+                  <div class="col-md-5">
+                    <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid></div>
+                  </div>
+                  <div class="col-md-7" ng-show="sn_detalle">
+                    <div ng-repeat="(key, detalle) in camposdetalles">
+                      <div class="row">
+                        <div class="col-md-4" style="margin-top: 5px;">
+                          {{detalle.NB_CAMPODETALLE}}
+                        </div>
+                        <div class="col-md-8">
+                          <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE"
+                            style="height: 27px;margin-bottom: 3px;" class="form-control"
+                            id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}">
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button tabindex="15" ng-if="!solicitudCompra.SN_COMPRADA" ng-model="btnGuardar"
+                  ng-click="guardarDetalle()" class="btn btn-primary">Guardar</button>
+              </div>
+            </red-modal>
+      </div>
+      <div class="col-md-1">
+
+      </div>
+    </div>
+  </div>
+
+  <red-modal name="modalNoTrabajar" titulo="Observaciones">
+    <table width="100%">
+      <tr>
+        <td>
+          <div class="row">
+            <div class="col-md-12">
+              Observaciones:
+              <textarea type="text" ng-model="de_ObservacionesNoComprar" style="resize: none; height: 100px;"
+                class="form-control" maxlength="250">
+                          </textarea>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+    </table>
+    <div class="modal-footer">
+      <button ng-model="btnAceptar" ng-click="MarcarSolicitudCompra()" class="btn btn-primary">Aceptar</button>
+    </div>
+  </red-modal>
+
+  <red-modal name="modalDocOC" title="Visor de Cotizacion" width="1000px">
+    <div class="row" style="padding: 3%;">
+      <span id="notaCotizaciones" class="text-bg-danger"></span>
+        <div class="row" style="padding: 2%; background-color: #464545;">
+            <div style="overflow: auto; max-height: 60vh; background-color: #ffffff; padding: 2%;">
+                <div ng-bind-html="htmlBind"></div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <span id="descargarOC" class="text-bg-primary"></span>
+    </div>
+  </red-modal>
+
+  <!-- <red-modal name="sustitucionOC" title="Datos de Sustitución" width="40%">
+    <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-4">
+        <label>Numero de Sustitución de OC:</label>
+      </div>
+      <div class="col-md-6">
+        <input type="number" ng-model="id_SusOC" class="form-control contenido_numerico" style="text-align: left">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-4">
+        <label>Documento Soporte:</label>
+      </div>
+      <div class="col-md-6">
+        <input type="file" ng-model="ar_SusArc" ng-change="valArch()" class="form-control" red-filemodel="ar_SusArc">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <label>Comentarios:</label>
+        <textarea ng-model="de_Suscomentarios" class="form-control" style="resize: none;height: 115px;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button ng-model="btnAceptar" ng-click="getInfoSustitucion()" class="btn btn-primary">Aceptar</button>
+    </div>
+  </red-modal> -->
+
+  <br>
+
+  <div id="id_msgAlert"
+      class="alert transicionAlerta"
+      role="alert" ng-cloaki
+      ng-class="{'show': showAlert}">
+      <p style="font-weight: 700; font-size: 12px;">{{msgAlert}}</p>
+  </div>
+</div>

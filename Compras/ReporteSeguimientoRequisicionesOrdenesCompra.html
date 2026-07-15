@@ -1,0 +1,187 @@
+<script type="text/javascript" src="/js/services/reportes/Compras/Reporte/ReporteSeguimientoRequisiciones.js"></script>
+<div  
+    ng-app="appReporteSeguimientoRequisicionesOrdenesCompra" 
+    ng-controller="ctrlReporteSeguimientoRequisicionesOrdenesCompra" ng-init="init()">
+    <red-toolbar titulo="Reporte Seguimiento de Requisiciones y Compras"></red-toolbar>
+    <br>
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Empresa:</label>
+                        <div class="input-group" style="width: 100%;">
+                                <select ng-model="filtros.id_Empresa" id="id_Empresa" class="form-control" ng-change="getSucursalEmpleado()"
+                                        ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in EmpresasArray | unique:'NB_EMPRESA'">
+                                    <option value="">Seleccionar</option>
+                                </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Sucursal(es):</label>
+                        <div class="input-group" style="width: 100%;">
+                            <select class="form-control" chosen data-placeholder="Seleccionar" multiple id="id_Sucursales"
+                                ng-model="Sucursales"
+                                ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in SucursalesArray"
+                                ng-change="">
+                            </select>
+                            <span ng-show="Sucursales" ng-click="Sucursales = []"
+                                class="input-group-addon bg-info input_span glyphicon glyphicon-remove-circle"
+                                style="color: #336998;" title="Deseleccionar Todas"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Tipo Requisición:</label>
+                        <div class="input-group" style="width: 100%;">
+                            <select ng-model="filtros.id_TipoRequisicion" id="id_TipoRequisicion" class="form-control">
+                                <option value="">Seleccionar</option>
+                                <option value="1">Servicios</option>
+                                <option value="2">Materiales</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>División:</label>
+                        <div class="input-group" style="width: 100%;">
+                            <select ng-model="filtros.id_TipoDivision"
+                                class="form-control"
+                                ng-options="item.ID_TIPODIVISION as item.DE_TIPODIVISION for item in Divisiones | filter : filterDivisiones() | unique:'DE_TIPODIVISION'">
+                                <option value="">Seleccionar</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Tipo Proveedor:</label>
+                        <div class="input-group" style="width: 100%;">
+                            <select ng-model="filtros.id_TipoProveedor" id="id_TipoProveedor" class="form-control" ng-change="getProveedores()">
+                                <option value="">Seleccionar</option>
+                                <option value="1">Filial</option>
+                                <option value="0">Externo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Proveedor(es):</label>
+                        <div class="input-group" style="width: 100%;">
+                            <select chosen multiple  
+                                data-placeholder="Seleccionar"
+                                class="form-control" 
+                                ng-model="Proveedores"
+                                id="id_Proveedores"
+                                ng-options="item.ID_PROVEEDOR as item.NB_PROVEEDOR for item in ProveedoresArray"
+                                ng-change="">
+                            </select>
+                            <span ng-show="Proveedores" ng-click="Proveedores = []"
+                            class="input-group-addon bg-info input_span glyphicon glyphicon-remove-circle"
+                            style="color: #336998;" title="Deseleccionar Todas"></span>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <!-- <fieldset class="cajas border-lightblue">
+                    <label class="fieldset-label" style="color: #428bca;">Tipo de búsqueda</label> -->
+                    <!-- <div class="row"> -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Tipo de búsqueda:</label>
+                                <div class="input-group" style="width: 100%;">
+                                    <select ng-model="filtros.id_TipoBusqueda" id="id_TipoBusqueda" class="form-control">
+                                        <option value="">Seleccionar</option>
+                                        <option value="1">Autorización de Requisición</option>
+                                        <option value="2">Elaboración de Orden de Compra</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- Fecha Inicio:
+                            <red-calendar ng-model="fh_inicio" id="fh_inicial" format="yyyy/MM/dd" open-focus="false"
+                                red-validatorName="buscar" alias="fecha inicio" red-validator required ng-disabled="disabled"> -->
+
+
+                            <label>Fecha Inicio:</label>
+                            <red-calendar
+                            ng-model="fh_Inicio"
+                            focus-open="false"
+                            format="dd/MM/yyyy"  red-validatorName="buscar" alias="fecha inicio" red-validator required ng-disabled="disabled" id="fh_inicial" >
+                            </red-calendar>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Fecha Fin:</label>
+                            <red-calendar
+                            ng-model="fh_Fin"
+                            focus-open="false"
+                            format="dd/MM/yyyy" id="fh_final">
+                            </red-calendar>
+                        </div>
+                    <!-- </div> -->
+                <!-- </fieldset> -->
+            </div>
+        </div>
+         <!-- <div class="row">
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-10"></div>
+                <div class="col-md-2">
+                    <br>
+                    <ng-excel name="Reporte Seguimiento" extension="xlsx" scale="80" ng-click="generarExcel()" button-type="button"
+                        button-name="GENERAR XLS">
+                        <ng-sheet name="Reporte Seguimiento" dataset="dataReporte"></ng-sheet>
+                    </ng-excel>
+                </div>
+            </div>
+            </div>
+        </div> -->
+    </div>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-12" style=" text-align: right">
+            <br>
+            <ng-excel name="{{NAME_EXCEL}}" extension="xlsx" scale="80" ng-click="generarExcel()" button-type="button" button-name="GENERAR XLS">
+                <ng-sheet name="{{NAME_SHEET}}" dataset="ReporteData"></ng-sheet>
+            </ng-excel>
+        </div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>    
+        <br>
+        <br>
+        <br>    
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>    
+        <br>
+        <br>
+        <br>    
+        <br>
+        <br>
+        <br>
+    </div>
+</div>

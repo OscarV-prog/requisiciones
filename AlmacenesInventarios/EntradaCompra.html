@@ -1,0 +1,570 @@
+<script type="text/javascript" src="/js/services/reportes/AlmacenRefacciones/ActivosFijosLevantamiento/plantillaCargaMasiva.js"></script>
+<style type="text/css">
+    .parpadea {
+      margin: 5px 0px;
+      animation-name: parpadeo;
+      animation-duration: 2s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+
+      -webkit-animation-name:parpadeo;
+      -webkit-animation-duration: 1s;
+      -webkit-animation-timing-function: linear;
+      -webkit-animation-iteration-count: infinite;
+    }
+
+    @-moz-keyframes parpadeo{
+      0% { opacity: 2.0; }
+      50% { opacity: 0.0; }
+      100% { opacity: 2.0; }
+    }
+
+    @-webkit-keyframes parpadeo {
+      0% { opacity: 2.0; }
+      50% { opacity: 0.0; }
+       100% { opacity: 2.0; }
+    }
+
+    @keyframes parpadeo {
+      0% { opacity: 2.0; }
+       50% { opacity: 0.0; }
+      100% { opacity: 2.0; }
+    }
+</style>
+<div id="controller" ng-app="appEntradaCompra" ng-controller="ctrlEntradaCompra">
+    <red-toolbar titulo="Entrada por compra">
+    </red-toolbar>
+    <br>
+    <div red-panel class="row">
+        <div  class="col-md-12">
+            <div class="col-md-2"></div>
+            <div class="col-md-3">
+                Folio OC:
+                <input  type="text"
+                        id="id_ordenDeCompra"
+                        class="form-control contenido_numerico"
+                        ng-model="id_ordenDeCompra"
+                        ng-blur="obtenerDetalleOrdenCompra()"
+                        maxlength="9"
+                        placeholder="Folio de orden de compra">
+            </div>
+            <div class="col-md-1">
+                <button ng-click="abrirModalOrdenesDeCompraSinSurtir()" class="btn-icon25p btn-buscar25p" style="margin-top:20px; margin-left:-25px;" ng-model="btnSearch"></button>
+            </div>
+            <div class="col-md-4">
+                Proveedor:
+                <input  type="text"
+                        class="form-control"
+                        ng-model="nb_proveedor"
+                        placeholder="Proveedor"
+                        ng-disabled="true">
+            </div>
+        </div>
+        <div  class="col-md-12">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div  class="col-md-12">
+            <div class="col-md-2"></div>
+            <div class="col-md-4">
+        Fecha Orden de Compra:
+        <red-calendar   
+          ng-model="fh_registroOrdenCompra"
+          focus-open="false"
+          format="dd/MM/yyyy"
+          ng-disabled="true">
+        </red-calendar>
+            </div>
+            <div class="col-md-4">
+                Fecha Programada:
+        <red-calendar   
+          ng-model="fh_EntregaProbable"
+          focus-open="false"
+          format="dd/MM/yyyy"
+          ng-disabled="true">
+        </red-calendar>
+            </div>
+        </div>
+        <div  class="col-md-12">
+            <div class="col-md-2"></div>
+            <div class="col-md-4">
+                Fecha de recepción:
+        <red-calendar   
+          ng-model="fh_recepcion"
+          focus-open="false"
+          format="dd/MM/yyyy"
+          ng-disabled="true">
+        </red-calendar>
+            </div>
+            <div class="col-md-4">
+                Días de Retraso:
+                <input  type="text"
+                        class="form-control"
+                        ng-model="nu_diasRetrazo"
+                        placeholder="Número de días de retraso"
+                        ng-disabled="true">
+            </div>
+        </div>
+        <div  class="col-md-12">
+            <div class="col-md-2"></div>
+            <div class="col-md-2">
+                Serie Factura:
+                <!-- <input     type="text"
+                        class="form-control"
+                        ng-model="fl_Serie"
+                        ng-disabled="sn_bloquearEdicion"
+                        placeholder="Serie Factura"
+                        maxlength="10"
+                        red-validatorName="detalle"
+                        alias="Folio"
+                        red-validator> -->
+                <input  type="text"
+                        class="form-control"
+                        ng-model="fl_Serie"
+                        ng-disabled="sn_bloquearEdicion"
+                        placeholder="Serie Factura"
+                        maxlength="10">
+                        <!-- required -->
+
+            </div>
+            <div class="col-md-2">
+                Folio Factura:
+                <input  type="text"
+                        class="form-control contenido_numerico"
+                        ng-model="fl_Folio"
+                        ng-disabled="sn_bloquearEdicion"
+                        placeholder="Folio Factura"
+                        maxlength="15"
+                        red-validatorName="detalle"
+                        alias="Folio"
+                        >
+            </div>
+            <div class="col-md-4">
+                Fecha de Factura:
+                <red-calendar   ng-model="fh_facturaRemision"
+                                focus-open="false"
+                                ng-disabled="sn_bloquearEdicion"
+                                format="dd/MM/yyyy"
+                                red-validatorName="detalle"
+                                alias="Fecha de factura"
+                                red-validator>
+                </red-calendar>
+            </div>
+        </div>
+        <div  class="col-md-12">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Entregado por:
+                <input  type="text"
+                        class="form-control"
+                        ng-model="de_entrego"
+                        ng-disabled="sn_bloquearEdicion"
+                        placeholder="Entregado por"
+                        maxlength="100"
+                        red-validatorName="detalle"
+                        alias="quien entrego"
+                        red-validator
+                        required>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+    </div>
+    <br>
+    <div class="row" ng-show="sn_mostrar">
+        <div class="col-md-8">
+            <div class="bs-callout bs-callout-primary" ng-show="msgInsumos.length > 0">
+                <div ng-repeat="item in msgInsumos" >
+                    <span class="glyphicon glyphicon-exclamation-sign parpadea" aria-hidden="true" style="color:#FFA500"></span>
+                    <label >{{item.msg}}</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-right" style="margin: 15px 0px; padding: 15px;">
+            <button class="btn btn-secondary" ng-click="verDetalles()" ng-show="existeConfiguracion"><i class="fas fa-eye"></i> Ver Detalles </button>
+            <button class="btn btn-primary"   ng-click="registrarEntrada()"><i class="fas fa-save"></i> Registrar entrada</button>
+        </div>
+    </div>
+    <br>
+    <div class="gridStyle" ng-grid="compraDetalleGrid"></div>
+     <!-- <div style="height:450px;" ng-grid="DetalleRequisicionConsultaAlmacenData" class="gridStyle" red-grid ></div> -->
+    <br>
+
+    <div class="row" ng-show="sn_mostrar">
+        <div class="col-md-8">
+            <div class="bs-callout bs-callout-primary" ng-show="msgInsumos.length > 0">
+                <div ng-repeat="item in msgInsumos" >
+                    <span class="glyphicon glyphicon-exclamation-sign parpadea" aria-hidden="true" style="color:#FFA500"></span>
+                    <label >{{item.msg}}</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-right" style="margin: 15px 0px; padding: 15px;">
+            <button class="btn btn-secondary" ng-click="verDetalles()" ng-show="existeConfiguracion"><i class="fas fa-eye"></i> Ver Detalles </button>
+            <button class="btn btn-primary"   ng-click="registrarEntrada()"><i class="fas fa-save"></i> Registrar entrada</button>
+        </div>
+    </div>
+    <br>
+
+    <red-modal name="modal_ODC_SinSurtir" titulo="Ordenes de compra pendientes de surtir" width="75%">
+        <fieldset>
+            <legend>Filtros:</legend>
+            <div red-panel class="row" align="center">
+                <div class="col-md-12">
+                    <div class="col-md-5" align="left">
+                        Proveedor:
+                        <!-- <input     type="text"
+                                class="form-control"
+                                id="proveedor"
+                                ng-model="proveedor"
+                                change-focus
+                                placeholder="Proveedor"
+                                ui-autocomplete="autocompleteProveedores"> -->
+                        <select ng-model="proveedor" chosen  class="form-control" ng-options="item.NB_PROVEEDOR as item.NB_PROVEEDOR for item in proveedores">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" align="left">
+                        Fecha inicio:
+                        <red-calendar   ng-model="fh_inicioModal"
+                                        focus-open="false"
+                                        id="fh_inicioModal"
+                                        format="dd/MM/yyyy">
+                        </red-calendar>
+                    </div>
+                    <div class="col-md-3" align="left">
+                        Fecha fin:
+                        <red-calendar   ng-model="fh_finModal"
+                                        id="fh_finModal"
+                                        focus-open="false"
+                                        format="dd/MM/yyyy">
+                        </red-calendar>
+                    </div>
+                    <div class="col-md-1" >
+                        <button ng-model="buscar" ng-click="buscarOrdenesDeCompraSinSurtir()" class="btn-icon25p btn-buscar25p" style="margin-top: 20px"></button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <br>
+        <div class="gridStyle" ng-grid="sinSurtirGrid">
+        </div>
+
+        <div class="modal-footer">
+        </div>
+    </red-modal>
+
+    <red-modal name="modal_insumosSeriados" titulo="Registro Entrada Almacén" width="70%">
+        <!-- <div class="row">
+            <div class="col-md-12" >
+                Tipo de Activo:
+                <select class="form-control"
+                    ng-model="id_tipoActivoFijo"
+                    ng-change="generarEtiqueta()"
+                    ng-options="item.ID_TIPOACTIVOFIJO as item.NB_TIPOACTIVOFIJO for item in TiposActivo | orderBy:'NB_TIPOACTIVOFIJO'"
+                    >
+                    <option value="">Seleccionar</option>
+                </select>
+              </div>
+        </div> -->
+
+        <div class="row">
+            <div class="col-md-12">
+                <label style="color:black;font-size: 10pt;">Insumos</label>
+                <!-- <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid ></div> -->
+                 <div class="gridStyle" style="height:300px;" ng-grid="insumosSeriadosGrid"></div> 
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top:15px;">
+            <div class="col-md-12" ng-show="sn_detalle">
+                <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+            </div>
+
+            <div class="col-md-12" ng-show="sn_detalle">
+                <div>
+                    <div class="row" ng-repeat="(outerIndex, detalle) in camposdetalles" ng-if="$index % 3 === 0">
+                        <div class="col-md-4" ng-repeat="innerIndex in [0,1,2]" ng-if="camposdetalles[outerIndex + innerIndex]">
+                            <label for="">{{camposdetalles[outerIndex + innerIndex].NB_CAMPODETALLE}}</label>
+                            <input type="text" 
+                                   ng-model="camposdetalles[outerIndex + innerIndex].DE_VALORCAMPODETALLE" 
+                                   class="form-control" 
+                                   id="{{camposdetalles[outerIndex + innerIndex].VARIABLE}}{{outerIndex + innerIndex}}" 
+                                   placeholder="{{camposdetalles[outerIndex + innerIndex].NB_CAMPODETALLE}}"
+                                   ng-attr-maxlength="
+                                   {{camposDetalle[outerIndex + innerIndex].NB_CAMPODETALLE === 'Marca' || 
+                                     camposDetalle[outerIndex + innerIndex].NB_CAMPODETALLE === 'Modelo' || 
+                                     camposDetalle[outerIndex + innerIndex].NB_CAMPODETALLE === 'Operador' ? 50 : 
+                                     camposDetalle[outerIndex + innerIndex].NB_CAMPODETALLE === 'IMEI' ? 15 : 
+                                     camposDetalle[outerIndex + innerIndex].NB_CAMPODETALLE === 'Características' ? 255 : ''}}">
+                                    
+                        </div>
+                    </div>
+                </div>
+                <!-- <div>
+                    <div class="row" ng-repeat="(key, detalle) in camposdetalles" ng-if="$index % 3 === 0">
+                        <div class="col-md-4" ng-repeat="(key, detalle) in camposdetalles.slice($index, $index + 3)">
+                            <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE" class="form-control" id="{{detalle.VARIABLE}}{{$index}}" placeholder="{{detalle.NB_CAMPODETALLE}}">
+                        </div>
+                    </div>
+                </div> -->
+
+                <!-- <div ng-repeat="(key, detalle) in camposdetalles">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE" class="form-control" id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}">
+                        </div>
+                    </div>
+                </div> -->
+
+                <div class="checkbox checkbox-primary" ng-show="detalleinsumos.length > 1">
+                    <input type="checkbox" checkbox
+                           id="checkbox4"
+                           ng-model="modal.sn_asignarmismodetalle">
+                    <label for="checkbox4">
+                        Asignar el detalle a las series del mismo insumo
+                    </label>
+                </div>
+                <div style="text-align:right;" ng-model="btnasignar2">
+                    <button  tabindex="15" ng-model="btnasignar2" ng-click="asignardetalle()" class="btn btn-success">Asignar detalle</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+        <div class="row">
+            <div class="col-md-5">
+                <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid ></div>
+            </div> 
+            <div class="col-md-7" ng-show="sn_detalle">
+                <div ng-repeat="(key, detalle) in camposdetalles">
+                    <div class="row">
+                        <div class="col-md-4" style="margin-top: 10px;">
+                            {{detalle.NB_CAMPODETALLE}}
+                        </div>
+                        <div class="col-md-8">
+                            <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE" class="form-control" id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}">
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox checkbox-primary" ng-show="detalleinsumos.length > 1">
+                    <input type="checkbox" checkbox
+                           id="checkbox4"
+                           ng-model="sn_asignarmismodetalle">
+                    <label for="checkbox4">
+                        Asignar el detalle a los series del mismo insumo
+                    </label>
+                </div>
+                <div style="text-align:right;" ng-model="btnasignar2">
+                    <button  tabindex="15" ng-model="btnasignar2" ng-click="asignardetalle()" class="btn btn-success">Asignar detalle</button>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="modal-footer">
+            <button ng-if="sn_PermisoEquipoCelular" class="btn btn-success" ng-model="dumpModel2" ng-click="abrirModalCargaMasiva()">Carga Masiva</button>
+            <button class="btn btn-primary" ng-model="dumpModel2" ng-click="validarGuardado()">Guardar</button>
+        </div>
+    </red-modal>
+
+    <red-modal name="modal_Evaluacion" titulo="" width="50%">
+        <div class="row">
+            <div class="col-md-12">Favor de responder las siguientes preguntas relacionadas con el cumplimiento del proveedor al momento de surtir esta orden de compra. <br> Es necesario responder para continuar con el proceso de recepción.</div>
+          </div> <br>
+
+        <div class="row">
+                <div class="col-md-12">
+
+                    <table  class="table">
+                        <tr ng-repeat="pregunta in Preguntas">
+                            <th>{{ pregunta.ID_PREGUNTA }}. {{ pregunta.DE_DESCRIPCION }}</th>
+                            <th> <label for="respuestaSi{{pregunta.ID_PREGUNTA}}" style="padding-right: 2px;">
+                                Sí
+                                <input type="radio" id="respuestaSi{{pregunta.ID_PREGUNTA}}" ng-model="pregunta.SELECCION" value="{{ pregunta.NU_PONDERACION }}" ng-checked="pregunta.SELECCION === pregunta.NU_PONDERACION"  ng-disabled="pregunta.SN_HABILITAR">     
+                            </label>
+                        </th>
+                            <th> <label for="respuestaNo{{pregunta.ID_PREGUNTA}}" style="padding-right: 2px;">
+                                No
+                                <input type="radio" id="respuestaNo{{pregunta.ID_PREGUNTA}}" ng-model="pregunta.SELECCION" value="0" ng-checked="pregunta.SELECCION === 0"  ng-disabled="pregunta.SN_HABILITAR">      
+                            </label>
+                        </th>
+                        </tr>
+
+                    </table>
+                </div>
+          
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+              <label>Observaciones:</label>
+              <textarea ng-model="de_observaciones" class="form-control" style="resize: none;height: 115px;"></textarea>
+            </div>
+          </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="guardarEvaluacionProveedor()"><i class="fas fa-save"></i> Guardar</button>
+        </div>
+    </red-modal>
+
+    <red-modal name="ModalCargaMasiva" titulo="Carga Masiva" width="700px">
+        <div class="row">
+            <div class="col-md-6">
+                Subir Factura:          
+                <input  type="file"
+                ng-model="ar_ArchivoSoporteFactura"
+                red-filemodel="ar_ArchivoSoporteFactura"
+                id="ar_ArchivoSoporteFactura"
+                ng-change="subirFactura(this)"
+                class="form-control">
+              </div> 
+              <div class="col-md-6">
+                <div ng-if="ArchivoSoporteFactura.nombre != ''" class="cell" style="margin-top:20px;">
+                    <ver-archivo dir="ArchivoSoporteFactura" ng-show="ar_ArchivoSoporteFactura" ng-model="btnEl3">
+                    </ver-archivo>
+                    <button class="btn-icon15p btn-eliminar15p" ng-model="btnEl3"
+                        id="btnEl3" ng-hide="visualizar"
+                        ng-click="borrarFactura()"
+                        ng-show="ar_ArchivoSoporteFactura"
+                        title="Eliminar archivo de Factura">
+                    </button>
+                </div>
+              </div>
+        </div>
+        <div class="row" style="margin-top:15px;">
+            <div class="col-md-6">
+                Subir Fotografías:      
+                <input type="file" 
+                multiple 
+                ng-model="ar_ArchivoSoporteFoto_Modal"
+                red-filemodel="ar_ArchivoSoporteFoto_Modal"
+                id="ar_ArchivoSoporteFoto_Modal"
+                ng-change="subirArchivoFoto_Masivo(this)"
+                class="form-control">
+              </div> 
+              <div class="col-md-6">
+                <div class="cell" style="margin-top: 20px;" ng-repeat="(key, item) in ar_ArchivoSoporteFotosModal">
+                    <div class="col-md-4" ng-show="item.nombre.trim() !== '' && item.ruta.trim() !== ''">
+                        <ver-archivo dir="{nombre: item.nombre, ruta: item.ruta}" ng-show="ar_ArchivoSoporteFotosModal" ng-model="btnEl3"></ver-archivo>
+                        <button class="btn-icon15p btn-eliminar15p" ng-model="btnEl3" id="btnEl3" ng-hide="visualizar" ng-click="borrarFotografiaModal(key,item, row)" title="Eliminar archivo">
+                        </button>
+                    </div>
+                </div>
+              </div>
+        </div>
+        <div class="row" style="margin-top:15px;">
+            <div class="col-md-12">
+                Subir Excel:
+                <input type="file"
+                class="form-control"
+                ng-model="ar_Excel"
+                id="ar_Excel">
+              </div> 
+        </div>
+        <div class="modal-footer">
+            <ng-excel name="Plantilla Carga Masiva" extension="xlsx" scale="80" ng-click="generarPlantilla()" button-type="button" button-name="Descargar Plantilla Excel">
+                <ng-sheet name="CargaMasiva" dataset="PlantillaExcel"></ng-sheet>
+            </ng-excel> 
+            <button class="btn btn-primary" ng-click="procesarDatosMasivos()" style="margin-left:6px;">Procesar</button>
+        </div>
+    </red-modal>
+
+    <red-modal name="modal_detalles" titulo="Detalles de la Requisición" width="50%">
+
+        <div class="row">
+            <div class="col-md-12">Detalles de la Requisición</div>
+        </div> 
+        
+        <br>
+
+        
+        <div class="row">
+            
+            <!-- <div class="gridStyle" ng-grid="detallesRequisicion"></div> -->
+            <div style="padding: 0 32px;"">
+                <table class="table table-bordered" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center;">ID INSUMO</th>
+                            <th style="text-align:center;">NOMBRE INSUMO</th>
+                            <th style="text-align:center;">GRUPO CENTRO COSTO</th>
+                            <th style="text-align:center;">CENTRO COSTO</th>
+                            <th style="text-align:center;">CANTIDAD SOLICITADA</th>
+                            <th style="text-align:center;">CANTIDAD SURTIDA</th>
+                            <th style="text-align:center;">CANTIDAD RESTANTE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in detalles">
+                            <td style="text-align:center;" title="{{item.ID_INSUMO}}">
+                                {{item.ID_INSUMO}}
+                            </td>
+                            <td style="text-align:center;" title="{{item.NB_INSUMO }}">
+                                {{item.NB_INSUMO }}
+                            </td>
+                            <td style="text-align:center; "title="{{item.NB_GRUPOCENTROCOSTO}}">
+                                {{item.NB_GRUPOCENTROCOSTO}}
+                            </td>
+                            <td style="text-align:center;" title="{{item.NB_CENTROCOSTO}}">
+                                {{item.NB_CENTROCOSTO}}
+                            </td>
+                            <td style="text-align:center;" title="{{item.NU_CANTIDAD}}">
+                                {{item.NU_CANTIDAD}}
+                            </td>
+                            <td style="text-align:center;" title="{{item.NU_CANTIDADSURTIDA}}">
+                                {{item.NU_CANTIDADSURTIDA}}
+                            </td>
+                            <td style="text-align:center;" title="{{item.NU_CANTIDAD - item.NU_CANTIDADSURTIDA}}">
+                                {{item.NU_CANTIDAD - item.NU_CANTIDADSURTIDA}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+        </div>
+    </red-modal>
+
+    <red-modal name="ModalSubirFactura" titulo="Subir Factura" width="500px">
+        <div class="row">
+          <div class="col-md-12">
+            <input  type="file"
+            ng-model="ar_ArchivoSoporte"
+            red-filemodel="ar_ArchivoSoporte"
+            id="ar_ArchivoSoporte"
+            ng-click="archivoRow(rowModal)"
+            ng-change="subirArchivo(this)"
+            class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button class="btn btn-primary" ng-click="editarCategoria(edit)">Guardar</button> -->
+        </div>
+    </red-modal>
+
+    <red-modal name="ModalSubirFotos" titulo="Subir Fotografías" width="500px">
+        <div class="row">
+          <div class="col-md-12">
+            <input type="file" 
+            multiple 
+            ng-model="ar_ArchivoSoporteFoto"
+            red-filemodel="ar_ArchivoSoporteFoto"
+            id="ar_ArchivoSoporteFoto"
+            ng-click="archivoRow(rowModalFotos)"
+            ng-change="subirArchivoFoto(this)"
+            class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button class="btn btn-primary" ng-click="editarCategoria(edit)">Guardar</button> -->
+        </div>
+    </red-modal>
+
+</div>

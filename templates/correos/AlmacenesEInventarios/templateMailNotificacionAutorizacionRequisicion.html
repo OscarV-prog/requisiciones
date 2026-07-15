@@ -1,0 +1,99 @@
+<html lang="es">
+    <head>
+        <title></title>
+        <style type="text/css">
+            .panelHeader {
+                /*margin-left: 10px;*/
+                /*margin-right: 20px;*/
+                background-color: #f5f5f5;
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 10px;
+            }
+            .divFooter{
+                font-style:normal;
+                font-variant:normal;
+                line-height:normal;
+                text-align:-webkit-auto;
+                text-transform:none;
+                white-space:normal;
+                color:rgb(48,144,96);
+                font-family:arial,sans-serif;
+                font-size:13px;             
+            }
+            .spanFooter{
+                font-size:9pt;
+                font-family:'Museo 300';
+                color:rgb(48,144,96);
+                text-decoration:underline;
+            }
+            .bodyMail{
+                font-size: 12pt;
+                font-family: arial;
+                color: rgb(37, 37, 139);
+            }
+            body{
+                margin: auto;
+                width: 60%;;
+            }
+        </style>
+    </head>
+    <cfoutput>
+        <body >
+            <div class="panelHeader" >
+                <table width="100%">
+                    <tr>
+                        <td colspan="2" align="left">
+                            <img src="cid:logo" width="40%">
+                        <td>
+                    </tr>
+                    <tr>
+                        <td align="right" style="width:51px"><b>Asunto:</b></td>
+                        <td align="left">Notificaci&oacute;n de Autorizaci&oacute;n de Requisici&oacute;n</td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+            <div class="bodyMail">
+                <table>
+                        <tr>
+                            <td align="right"><b>Empresa:</b></td>
+                            <td align="left">&nbsp;&nbsp;<i>#arguments.parametros.nb_Empresa#</i></td>
+                        </tr>
+                        <tr>
+                            <td align="right"><b>Sucursal:</b></td>
+                            <td align="left">&nbsp;&nbsp;<i>#arguments.parametros.nb_Sucursal#</i></td>
+                        </tr>
+                        <tr>
+                            <td align="right"><b>Almac&eacute;n:</b></td>
+                            <td align="left">&nbsp;&nbsp;<i>#arguments.parametros.nb_Almacen#</i></td>
+                        </tr>
+                        <tr>
+                            <td align="right"><b>Empleado:</b></td>
+                            <td align="left">&nbsp;&nbsp;<i>#arguments.parametros.nb_Empleado#</i></td>
+                        </tr>
+                        <tr>
+                            <td align="right"><b>Fecha:</b></td>
+                            <td align="left">&nbsp;&nbsp;<i>#arguments.parametros.fh_Fecha#</i></td>
+                        </tr>
+                        <tr>
+                            <td align="right"><b>Requisici&oacute;n:</b></td>
+                            <td align="left">&nbsp;&nbsp;<i>#arguments.parametros.id_Requisicion#</i></td>
+                        </tr>
+                </table>
+            </div>
+            <br>
+            <div class="divFooter">
+                <span class="spanFooter">
+                    Antes de imprimir este correo, por favor aseg&uacute;rate que es necesario y considera su impacto en el medio ambiente<img src="cid:footer">
+                </span>
+                <br>
+                <div class="spanFooter" style="text-decoration: none;margin-top: 10px;">
+                    *Este correo fue enviado automaticamente, no responder
+                </div>
+            </div>
+        </body>
+    </cfoutput>
+</html>

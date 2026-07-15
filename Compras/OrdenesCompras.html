@@ -1,5 +1,17 @@
 <style>
-    /* Modal Seguimiento */
+      /* Specify styling for tooltip contents */
+      .tooltip.customClass .tooltip-inner {
+        color: #13467F;
+        background-color: #F5F5F5;
+        box-shadow: 0 6px 12px rgba(0,0,0,.175);
+        border: #E5E5E5 1px solid;
+      }
+      /* Hide arrow */
+      .tooltip.customClass .tooltip-arrow {
+        display: none;
+      }
+
+    /*  Estilos para el modalSeguimientoRequisicion  */
     .hiddenBtn { visibility: hidden; } 
     .timeline { list-style: none; padding: 0 0 20px; position: relative; margin-top: -15px; } 
     .timeline:before { top: 30px !important; bottom: 25px; position: absolute; content: ""; width: 2px; background-color: #d6dbe3; left: 27px !important; } 
@@ -20,7 +32,6 @@
     .tl-chevron.is-open { transform: translateY(-50%) rotate(180deg); } 
     .timeline-body { padding: 10px 12px; color: #374151; font-size: 13.5px; line-height: 1.4rem; } 
     .timeline-body b { color: #111827; } 
-    .divisor { background-color: #cbd5e1; height: 2px; border-radius: 4px; } 
     .timeline-body.tl-body-closed { display: grid; grid-template-rows: 0fr; overflow: hidden; opacity: 0; transition: grid-template-rows .22s ease, opacity .18s ease; height: 15px; } 
     .timeline-body.tl-body-open { display: grid; grid-template-rows: 1fr; overflow: hidden; opacity: 1; transition: grid-template-rows .22s ease, opacity .18s ease; } 
     .timeline-body.tl-body-open > div, .timeline-body.tl-body-closed > div { overflow: hidden; } 
@@ -49,142 +60,284 @@
     #content_modalSeguimientoRequisicion { transition: max-width 0.25s ease; } 
     .viewer-collapsed #content_modalSeguimientoRequisicion { max-width: 750px !important; } 
     .seg-pdf-sub { display: flex; align-items: center; gap: 5px; }
+
+    .divisor {
+        background-color: #00437f;
+        padding: 1px;
+        border-radius: 30px;
+    }
+
+    .iconColor {
+        background-color: #f8e65c;
+        width: 10px;
+        height: 10px;
+        border-radius: 10px;
+        margin-top: 7px;
+    }
 </style>
 
-<div ng-app="appRequisiciones" ng-controller="ctrlRequisiciones" ng-init="init()">
-    <red-Toolbar titulo="Requisiciones - Listado">
-        <div>
-            <button class="btn-icon25p btn-agregar25p" ng-click="nuevaRequisicion()" title="Agregar nueva (ALT+N)"></button>
-        </div>
-        <div class="avisoManual">
-            <a href=""  ng-model="btnAviso" class="avisoManual" ng-click="abrirModalManual()" title="Manual de Usuario">
-                 <i class="far fa-question-circle"></i>
-            </a>
-        </div>
-        <div class="divIconAviso" ng-show="btnAviso">
-            <a  href=""
-                popover-template="myPopover.templateUrl"
-                popover-is-open="myPopover.isOpen"
-                popover-placement="left-bottom"
-                ng-click="myPopover.open('myPopoverTemplate')"
-                type="button"
-                class="btn btn-warning btn-xs"
-                title="Aviso de Actualizaciones">
-                <i class="far fa-lightbulb iconAviso"></i>
-            </a>
-        </div>
+<div id="controller" ng-app="appordenescompras" ng-controller="ctrlOrdenesCompras" ng-init="init()">
+    <red-Toolbar titulo="{{title}}">
+    <!--  <button class="btn-icon25p btn-agregar25p" ng-click="AgregarCotizacion()"></button>  -->
+     <button class="btn-icon25p btn-regresar25p" ng-click="regresar()" ng-show="!sn_Listado"></button>
     </red-Toolbar>
     <br>
-    <div red-panel style="color:#34495e">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    Empresa:
-                    <select class="form-control" ng-model="filtros.id_Empresa" chosen
-                        alias="Empresa"
-                        ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in Empresas | unique:'NB_EMPRESA'"
-                        ng-change="getSucursalEmpleado()">
-                        <option value="">Seleccionar</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    Sucursal:
-                  <select class="form-control"
-                      ng-model="filtros.id_sucursal"
-                      ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in Sucursales">
-                      <option value="">Seleccionar</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                    Centro de Costo:
-                    <select class="form-control" ng-model="centro" chosen
-                        alias="Centro"
-                        ng-options="centro.NB_CENTROCOSTO for centro in CentrosCostos track by centro.ID_CENTROCOSTO">
-                        <option value="">Seleccionar</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    Estatus:
-                    <select ng-model="filtros.id_estatus" class="form-control" change-focus>
-                        <option value="">Seleccionar</option>
-                        <option ng-repeat="status in statusRequisiciones" value="{{status.ID_ESTATUSAUTORIZACIONREQUISICION}}">{{status.DE_ESTATUSAUTORIZACIONREQUISICION}}</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    Nombre de la Requisición:
-                    <input type="text"
-                        ng-model="filtros.de_Requisicion"
-                        id="descripcion"
-                        class="form-control"
-                        placeholder="Descripción de la requisición">
+
+    <div ng-show="sn_Listado">
+        <div red-panel>
+            <div class="row" style="padding-bottom: 10px;">
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <label>Sucursal (Plaza):</label>
+                        <select ng-model="id_SucursaListado"
+                            class="form-control"
+                            ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in Sucursales">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Departamento:</label>
+                        <select ng-model="id_DepartamentoListado"
+                            class="form-control"
+                            ng-options="item.ID_DEPARTAMENTO as item.NB_DEPARTAMENTO for item in Departamentos">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Estatus Autorización:</label>
+                        <select ng-model="id_EstatusAutorizacionListado"
+                            class="form-control"
+                            ng-change="valor()"
+                            ng-options="item.ID_ESTATUSAUTORIZACIONORDENCOMPRA as item.DE_ESTATUSAUTORIZACIONORDENCOMPRA for item in EstatusAutorizaciones">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Estatus Surtido:</label>
+                        <select ng-model="estatusSurtido"
+                            id="estatusSurtido"
+                            class="form-control"
+                            ng-options="est.DE_ESTATUSSURTIDOORDENDECOMPRA for est in estatusSurtidos track by est.ID_ESTATUSSURTIDOORDENDECOMPRA">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    Folio:
-                    <input type="text"
-                           ng-model="filtros.id_requisicion"
-                           id="folio"
-                           class="form-control contenido_numerico"
-                           placeholder="Folio de requisición"
-                           maxlength="9"
-                           change-focus>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <label>Folio:</label>
+                        <input type="text"
+                            id="folio"
+                            ng-model="id_OperacionCompraListado"
+                            class="form-control contenido_numerico"
+                            placeholder="Folio del Documento"
+                            maxlength="9">
+                    </div>
+                    <div class="col-md-2">
+                        <label>Número Siniestro:</label>
+                        <input type="text"
+                            ng-model="nu_Siniestro"
+                            id="folio"
+                            class="form-control contenido_alfanumerico_con_espacios"
+                            placeholder="Número Siniestro"
+                            change-focus>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Tipo de Documento:</label>
+                        <select
+                            ng-model="id_TipoDocumento"
+                            class="form-control">
+                            <option value="">Seleccionar</option>
+                            <option value="1">Orden de Compra (OC)</option>
+                            <option value="2">Solicitud de Facturación (SF)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2" id="fechainicio">
+                        <label>Fecha Inicio:</label>
+                        <red-calendar ng-model="fh_InicioListado"
+                            open-focus="false"
+                            format="dd/MM/yyyy">
+                        </red-calendar>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Fecha Fin:</label>
+                        <red-calendar ng-model="fh_FinListado"
+                            open-focus="false"
+                            format="dd/MM/yyyy">
+                        </red-calendar>
+                    </div>
+                    <div class="col-md-1" style="text-align: center; padding-top: 20px;">
+                        <button class="contenido btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+                    </div>
                 </div>
-
-                 <div class="col-md-3">
-                    Insumo:
-                    <input type="text"
-                           ng-model="filtros.nb_NombreInsumo"
-                           id="nb_NombreInsumo"
-                           class="form-control"
-                           placeholder="Descripción del insumo"
-                           change-focus>
-                </div>
-                <div class="col-md-2">
-            Número Siniestro:
-            <input type="text"
-                  ng-model="filtros.nu_Siniestro"
-                  id="siniestro"
-                  class="form-control contenido_alfanumerico_con_espacios"
-                  placeholder="Número Siniestro"
-                  change-focus>
+            </div>
         </div>
+        <br>
 
-                <div class="col-md-2">
-                    Fecha Inicio:
-                    <red-calendar ng-model="fh_inicio"
-                            focus-open="false"
-                            format="dd/MM/yyyy"></red-calendar>
+        <div class="row" red-panel>
+            <div class="col-md-12" style="display: flex;">
+                <div class="iconColor"></div>
+                <label style="margin-left: 5px; margin-top: 5px;">Solicitud de Facturación (Consignación)</label>
+            </div>
+        </div>
+        <br>
+
+        <fieldset>
+            <div ng-grid="OrdenesComprasData" id="OrdenesComprasData" class="gridStyle" style="height: 500px;" red-grid ></div>
+        </fieldset>
+
+        <div style="margin-top: 15px; padding: 19px 1px 20px; text-align: right; border-top: 1px solid #e5e5e5;">
+            <button ng-model="btnAutorizar" ng-show="sn_showButtons" ng-click="AbrirModalAutorizar()" class="btn btn-primary">Autorizar Seleccionados</button>
+            <button  ng-model="btnRechazar" ng-show="sn_showButtons" ng-click="AbrirModalRechazar()" class="btn btn-danger">Rechazar Seleccionados</button>
+        </div>
+    </div>
+
+    <div ng-show="!sn_Listado">
+        <div class="row">
+            <div class="col-md-12">
+
+                <div class="row" red-panel>
+                    <legend class="text-primary">Información de la Solicitud de factura</legend>
+                    <div class="col-md-2"></div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="nb_Empresa">Empresa:</label>
+                                <input type="text"
+                                    class="form-control"
+                                    ng-model="SolFac.nb_Empresa"
+                                    id="nb_Empresa"
+                                    ng-disabled="true">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="nb_Sucursal">Sucursal:</label>
+                                <input type="text"
+                                    class="form-control"
+                                    ng-model="SolFac.nb_Sucursal"
+                                    id="nb_Sucursal"
+                                    ng-disabled="true">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="nb_Proveedor">Proveedor:</label>
+                                <input type="text"
+                                    class="form-control"
+                                    ng-model="SolFac.nb_Proveedor"
+                                    id="nb_Proveedor"
+                                    ng-disabled="true">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="fh_Registro">Fecha de Registro:</label>
+                                <red-calendar ng-model="fh_RegistroSolicitud"
+                                    open-focus="false"
+                                    format="dd/MM/yyyy"
+                                    ng-disabled="true">
+                                </red-calendar>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="id_Solicitud">Folio de Solicitud:</label>
+                                <input type="text"
+                                    class="form-control"
+                                    ng-model="SolFac.id_Solicitud"
+                                    id="id_Solicitud"
+                                    ng-disabled="true">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="nb_Usuario">Usuario Genero:</label>
+                                <input type="text"
+                                    class="form-control"
+                                    ng-model="SolFac.nb_Usuario"
+                                    id="nb_Usuario"
+                                    ng-disabled="true">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2"></div>
                 </div>
-                <div class="col-md-2">
-                    Fecha Fin:
-                    <red-calendar ng-model="fh_fin"
-                                  focus-open="false"
-                                  format="dd/MM/yyyy"></red-calendar>
+                <br>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div ng-grid="DetalleSolicitudFacturacionGrid" class="gridStyle" style="height: 350px;"></div>
+                    </div>
                 </div>
-                <div class="col-md-1" style="text-align: center;padding-top: 17px;">
-                    <button ng-model="botonsini" class="btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+                <br>
+
+                <div class="row" red-panel>
+                    <div class="col-md-12">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-2" style="margin-top: 9px; text-align: end;">Total:</div>
+                        <div class="col-md-2">
+                            <input type="text"
+                                class="form-control contenido_moneda"
+                                ng-model="SolFac.im_Total"
+                                id="im_Total"
+                                ng-disabled="true">
+                        </div>
+                    </div>
+                </div>
+                <br>
+
+                <div class="row">
+                    <div class="col-md-12" style="text-align: end;">
+                        <button class="btn btn-primary" ng-show="(SolFac.id_Estatus == 2)" ng-click="actualizarEstatusSolicitudFacturacion(1)">Autorizar</button>
+                        <button class="btn btn-danger" ng-show="(SolFac.id_Estatus == 2)" ng-click="rechazarSolicitudFacturacion()">Rechazar</button>
+                        <button class="btn btn-warning" ng-click="regresar()">Regresar</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <br>
-    <!-- <div style="overflow-x: scroll;"> -->
-        <div ng-grid="gridRequisiciones" class="gridStyle" red-grid style="height:425px;"></div>
 
-    <red-modal name="modal" titulo="Seleccionar Autorizador" width="600px">
-    <div ng-grid="gridEmpleados" class="gridStyle" red-grid style="height:300px;"></div>
+    <red-modal name="modalAutorizacion" titulo="Observaciones">
+        <table width="100%">
+            <tr>
+                <td ng-show="sn_showalmacen">
+                    Observaciones de Autorización:
+                    <textarea type="text"
+                        ng-model="de_ObservacionesAutorizacion"
+                        style="height: 100px;"
+                        class="form-control"
+                        red-validatorName="agregarobservacionesAutorizacion"
+                        red-validator
+                        alias="Observaciones"
+                        required
+                        maxlength="250">
+                    </textarea>
+                    <label style="color:red; font-weight:bold;" ><input class="ngSelectionCheckbox" type="checkbox" checkbox ng-model="sn_CorreoProveedor"  > NO ENVIAR A PROVEEDOR</label>
+                </td>
+            </tr>
+        </table>
         <div class="modal-footer">
+            <button ng-model="btnAutorizar" ng-click="autorizarOrden()" class="btn btn-primary">Autorizar</button>
         </div>
     </red-modal>
 
-    <!-- </div> -->
-    <red-hotkey key="n" altkey="true" action="nuevaRequisicion"/>
-
-    <!-- Modal Para Manuales -->
-    <red-modal id="manual" name="modalManual" width="96%">
-        <div ng-include="'ModalManuales.html'"></div>
+    <red-modal name="modalRechazo" titulo="Observaciones">
+        <table width="100%">
+            <tr>
+                Observaciones de Rechazo:
+                <textarea type="text"
+                    ng-model="de_ObservacionesRechazo"
+                    style="resize: none; height: 100px;"
+                    class="form-control"
+                    red-validatorName="agregarobservacionesRechazo"
+                    red-validator
+                    alias="Observaciones"
+                    required
+                    maxlength="250">
+                </textarea>
+            </tr>
+        </table>
+        <div class="modal-footer">
+            <button ng-model="btnRechazar" ng-show="(SolFac.id_Estatus != 2)" ng-click="RechazarOrden()" class="btn btn-danger" >Rechazar</button>
+            <button ng-model="btnRechazar" ng-show="(SolFac.id_Estatus == 2)" ng-click="actualizarEstatusSolicitudFacturacion(0)" class="btn btn-danger" >Rechazar</button>
+        </div>
     </red-modal>
 
     <red-modal name="modalSeguimientoRequisicion" titulo="Seguimiento Requisición" width="100%" ng-class="{'viewer-collapsed': viewerCollapsed}" >
@@ -201,7 +354,7 @@
 
                                 <div class="timeline-panel">
                                     <!-- ENCABEZADO clickeable -->
-                                    <div class="timeline-heading tl-clickable {{item.classDisabled}}" ng-click="item.ID == 16 ? ejecutarAccion(item) : toggleTl(item)">
+                                    <div class="timeline-heading tl-clickable {{item.classDisabled}}" ng-click="toggleTl(item)">
                                         <span class="timeline-title">{{item.titulo}}</span>
                                         <span class="tl-chevron" ng-class="{'is-open': isTlOpen(item)}">▾</span>
                                     </div>
@@ -409,7 +562,7 @@
     <red-modal name="notificacionPresupuestoFaltante" width="750px">
         <div style="display: table-cell; vertical-align: middle;">
             <p style="font-size: 16px;">
-                <b>No se cuenta con el presupuesto suficiente</b> para cubrir la <b>requisición</b>. <br><b>¿Desea recibir los detalles por correo?</b>
+                No se cuenta con el <b>presupuesto suficiente</b> para cubrir la <b>solicitud de pago</b>. <br><b>¿Notificar a los usuarios involucrados?</b>
             </p>
         </div>
         <div class="modal-footer">

@@ -1,0 +1,200 @@
+<html>
+        <head>
+            <title></title>
+            <style type="text/css">
+                @page {
+                    size:letter;
+                    margin: 0.5cm;
+
+                    @bottom-center{
+                        content: "Pagina " counter(page) " de " counter(pages);
+                    }
+                }
+                .panelHeader {
+                    background-color: #f5f5f5;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 10px;
+                }
+                body{
+                    margin: auto;
+                    width: 95%;;
+                }
+                .grid{
+                    border: solid 1px #e5e5e5;
+                    border-spacing: 0px;
+                }
+                .grid th{
+                    border: solid 1px #B5AEAE;
+                }
+                .grid td{
+                    border: solid 1px #B5AEAE;
+                }
+                .noGrid td{
+                    border: none;
+                    border-spacing: 0px;
+                }
+                .text{
+                    font-size: 12pt; 
+                    font-family: arial;
+                    color: rgb(37, 37, 139);
+                }
+                table{ 
+                    font-size: 9pt;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="panelHeader" style="border-radius: 0px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td colspan="2" align="left">
+                            <cfoutput><img id='logo' class='media' src="#Arguments.imagenRequisicion#" style='width: 95%' align="left" ></cfoutput>
+                        </td>
+                        <td colspan="2" align="center" style="font-size: 12px;font-weight: bold;">
+                            <cfoutput>#Arguments.requisicion.nb_RazonSocial#</cfoutput>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right" style="width:8%"><b>Asunto:</b></td>
+                        <td align="left"  style="width:17%">Requisicion</td>
+                        <td align="right" style="width:50%">&nbsp;</td>
+                        <td align="right" style="width:20%"><cfoutput>#dateFormat(Arguments.requisicion.fh_Expedicion,'dd/mm/yyyy')#</cfoutput></td>
+
+                    </tr>
+                </table>
+            </div>
+            
+
+            <cfoutput>
+            <br>
+                <table width="100%">
+                    
+                    <tr>
+                        <td align="right"><b>Requisicion:</b></td>
+                        <td align="left"><cfif #Arguments.requisicion.id_requisicion# EQ ''>N/A<cfelse>#Arguments.requisicion.id_requisicion#</cfif></td>
+                        <td align="right"><b>Division:</b></td>
+                        <td align="left">#Arguments.requisicion.de_TipoDivision#</td>
+                        <td align="right"><b>Fecha :</b></td>
+                        <td align="left">#dateFormat(Arguments.requisicion.fh_Expedicion,'dd/mm/yyyy')#</td>
+                        <td align="right"><b>Clasificado:</b></td>
+                        <td align="left">#Arguments.requisicion.de_ClasificadoRequisicion#</td>
+                        <td align="right"><b>Tipo:</b></td>
+                        <td align="left">#Arguments.requisicion.de_TipoRequisicion#</td>
+                                                
+                    </tr>
+                    
+                    <tr>
+                        <td align="right"><b>Empresa:</b></td>
+                        <td align="left">#Arguments.requisicion.nb_Empresa#</td>
+                        <td align="right"><b>Sucursal:</b></td>
+                        <td align="left">#Arguments.requisicion.nb_Sucursal#</td>                           
+                        <td align="right" ><b>Estatus :</b></td>
+                        <td align="left" >#Arguments.requisicion.de_EstatusAutorizacionRequisicion#</td>
+                        <td align="right"></td>
+                        <td align="left"></td>                  
+                        <td align="right"><b>Departamento:</b></td>
+                        <td align="left">#Arguments.requisicion.nb_departamento#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Requisitante:</b></td>
+                        <td align="left" colspan="3" >#Arguments.requisicion.nb_empleado#</td>
+                        <td align="right"></td>
+                        <td align="left"></td>      
+                        <td align="right"></td>
+                        <td align="left"></td>              
+                        <cfif #Arguments.requisicion.id_ClasificadoRequisicion# EQ 7>
+                            <td align="right"><b>Numero Siniestro:</td></b></td>
+                            <td align="left"><cfif #Arguments.requisicion.nu_Siniestro# EQ ''>N/A<cfelse> #Arguments.requisicion.nu_Siniestro#</cfif></td>                      
+                        </cfif>
+                        
+                                                
+                    </tr>
+                    
+                    
+                </table>
+            </cfoutput>
+
+
+            <br>
+            <div style="border: 1px #e5e5e5 solid ">
+                <table class="" width="100%">
+                    <tr class="panelHeader">
+                        <th>Cantidad</th>
+                        <th>Insumo</th>
+                        <th>Descripci&oacute;n</th>                 
+                        <th>Precio Unitario</th>
+                        <th>Moneda</th>
+                        <th>Tipo Cambio</th>
+                        <th>Total Insumo</th>
+                        <th>Usarse en:</th>
+                        <th></th>
+                    </tr>   
+                    <cfoutput> <cfset   #countColor#=0>     </cfoutput>         
+                    <cfoutput query="requisicionDetalle">
+
+                        <cfif #countColor# EQ 1>
+                            <tr style="background-color:##F5F5F5">
+                        <cfelse>
+                            <tr style="background-color:##fff">
+                        </cfif>
+                            <td align="center">#Arguments.requisicionDetalle.nu_cantidad#</td>
+                            <td>#Arguments.requisicionDetalle.id_Insumo#</td>
+                            <td>#Arguments.requisicionDetalle.nb_insumo#</td>                       
+                            <td align="right">#numberFormat(Arguments.requisicionDetalle.im_precioUnitario,"$___,___.__")#</td>
+                            <td>#Arguments.requisicionDetalle.nb_moneda#</td>
+                            <td align="right">#numberFormat(Arguments.requisicionDetalle.im_TipoCambio,"$___,___.__")#</td>
+                            <td align="right">#numberFormat(Arguments.requisicionDetalle.im_totalInsumo,"$___,___.__")#</td>
+                            <td><i>#Arguments.requisicionDetalle.nb_centroCostoFormat#</i></td>   
+                            <cfif Arguments.requisicionDetalle.nu_kilometraje NEQ '' >
+                                <td>#Arguments.requisicionDetalle.nu_kilometraje# K.M.</td>      
+                            </cfif>  
+                            
+                            <cfif Arguments.requisicionDetalle.de_colaborador NEQ '' >
+                                <td>[Colaborador] #Arguments.requisicionDetalle.de_colaborador#</td>      
+                            </cfif> 
+                        </tr>
+
+                        <cfif Arguments.requisicionDetalle.ValoresDetalle NEQ '' >
+
+                            <cfif #countColor# EQ 1>
+                                <tr style="background-color:##F5F5F5">
+                            <cfelse>
+                                <tr style="background-color:##fff">
+                            </cfif>
+                                <td align="center"><br><b>Caracteristicas</b><br></td>                      
+                                <td colspan="7"><br>#Arguments.requisicionDetalle.ValoresDetalle#<br><br></td>
+
+                            </tr>
+
+                        </cfif>
+
+                        <cfif #countColor# EQ 0>
+                            <cfset #countColor#=1>
+                        <cfelse>
+                                <cfset #countColor#=0>
+                        </cfif>
+
+                    </cfoutput> 
+                    <br>            
+                    <tr class="noGrid">
+                        <td colspan="5" align="right">Total:</td>
+                        <td align="right"><cfoutput>#numberFormat(Arguments.requisicion.im_PrecioTotal,"$___,___.__")#</cfoutput></td>
+                    </tr>
+                    <br>
+                </table>
+            </div>
+            <br><br>
+            <cfoutput>
+                <cfif #Arguments.requisicion.de_Observaciones# NEQ ''>
+                    <b>Caracteristicas</b>
+                    <br>#Arguments.requisicion.de_Observaciones#<br>
+                </cfif>
+            </cfoutput> 
+
+        </body>
+    </html>

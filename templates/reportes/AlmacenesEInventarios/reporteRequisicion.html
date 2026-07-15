@@ -1,0 +1,162 @@
+<html>
+        <head>
+            <title></title>
+            <style type="text/css">
+                @page {
+                    size:letter landscape;
+                    margin: 0.5cm;
+
+                    @bottom-center{
+                        content: "Pagina " counter(page) " de " counter(pages);
+                    }
+                }
+                .panelHeader {
+                    background-color: #f5f5f5;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 10px;
+                }
+                body{
+                    margin: auto;
+                    width: 95%;;
+                }
+                .grid{
+                    border: solid 1px #e5e5e5;
+                    border-spacing: 0px;
+                }
+                .grid th{
+                    border: solid 1px #B5AEAE;
+                }
+                .grid td{
+                    border: solid 1px #B5AEAE;
+                }
+                .noGrid td{
+                    border: none;
+                    border-spacing: 0px;
+                }
+                .text{
+                    font-size: 12pt;
+                    font-family: arial; 
+                    color: rgb(37, 37, 139);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="panelHeader">
+                <table width="100%">
+                    <tr>
+                        <td colspan="2" align="left">
+                            <cfif isDefined('Arguments.ar_ImagenReporte')>
+                                <cfoutput><img id='logo' class='media' src="#Arguments.ar_ImagenReporte#" style='width: 30%' align="left" ></div></cfoutput>
+                            <cfelse>
+                                <cfoutput><img id='logo' class='media' src="#session.AR_IMAGENREPORTE#" style='width: 30%' align="left" ></img></cfoutput>
+
+                            </cfif>
+                        <td>
+                    </tr>
+                    <tr>
+                        <cfif arguments.estatus EQ 6>
+                            <cfset texto="editada">
+                        <cfelse>
+                            <cfset texto="">
+                        </cfif>
+
+                        
+                        <td align="right" style="width:51px"><b>Asunto:</b></td>
+                        <td align="left">Autorizaci&oacute;n de solicitud de <cfoutput>#Arguments.requisicion.de_TipoRequisicion#</cfoutput> <span style="font-weight:bold;"><cfoutput>#texto#</cfoutput></td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+            <div class="text">
+                Se solicita la autorizaci&oacute;n de <cfoutput>#Arguments.requisicion.de_TipoRequisicion#</cfoutput> <span style="font-weight:bold;"><cfoutput>#texto#</cfoutput></span> descrita a continuaci&oacute;n:
+            </div>
+            <br>
+            <div class="text">Detalle de insumos solicitados</div>
+            <table class="grid" width="100%">
+                <tr>
+                    <th>Cantidad</th>
+                    <th>Insumo</th>                 
+                    <th>Precio Unitario</th>
+                    <th>Moneda</th>
+                    <th>Tipo Cambio</th>
+                    <th>Total Insumo</th>
+                    <th>Usarse en:</th>
+                </tr>               
+                <cfoutput query="requisicionDetalle">
+
+                    <tr>
+                        <td align="center">#Arguments.requisicionDetalle.nu_cantidad#</td>
+                        <td>#Arguments.requisicionDetalle.nb_insumo#</td>                       
+                        <td align="right">#numberFormat(Arguments.requisicionDetalle.im_precioUnitario,"$___,___.__")#</td>
+                        <td>#Arguments.requisicionDetalle.nb_moneda#</td>
+                        <td align="right">#numberFormat(Arguments.requisicionDetalle.im_TipoCambio,"$___,___.__")#</td>
+                        <td align="right">#numberFormat(Arguments.requisicionDetalle.im_totalInsumo,"$___,___.__")#</td>
+                        <td><i>#Arguments.requisicionDetalle.nb_centroCostoFormat#</i></td>                     
+                    </tr>
+
+                    <cfif Arguments.requisicionDetalle.ValoresDetalle NEQ '' >
+
+                        <tr style="padding-bottom: 10px">
+                            <td align="center"><br><b>Caracteristicas</b><br></td>                      
+                            <td colspan="7"><br>#Arguments.requisicionDetalle.ValoresDetalle#<br><br></td>
+                        </tr>
+
+                    </cfif>
+
+                </cfoutput>             
+                <tr class="noGrid">
+                    <td colspan="5" align="right">Total:</td>
+                    <td align="right"><cfoutput>#numberFormat(Arguments.requisicion.im_PrecioTotal,"$___,___.__")#</cfoutput></td>
+                </tr>
+            </table>
+            <br>
+            <cfoutput>
+                <table width="95%">
+                    <tr>
+                        <td align="right"><b>Clave Requisici&oacute;n:</b></td>
+                        <td align="left" style="width:74%">#Arguments.requisicion.id_requisicion#</td>
+                    </tr>
+                    <cfif Arguments.requisicion.nb_Proveedor NEQ ''>
+                        <tr>
+                            <td align="right"><b>Proveedor:</b></td>
+                            <td align="left" style="width:74%">#Arguments.requisicion.nb_Proveedor#</td>
+                        </tr>
+                    </cfif>
+                    <tr>
+                        <td align="right"><b>Generada por:</b></td>
+                        <td align="left" style="width:74%">#Arguments.requisicion.nb_empleado#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Sucursal:</b></td>
+                        <td align="left" style="width:74%">#Arguments.requisicion.nb_sucursal#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Departamento:</b></td>
+                        <td align="left" style="width:74%">#Arguments.requisicion.nb_departamento#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Clasificado:</b></td>
+                        <td align="left" style="width:74%">#Arguments.requisicion.de_ClasificadoRequisicion#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Fecha expedici&oacute;n:</b></td>
+                        <td align="left" style="width:74%">#DateFormat(Arguments.requisicion.fh_expedicion,'dd/mm/yyyy')#</td>
+                    </tr>
+                </table>
+
+            </cfoutput>
+
+
+            <br><br>
+            <cfoutput>
+                <cfif #Arguments.requisicion.de_Observaciones# NEQ ''>
+                    <b>Caracteristicas</b>
+                    <br>#Arguments.requisicion.de_Observaciones#<br>
+                </cfif>
+            </cfoutput> 
+            
+        </body>
+    </html>

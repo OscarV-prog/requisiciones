@@ -1,0 +1,159 @@
+<style type="text/css">
+    .error{
+        border: solid 1px red !important;
+    }
+    .textSize{
+        font-size: 18px;
+    }
+    .nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {
+        color: #fff;
+        background-color:#00437F;
+    }
+</style>
+<script type="text/javascript" src="/js/services/reportes/ControlOrdenesCompras/RptAutorizadoresOrdenesCompra.js"></script>
+
+<div  ng-app="appconfiguracionordenesdecompras" ng-controller="ctrlConfAutOrdenesCompra"  ng-init="init()">
+    <red-Toolbar titulo="Autorización de Ordenes de Compra - Configuración">
+        <ng-excel name="Reporte Pre y Autorizadores De Ordenes De Compra" extension="xlsx" scale="80" ng-click="generarExcel(true)" ng-if="dataReporteInfo"
+        button-type="icon" id="id_excel">
+        <ng-sheet name="Pre-Autorizarán" dataset="dataReporte"></ng-sheet>
+        <ng-sheet name="Autorizadores" dataset="dataReporte2"></ng-sheet>
+      </ng-excel>
+    </red-Toolbar>
+    <br>
+    <div red-panel  class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <legend class="textSize">Empresas</legend>
+                <div class="col-md-6">
+                    <select ng-model="empresa"
+                            id="id_empresa"
+                            class="form-control"
+                            chosen
+                            ng-options="op.ID_EMPRESA as op.NB_EMPRESA for op in empresas">
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <br>
+    <!-- PREAUTORIZADORES -->
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12" id="PreAut">
+                <fieldset class="col-md-12" style="padding:0px;margin-top:15px">
+                    <legend class="textSize">
+                        Usuarios
+                        que Pre-Autorizarán
+                        las ordenes de compra de acuerdo a los importes totales
+                        <button ng-hide="empSelectCopia == ''" ng-model="btn" class="btn-icon25p btn-agregar25p"  style="float:right" ng-click="agregarEmpleadoPreAut()"></button>
+                    </legend>
+                    <uib-tabset type="pills">
+                        <uib-tab ng-repeat="tab in preTabs" heading="{{tab.title}}" ng-click="valtab(this)" active="tab.active" style="font-weight:bold;"></uib-tab>
+                    </uib-tabset>
+                    <div class="row" ng-show ="sn_PreGeneral">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridPreAutEmpleados" class="gridStyle" style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                    <div class="row" ng-show ="sn_PreSucursal">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridPreAutEmpleadosSucursales" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                    <div class="row" ng-show ="sn_DivisionSucursal">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridPreAutEmpleadosSucursalDivision" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                    <div class="row" ng-show ="sn_Division">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridPreAutEmpleadosDivision" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <br>
+    <!-- AUTORIZADORES -->
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12" id="Aut">
+                <fieldset class="col-md-12" style="padding:0px;margin-top:15px">
+                    <legend class="textSize">
+                        Usuarios
+                        que autorizarán
+                        las ordenes de compra de acuerdo a los importes totales
+                        <button ng-hide="empSelectCopia == ''" ng-model="btn" class="btn-icon25p btn-agregar25p" style="float:right" ng-click="agregarEmpleadoAut()"></button>
+                    </legend>
+                    <uib-tabset type="pills">
+                        <uib-tab ng-repeat="tab_Aut in Tabs" heading="{{tab_Aut.title}}" ng-click="valtab_Aut(this)" active="tab_Aut.active" style="font-weight:bold"></uib-tab>
+                    </uib-tabset>
+                    <div class="row" ng-show ="sn_AutGeneral">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridAutEmpleados" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                    <div class="row" ng-show ="sn_AutSucursal">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridAutEmpleadosSucursales" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                    <div class="row" ng-show ="sn_AutDivisionSucursal">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridAutDivisionSucursales" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+                    <div class="row" ng-show ="sn_AutDivision">
+                        <br>
+                        <div class="col-md-12">
+                            <div ng-grid="gridAutEmpleadosDivisiones" class="gridStyle"  style="height:250px;width: 100%;padding:0px"></div>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <br>
+    <!--
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12">
+                <fieldset class="col-md-12" style="padding:0px;margin-top:15px">
+                    <legend class="textSize">
+                        Notificar
+                        <span ng-hide="empleadosNotif.length>1">al</span>
+                        <span ng-show="empleadosNotif.length>1">a los</span>
+                        siguiente<span ng-show="empleadosNotif.length>1">s</span>
+                        puesto<span ng-show="empleadosNotif.length>1">s</span>
+                        <button ng-hide="nu_prevRow==undefined" class="btn-icon25p btn-agregar25p"  style="float: right;" ng-click="agregarEmpleadoNotif()"></button>
+                    </legend>
+                    <div ng-grid="gridNotifEmpleados" class="col-md-12 gridStyle"  style="height: 150px;width: 100%;padding:0px"></div>
+
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    -->
+
+    <!-- <div class="row">
+        <div class="col-md-12" style="margin-top: 20px">
+            <hr style="margin-top: 10px">
+            <div class="col-md-10"></div>
+            <div class="col-md-2">
+                <button class="btn btn-primary" style="float:right" ng-click="guardarConfiguracion()">Guardar Configuración</button>
+            </div>
+        </div>
+    </div> -->
+    <br>
+</div>

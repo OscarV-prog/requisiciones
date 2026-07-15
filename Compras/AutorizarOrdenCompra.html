@@ -1,0 +1,549 @@
+<div id="controller" ng-app="appautorizarordencompra" ng-controller="ctrlAutorizarOrdenCompra">
+    <red-Toolbar titulo="Autorizar Orden de Compra">
+    </red-Toolbar>
+    <br>
+        <div red-panel>
+            <fieldset>
+                <legend class="text-primary">Información de la Orden de Compra</legend>
+
+                    <div class="row" >
+                        <div class="col-md-12">
+                            <div class="col-md-2">
+                            </div>
+                            <div class="col-md-4">
+                               Folio requisición origen:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="ordenCompra.ID_REQUISICION"
+                                       readonly>
+
+                            </div>
+                            <div class="col-md-4">
+                                Folio solicitud compra:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="ordenCompra.ID_SOLICITUDCOMPRA"
+                                       readonly>
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="col-md-2" >
+                            </div>
+                            <div class="col-md-4">
+                                Folio orden compra:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="ordenCompra.ID_ORDENDECOMPRA"
+                                       readonly>
+                            </div>
+                            <div class="col-md-4">
+                                    Fecha de registro de requisición:
+                                    <input type="text"
+                                           class="form-control"
+                                           ng-model="ordenCompra.FH_REGISTROREQUISICION"
+                                           readonly>
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-2" >
+                            </div>
+                            <div class="col-md-4">
+                              Fecha de registro solicitud de compra:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="ordenCompra.FH_REGISTROSC"
+                                       readonly>
+                            </div>
+                            <div class="col-md-4">
+                              Fecha de registro de orden de compra:
+                                  <input type="text"
+                                         class="form-control"
+                                         ng-model="ordenCompra.FH_REGISTROORDENCOMPRAFORMAT"
+                                         readonly>
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-2" >
+                            </div>
+
+                            <div class="col-md-4">
+                                Empleado Solicita:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="OrdensComprasJson[0].NB_USUARIOSOLICITA"
+                                       readonly>
+                            </div>
+                            <div class="col-md-4">
+                                Empleado Requisita:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="OrdensComprasJson[0].NB_EMPLEADOREQUISITA"
+                                       readonly>
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+
+                         <div class="col-md-12" ng-show="sn_Siniestro">
+                            <div class="col-md-2" >
+                            </div>
+
+                            <div class="col-md-4">
+                                Nro. Siniestro:
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="OrdensComprasJson[0].NU_SINIESTRO"
+                                       readonly>
+                            </div>
+
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-2" >
+                            </div>
+                            <div class="col-md-8">
+                                Comentarios:
+                                <textarea
+                                       class="form-control"
+                                       ng-model="comentarios"
+                                       readonly></textarea>
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" ng-show="ordenCompra.ID_ESTATUSAUTORIZACIONORDENDECOMPRA == 3">
+                            <div class="col-md-2" >
+                            </div>
+
+                            <div class="col-md-8">
+                                Comentarios Rechazo:
+                                <textarea
+                                       class="form-control"
+                                       ng-model="comentarios_rechazo"
+                                       readonly></textarea>
+                            </div>
+
+                            <div class="col-md-2">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row col-md-12">
+                        <div class="col-md-2" >
+                        </div>
+                        <div class="col-md-4" >
+                            <label style="color:red; font-weight:bold;" disabled>
+                                <input class="ngSelectionCheckbox"
+                                type="checkbox" checkbox
+                                ng-model="ordenCompra.SN_CORREOPROVEEDOR"
+                                ng-checked="ordenCompra.SN_CORREOPROVEEDOR"
+                                ng-disabled="true"> NO ENVIAR A PROVEEDOR</label>
+                        </div>
+                    </div>
+            </fieldset>
+                    <br>
+            <fieldset>
+                <legend class="text-primary"> Insumos de la Orden de Compra</legend>
+                    <div style="height:250px;" ng-grid="InsumosOrdenCompraData" class="gridStyle" red-grid ></div>
+                    <br>
+                    <div class="row" >
+                        <div class="cold-md-12">
+                              <div class="col-md-8" ng-show="ordenCompra.SN_DESCUENTONC"></div>
+                              <div class="col-md-4" style="color: #c19a08;margin-bottom: 5px;text-align: center;" ng-show="ordenCompra.SN_DESCUENTONC">
+                                ** Descuento por nota de crédito ya incluido
+                              </div>
+
+                              <div class="col-md-4" ></div>
+                              <div class="col-md-4" style="text-align: right;padding-top: 8px; ">
+                                Moneda:
+                              </div>
+                              <div class="col-md-4" style="padding:0 ">
+                                <div class="col-md-12">
+                                    <div class="form-control" style="float: left;width: 49%;" readonly>{{ordenCompra.NB_MONEDA}} </div>
+                                    <div class="form-control" style="float: left;width: 49%;margin-left: 6px;text-align:right" readonly>{{ordenCompra.IM_TIPOCAMBIO | currency:"$"}} </div>
+                                </div>
+                              </div>
+                          </div>
+                          <div class="cold-md-12">
+                              <div class="col-md-4" >
+                              </div>
+                              <div class="col-md-4" style="text-align: right;  padding-top: 8px; ">
+                                Sub Total:
+                              </div>
+                              <div class="col-md-4" style="text-align: right; ">
+                                  <!-- <input type="text"
+                                         class="form-control"
+                                         style="text-align: right;"
+                                         ng-model="im_SubTotalOC"
+                                         readonly> -->
+                                    <div class="form-control" readonly>{{ordenCompra.IM_SUBTOTAL | currency:"$"}} </div>
+                              </div>
+                          </div>
+
+                          <div class="cold-md-12">
+                              <div class="col-md-4" >
+                              </div>
+                              <div class="col-md-4" style="text-align: right;  padding-top: 8px;">
+                                Descuento:
+                              </div>
+                              <div class="col-md-4" style="text-align: right;">
+                                  <!-- <input type="text"
+                                         class="form-control"
+                                         style="text-align: right;"
+                                         ng-model="im_DescuentoOC"
+                                         readonly> -->
+                                   <div class="form-control" readonly>{{ordenCompra.IM_DESCUENTO | currency:"$"}} </div>
+                              </div>
+                          </div>
+
+                          <div ng-repeat="Impuesto in ImpuestosOrden" class="cold-md-12" ng-show="Impuesto.SN_APLICAR">
+                              <div class="col-md-4" ></div>
+                              <div class="col-md-4" style="text-align: right;  padding-top: 8px;">
+                                {{Impuesto.DE_IMPUESTOTAZA}} ({{Impuesto.NU_TAZA | percent}}):
+                               <!-- {{Impuesto.NB_IMPUESTO}} ({{Impuesto.PJ_APLICAR | percent}}): -->
+                              </div>
+                              <div class="col-md-4" style="text-align: right; ">
+                                <div class="form-control" readonly>{{Impuesto.IM_APLICACIONIMPUESTO | currency:"$"}} </div>
+                              </div>
+                          </div>
+
+                          <div class="cold-md-12">
+                              <div class="col-md-4" >
+                              </div>
+                              <div class="col-md-4" style="text-align: right;  padding-top: 8px;">
+                                <!-- Importe total Orden de Compra: -->
+                                Compra:
+                              </div>
+                              <div class="col-md-4" style="text-align: right;">
+                                  <!-- <input type="text"
+                                         class="form-control"
+                                         style="text-align: right; color: red;"
+                                         ng-model="im_TotalOC"
+                                         readonly> -->
+                                    <div class="form-control" readonly>{{ordenCompra.IM_TOTAL | currency:"$"}} </div>
+                              </div>
+                          </div>
+
+                          <div class="cold-md-12">
+                              <div class="col-md-4" >
+                              </div>
+                              <div class="col-md-4" style="text-align: right;  padding-top: 8px;">
+                                Fecha probable entrega:
+                              </div>
+
+                              <div class="col-md-4" style="text-align: right;">
+                                 <input type="text"
+                                         class="form-control"
+                                         style="text-align: right;"
+                                         ng-model="ordenCompra.FH_ENTREGAPROBABLEFORMAT"
+                                         readonly>
+                                         <!--  <red-calendar ng-model="fh_ProbableEntrega"
+                                                       open-focus="false"
+                                                       format="dd/MM/yyyy"
+                                                       red-validatorName="agregar"
+                                                       red-validator='dateDMY'
+                                                       alias="fecha requerida"
+                                                       readonly>
+                                          </red-calendar> -->
+                              </div>
+                          </div>
+                    </div>
+            </fieldset>
+
+        </div>
+            <div style="margin-top: 15px; padding: 19px 1px 20px; text-align: right; border-top: 1px solid #e5e5e5;">
+
+                <button  tabindex="17" ng-model="btnAutorizarOCActual" ng-show="sn_Edicion"  ng-click="AbrirModalAutorizacion()" class="btn btn-primary">Autorizar OC Actual</button>
+
+                <button  tabindex="17" ng-model="btnRechazarOCActual" ng-show="sn_Edicion"  ng-click="AbrirModalRechazar()" class="btn btn-danger">
+                  Rechazar OC Actual</button>
+
+                <button  tabindex="17" ng-model="btnRegresar"  ng-click="Regresar()" class="btn btn-warning">
+                Regresar</button>
+            </div>
+
+            <br>
+        <div red-panel>
+            <fieldset>
+                <legend class="text-primary">Cotizaciones Relacionadas con la Orden de Compra Actual</legend>
+                <div style="height:200px;" ng-grid="CotizacionesData" class="gridStyle" red-grid ></div>
+            </fieldset>
+            <br>
+            <fieldset class="text-primary">
+                <legend>Precios de Insumos de acuerdo al Proveedor</legend>
+                <div style="height:250px;" ng-grid="PreciosInsumosData" class="gridStyle" red-grid ></div>
+            </fieldset>
+            <br>
+
+                <div class="row" >
+                    <div class="cold-md-12">
+                          <div class="col-md-4" ></div>
+                          <div class="col-md-4" style="text-align: right;padding-top: 8px; ">
+                            Moneda:
+                          </div>
+                          <div class="col-md-4" style="padding:0 ">
+                            <div class="col-md-12">
+                                <div class="form-control" style="float: left;width: 49%;" readonly>{{NB_MONEDA}} </div>
+                                <div class="form-control" style="float: left;width: 49%;margin-left: 6px;text-align:right" readonly>{{IM_TIPOCAMBIO | currency:"$"}} </div>
+                            </div>
+                          </div>
+                      </div>
+                    <div class="cold-md-12">
+                        <div class="col-md-4" >
+                        </div>
+                        <div class="col-md-4" style="text-align: right;padding-top: 8px;">
+                          Sub-Total:
+                        </div>
+                        <div class="col-md-4" style="text-align: right;">
+                            <input type="text"
+                                   class="form-control"
+                                   style="text-align: right;"
+                                   ng-model="im_SubTotal"
+                                   readonly>
+                        </div>
+                    </div>
+
+
+                    <div class="cold-md-12">
+                        <div class="col-md-4" >
+                        </div>
+                        <div class="col-md-4" style="text-align: right;padding-top: 8px;">
+                          Descuento:
+                        </div>
+                        <div class="col-md-4" style="text-align: right;">
+                            <input type="text"
+                                   class="form-control"
+                                   style="text-align: right;"
+                                   ng-model="im_Descuento"
+                                   readonly>
+
+                        </div>
+                    </div>
+                    <div class="cold-md-12" ng-repeat="ImpuestoCot in ImpuestosCotizacion" ng-show="ImpuestoCot.SN_APLICAR">
+                        <div class="col-md-4" ></div>
+                        <div class="col-md-4" style="text-align: right;padding-top: 8px;">
+                          <!-- IVA: -->
+                          {{ImpuestoCot.NB_IMPUESTO}} ({{ImpuestoCot.PJ_APLICAR | percent}})
+                        </div>
+                         <div class="col-md-4" style="text-align: right;">
+                           <div class="form-control" readonly  ng-bind="ImpuestoCot.IM_APLICACIONIMPUESTO | currency:'$'"></div>
+                        </div>
+                    </div>
+
+                    <div class="cold-md-12">
+                        <div class="col-md-4" >
+                        </div>
+                        <div class="col-md-4" style="text-align: right;padding-top: 8px;">
+                          Importe total de Cotización:
+                        </div>
+                        <div class="col-md-4" style="text-align: right;">
+                            <input type="text"
+                                   class="form-control "
+                                   style="text-align: right; color: red;"
+                                   ng-model="im_Total"
+                                   readonly>
+                        </div>
+                    </div>
+                    <div class="cold-md-12">
+                        <div class="col-md-4" >
+                          <div class="col-md-12">
+                            <div class="form-control" ng-show="ArchivoAutorizacionOC.ruta">
+                              <ver-archivo dir="ArchivoAutorizacionOC" ng-model="btnEl3"></ver-archivo>
+                              <label style="font-size: small;">Ver archivo de Autorizacion</label>
+                            </div>
+                          </div>
+                          <div class="form-control col-md-12" ng-show="!ArchivoAutorizacionOC.ruta">
+                            <label style="font-size: small; color: brown;">*No hay archivo de Autorizacion*</label>
+                          </div>
+                          <div class="col md-12">
+                            <button class="btn btn-primary" ng-click="openModelSustitucion()" title="Ver Documento de Susticución">Documento de Susticución</button>
+                          </div>
+                        </div>
+                        <div class="col-md-4" style="text-align: right;padding-top: 8px;">
+                          Fecha probable entrega:
+                        </div>
+
+                        <div class="col-md-4" style="text-align: right;">
+                           <input type="text"
+                                   class="form-control"
+                                   style="text-align: right;"
+                                   ng-model="fh_ProbableEntrega"
+                                   readonly>
+                                   <!--  <red-calendar ng-model="fh_ProbableEntrega"
+                                                 open-focus="false"
+                                                 format="dd/MM/yyyy"
+                                                 red-validatorName="agregar"
+                                                 red-validator='dateDMY'
+                                                 alias="fecha requerida"
+                                                 readonly>
+                                    </red-calendar> -->
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <div style="margin-top: 15px; padding: 19px 1px 20px; text-align: right; border-top: 1px solid #e5e5e5;">
+
+            <button  tabindex="17" ng-model="btnAutorizarOCActual" ng-show="sn_Edicion" ng-click="AbrirModalAutorizacion()" class="btn btn-primary">Autorizar OC Actual</button>
+
+            <button  tabindex="17" ng-model="btnRechazarOCActual" ng-show="sn_Edicion"  ng-click="AbrirModalRechazar()" class="btn btn-danger">Rechazar OC Actual</button>
+
+            <button  tabindex="17" ng-model="btnRegresar"  ng-click="Regresar()" class="btn btn-warning">
+                Regresar</button>
+        </div>
+
+        <red-modal name="modalAutorizacion" titulo="Observaciones">
+            <table width="100%">
+              <tr>
+                <td>
+                    <div class="row">
+                        <div class="col-md-12">
+                            Observaciones de Autorización:
+                          <textarea type="text"
+                                    ng-model="de_ObservacionesAutorizacion"
+                                    style="resize: none; height: 100px;"
+                                    class="form-control"
+                                    red-validatorName="agregarobservacionesAutorizacion"
+                                    red-validator
+                                    alias="Observaciones"
+                                    required
+                                    maxlength="250">
+                          </textarea>
+                        </div>
+                    </div>
+                    <!-- <div class="row">
+                        <div class="col-md-12" ng-show="sn_sinalmacen">
+                            Observaciones de Autorización:
+                          <textarea type="text"
+                                    ng-model="de_ObservacionesAutorizacion2"
+                                    style="resize: none; height: 100px;"
+                                    class="form-control"
+                                    red-validatorName="observacionessinalmacen"
+                                    red-validator
+                                    alias="Observaciones"
+                                    required
+                                    maxlength="250">
+                          </textarea>
+                        </div>
+                    </div> -->
+                    <!-- <div class="row">
+                        <div class="col-md-6" ng-show="sn_showalmacen">
+                            Almacén que recibe:
+                              <select
+                              ng-model="almacen"
+                              class="form-control"
+                              red-validatorName="agregarobservacionesAutorizacion"
+                              red-validator
+                              alias="almacén"
+                              required
+                              ng-options="op.NB_ALMACEN for op in Almacenes track by op.ID_ALMACEN"
+                              ng-disabled="true"
+                              >
+                                <option value=''>Seleccionar</option>
+                              </select>
+                        </div>
+                    </div> -->
+                </td>
+              </tr>
+
+            </table>
+            <div class="modal-footer">
+              <button ng-model="btnAutorizar" ng-click="AutorizarOrden()" class="btn btn-primary">Autorizar</button>
+            </div>
+        </red-modal>
+
+        <red-modal name="modalRechazo" titulo="Observaciones">
+            <table width="100%">
+              <tr>
+                Observaciones de Rechazo:
+                  <textarea type="text"
+                            ng-model="de_ObservacionesRechazo"
+                            style="resize: none; height: 100px;"
+                            class="form-control"
+                            red-validatorName="agregarobservacionesRechazo"
+                            red-validator
+                            alias="Observaciones"
+                            required
+                            maxlength="250">
+                  </textarea>
+              </tr>
+              <tr>
+                    <td>
+                      Motivo del Rechazo:
+                       <select
+                              ng-model="mRechazo"
+                              class="form-control"
+                              red-validatorName="agregarobservacionesRechazo"
+                              red-validator
+                              alias="Motivo"
+                              required    >
+                          <option value=0 selected>Otro</option>
+                          <option value=1 >Error al requisitar</option>
+                        </select>
+                    </td>
+                  </tr>
+
+            </table>
+            <div class="modal-footer">
+              <button ng-model="btnRechazar" ng-click="RechazarOrden()" class="btn btn-primary">Rechazar</button>
+            </div>
+        </red-modal>
+
+        <red-modal name="centroscostos" titulo="Visualizar Centros de Costo"  width="900">
+            <div class="row">
+                <div class="col-md-12">
+                    <div  ng-grid="CentrosCostosData" class="gridStyle" red-grid  style="width:800px;margin:auto"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </red-modal>
+
+        <red-modal name="modalComentarios" titulo="Observaciones">
+            <div class="row col-md-12">
+                Comentarios:
+                <textarea type="text"
+                          ng-model="de_comentarios"
+                          class="form-control"
+                          style="height:130px;"
+                          disabled></textarea>
+            </div>
+            <div class="modal-footer" style="margin-top: 153px;padding: 9px 20px 0px;">
+            </div>
+        </red-modal>
+        <red-modal name="modalSustitucion" titulo="">
+            <div class="row col-md-12">
+                <label>OC de Sustitución</label><br>
+                <samp>#{{id_Sustitucion}}</samp><br><br>                
+            </div>
+            <div class="row col-md-12">
+                <label>Documento</label><br>                
+                <samp><ver-archivo dir="ar_Sustitucion" ng-model="btnEl3" style="margin-top:2px;"></ver-archivo></samp><br><br>                
+            </div>
+            <div class="row col-md-12" style="margin-bottom: 10px;">
+                <label>Observaciones</label><br>
+                <samp>{{de_ObservacionesSustitucion}}</samp><br><br>                 
+            </div>
+            <div class="modal-footer" style="margin-top: 153px;padding: 9px 20px 0px;">
+            </div>
+        </red-modal>
+        <red-modal name="notificacionPresupuestoFaltante" width="750px">
+            <div style="display: table-cell; vertical-align: middle;">
+                <p style="font-size: 16px;">
+                    <b>No se cuenta con el presupuesto suficiente</b> para cubrir la <b>solicitud de pago</b>. <br><b>¿Notificar a los usuarios involucrados?</b>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="enviarCorreoPresupuesto(info)">
+                    <i class="fas fa-envelope"></i> Aceptar
+                </button>
+            </div>
+        </red-modal>
+</div>

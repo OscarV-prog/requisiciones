@@ -1,0 +1,398 @@
+<div ng-app="appagregarcotizaciones" ng-controller="ctrlAgregarCotizacion">
+    <red-Toolbar titulo="Agregar Cotización">
+    <!--  <button class="btn-icon25p btn-agregar25p" ng-click="AgregarCotizacion()"></button> -->
+    </red-Toolbar>
+    <br>
+    <div class="row" red-panel>
+        <div class="col-md-12">
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-8">
+              <table colspan="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td width="25%">
+                  </td>
+                  <td width="75%">
+                  </td>
+                </tr>
+                <tr>
+                  <td width="25%">
+                    <label>Empresa Reponsable:</label>
+                  </td>
+                  <td width="75%">
+                    {{nb_Empresa}}
+                  </td>
+                </tr>
+                <tr>
+                  <td width="25%">
+                    <label>Solicitud de compra:</label>
+                  </td>
+                  <td width="75%">
+                    {{id_SolicitudCompra}}
+                  </td>
+                </tr>
+                <tr>
+                  <td width="25%">
+                    <label>Requisicion:</label>
+                  </td>
+                  <td width="75%">
+                    {{id_Requisicion}}
+                  </td>
+                </tr>
+                <tr>
+                  <td width="25%">
+                    <label>Comprador Solicita:</label>
+                  </td>
+                  <td width="75%">
+                    {{nb_SolicitaCompra}}
+                  </td>
+                </tr>
+                <tr>
+                  <td width="25%">
+                    <label>Fecha Solicitud:</label>
+                  </td>
+                  <td width="75%">
+                    {{fh_Registro}}
+                  </td>
+                </tr>
+              </table>
+              <br/>
+
+            </div>
+            <div class="col-md-1">
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-8">
+                  <div style="height:200px;"  ng-grid="ProveedoresContactosData" class="gridStyle" red-grid></div>
+            </div>
+            <div class="col-md-1" ng-hide="OtExterna">
+                <button id="agr_prov" ng-model="ag" class="btn-icon25p btn-agregar25p" ng-click="agregarProveedor()"></button>
+            </div>
+            <div class="col-md-1">
+            </div>
+        </div>
+        <div class="col-md-12" style="padding-top: 10px;">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Solicita Cotización:
+                 <input type="text"
+                        ng-model="de_Empleado"
+                        class="form-control"
+                        readonly>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="col-md-12" style="padding-top: 10px;">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Fecha:
+                  <red-calendar ng-model="fh_Requerida"
+                                open-focus="false"
+                                format="dd/MM/yyyy"
+                                disabled
+                                >
+                  </red-calendar>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="col-md-12" style="padding-top: 10px;">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Comentarios:
+                <textarea
+                 ng-model="de_Comentarios"
+                 class="form-control"
+                 style="resize:none; min-height:100px;"
+                 rows="{{1 + (de_Comentarios.length / 80)}}"
+                 maxlength="1000"
+                 />
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="col-md-12" style="padding-top: 10px;">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        Enviar correo a proveedor solicitando cotización
+                        <div style="padding-top:8px;">
+                            <label style="cursor:pointer; margin-right:200px;">SI
+                                <input type="radio"
+                                       ng-model="enviarcorreosi"
+                                       id="enviarcorreosi"
+                                       name="group2"
+                                       ng-click="EnviarCorreo()">
+                            </label>
+                            <label style="cursor:pointer;">NO
+                                <input type="radio"
+                                       ng-model="enviarcorreono"
+                                       id="enviarcorreono"
+                                       name="group2"
+                                       ng-click="NoEnviarCorreo()">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6" ng-show="sn_Adjuntar && sn_ArchivoReq">
+                        Adjuntar archivo de requisición en el correo
+                            <div style="padding-top:8px;">
+                            <label style="cursor:pointer; margin-right:200px;">SI
+                                <input type="radio"
+                                       ng-model="adjuntarArchivo"
+                                       id="adjuntarArchivo"
+                                       name="group3"
+                                       >
+                            </label>
+                            <label style="cursor:pointer;">NO
+                                <input type="radio"
+                                       ng-model="noAdjuntarArchivo"
+                                       id="noAdjuntarArchivo"
+                                       name="group3"
+                                       >
+                            </label>
+                            <div class="cell" style="float:right">
+                                <ver-archivo dir="ArchivoSoporteRequisicion" ng-model="btnEl3">
+                                </ver-archivo>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <!-- <div class="col-md-6" style="padding-top: 10px;">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Enviar correo a proveedor solicitando cotización
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="col-md-6">
+            <div class="col-md-2"></div>
+            <div class="col-md-8" id="OpcionesCorreo">
+                <div class="col-md-2"></div>
+                <div class="col-md-2" style="text-align: right;">
+                    <label style="cursor:pointer;">SI
+                        <input type="radio"
+                               ng-model="enviarcorreosi"
+                               id="enviarcorreosi"
+                               name="group2"
+                               ng-click="EnviarCorreo()"
+                               >
+                    </label>
+                </div>
+                <div class="col-md-2"></div>
+                <div class="col-md-2" style="text-align: right;">
+                    <label style="cursor:pointer;">NO
+                         <input type="radio"
+                                ng-model="enviarcorreono"
+                                id="enviarcorreono"
+                                name="group2"
+                                ng-click="NoEnviarCorreo()"
+                                >
+                    </label>
+
+                </div>
+            </div>
+            <div class="col-md-2"></div>
+        </div> -->
+
+
+        <!-- <div class="col-md-6" style="padding-top: 10px;">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Adjuntar archivo de requisición en el correo
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="col-md-6">
+            <div class="col-md-2"></div>
+            <div class="col-md-8" id="OpcionesCorreoArchivo">
+                <div class="col-md-2"></div>
+                <div class="col-md-2" style="text-align: right;">
+                    <label style="cursor:pointer;">SI
+                        <input type="radio"
+                               ng-model="adjuntarArchivo"
+                               id="adjuntarArchivo"
+                               name="group3">
+                    </label>
+                </div>
+                <div class="col-md-2"></div>
+                <div class="col-md-2" style="text-align: right;">
+                    <label style="cursor:pointer;">NO
+                         <input type="radio"
+                                ng-model="noAdjuntarArchivo"
+                                id="noAdjuntarArchivo"
+                                name="group3">
+                    </label>
+
+                </div>
+            </div>
+            <div class="col-md-2"></div>
+        </div> -->
+        <div class="col-md-12" style="padding-top: 10px;" ng-show="sn_Archivo">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                Anexar Archivo
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="col-md-12" ng-show="sn_Archivo">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+              <input  ng-model="ar_Cotizacion"
+                id="ar_Cotizacion"
+                placeholder="Archivo Cotizacion"
+                type="file"
+                class="form-control"
+                change-focus
+                red-filemodel="ar_Cotizacion">
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <br>
+    </div>
+    <br>
+    <div class="row cajas" red-panel>
+        <div class="row" style="padding-top:20px;">
+            <div class="col-md-12" ng-show="_banderaSolicitud">
+                <div class="col-md-6" style="text-align: center;">
+                    <label style="cursor:pointer;">Solicitud de Compra
+                        <input  type="radio"
+                        id="SolicitudCompra"
+                        ng-model="SolicitudCompra"
+                        value="1"
+                        name="group1"
+                        ng-click="SolicitarCompra()">
+                    </label>
+                </div>
+
+                <div class="col-md-6" style="text-align: center;">
+                    <label ng-show="_banderaSolicitud" style="cursor:pointer;">Detalle de Insumos por Cotizar
+                        <input  type="radio"
+                                id="DetalleInsumo"
+                                ng-model="DetalleInsumo"
+                                value="2"
+                                name="group1"
+                                ng-show="_banderaSolicitud"
+                                ng-click="DetalleInsumosCotizar()">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="row" ng-show="_banderaSolicitudCompra">
+            <div class="col-md-12">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <table>
+                        <tr>
+                           <td style="width: 70px; padding-right: 5px;" ng-show="_banderaSolicitud" >
+                              <input type="text"
+                                     class="form-control contenido_numerico"
+                                     ng-model="id_SolicitudCompra"
+                                     placeholder="clave"
+                                     ng-change="getInsumosListado()"
+                                     maxlength="9">
+                           </td>
+                           <td style="padding-left: 10px;width:28px;text-align:center">
+                               <button class="contenido btn-icon25p btn-buscar25p" id="abrirModal" ng-click="AbrirModal()" ng-show="_banderaSolicitud"></button>
+                           </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
+        </div>
+        <br>
+        <div class="row" ng-show="_banderaDetalleInsumosCotizar">
+            <div class="col-md-12" style="padding-top: 10px;">
+                <div class="col-md-3"></div>
+                <div class="col-md-6">
+                    Tipo de Insumo:
+                    <select ng-model="requisicion"
+                            class="form-control"
+                            ng-change="updateinsumos()"
+                            ng-options="tr.DE_TIPOREQUISICION for tr in tiposrequisicion track by tr.ID_TIPOREQUISICION">
+                         <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="col-md-3"></div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-3"></div>
+                <div class="col-md-6">
+                   <div style="position:relative">
+                        Insumo:
+                        <input type="text"
+                               ng-model="txt_Insumo"
+                               class="form-control"
+                               placeholder="Insumo"
+                               ui-autocomplete="optionInsumos"
+                               change-focus>
+                   </div>
+                </div>
+                <div class="col-md-3"></div>
+            </div>
+            <div class="col-md-12" style="padding-top: 10px;">
+                <div class="col-md-3"></div>
+                <div class="col-md-6">
+                    Cantidad:
+                    <input type="text"
+                            ng-model="nu_Cantidad"
+                            class="form-control contenido_numerico"
+                            placeholder="Cantidad"
+                            maxlength="9">
+
+                </div>
+                <div class="col-md-3"></div>
+            </div>
+            <div class="col-md-12" style="padding-top: 10px; text-align: center;">
+                <button ng-click="AgregarInsumo()" id="agregarInsumo" class="btn btn-primary">Agregar Insumo a Cotización</button>
+            </div>
+        </div>
+      <legend>&nbsp;Insumos Cotizacion</legend>
+        <div style="height:200px;" ng-show="_banderaInsumosData" ng-grid="InsumosData" class="gridStyle" red-grid></div>
+        <div style="height:200px;" ng-show="_banderaInsumosDetalleData" ng-grid="InsumosDetallesData" class="gridStyle" red-grid></div>
+    </div>
+    <div style="padding-top: 10px;text-align: right;">
+        <button class="btn btn-primary" ng-click="GenerarCotizacion()" ng-show="_ContadorInsumosconSolicitud>0">Generar Cotización</button>
+            <button   ng-model="btnRegresar" ng-click="Regresar()" class="btn btn-warning" ng-hide="sn_fromSC">Regresar</button>
+        <button   ng-model="btnRegresar" ng-click="toSolicitudCompra()" class="btn btn-warning" ng-show="sn_fromSC">Regresar</button>
+    </div>
+
+
+    <red-modal name="modal" width="70%" titulo="Búsqueda Solicitudes de Compra">
+        <div red-panel class="row" align="center">
+            <div class="col-md-12">
+                <div class="col-md-1"></div>
+                <div class="col-md-5" align="left">
+                    Fecha inicio:
+                    <red-calendar   ng-model="fh_inicioModal"
+                                    focus-open="false"
+                                    format="dd/MM/yyyy">
+                    </red-calendar>
+                </div>
+                <div class="col-md-5" align="left">
+                    Fecha fin:
+                    <red-calendar   ng-model="fh_finModal"
+                                    focus-open="false"
+                                    format="dd/MM/yyyy">
+                    </red-calendar>
+                </div>
+                <div class="col-md-1">
+                    <button ng-model="btn_busc" ng-click="getSolicitudesCompraListado()" class="btn-icon25p btn-buscar25p" style="margin-top: 20px"></button>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div style="height:400px;  padding-bottom: 20px;" ng-grid="SolicitudesCompraData" class="gridStyle" red-grid ></div>
+
+    <div class="modal-footer">
+      <!-- <button ng-model="btnGuardar" ng-click="guardar()" class="btn btn-primary">Guardar</button> -->
+    </div>
+    </red-modal>
+    <br>
+</div>

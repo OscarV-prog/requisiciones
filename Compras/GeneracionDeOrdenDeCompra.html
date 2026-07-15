@@ -1,0 +1,949 @@
+<style type="text/css">
+  a:visited {
+      color: #428bca;
+  }
+  .grid {
+      vertical-align: text-top;
+  }
+  .grid thead{
+      background: #CCCCCC;
+  }
+  .grid tbody{
+      background: #FFF;
+  }
+  .grid tbody tr td {
+      text-align: center;
+      vertical-align: middle;
+      /* padding: 3px 3px 3px 3px; */
+      padding: 0;
+  }
+  .grid tbody tr td input {
+      width: 90%;
+      height: 25px;
+      margin: 0px auto 0px auto;
+  }
+  .td-input{
+      width: 10%;
+      height: 35px;
+      padding: 0 8px;
+      vertical-align: middle;
+  }
+  .input{
+      text-align: right;
+      padding: 5px;
+      margin: 0;
+      height: 25px;
+  }
+  #tablaSeguimiento{
+      overflow: auto;
+      overflow-x: hidden;
+      height: 400px;
+      width: 100%;
+  }
+  .cajas {
+    border-color:#428bca;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-bottom:15px;
+  }
+  .fieldset-label {
+    color:#428bca;
+    background-color: #f5f5f5;
+  }
+
+  /* POPOVER */
+  .popover {
+    max-width: 300px !important;
+    width: 300px !important;
+  }
+
+  .popover-inner .popover-content {
+    padding: 0px;
+  }
+
+  .popover-inner .pop-title, .popover-inner .popover-title {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #d4d4d4;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  .popover-inner .pop-title span {
+    color: #00437f;
+    font-size: 1.2em;
+  }
+
+  .popover-inner .pop-title .fa-times-circle:hover {
+    cursor: pointer;
+    color: #807d7d;
+    font-size: 1.1em;
+  }
+  .popover-inner .pop-content {
+    color: #333;
+    font-size: 1.2rem;
+    padding: 1rem 1rem;
+  }
+
+  .motivoCancelacionContenedor {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid #e5e5e5;
+    margin-top: .8rem;
+    padding-bottom: .6rem;
+  }
+
+  .motivoCancelacionContenedor input {
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+
+  .motivoCancelacionContenedor label {
+    font-size: 1.4rem;
+  }
+
+</style>
+<div  ng-app="appGeneracionComprasCombustible" ng-controller="ctrlGeneracionComprasCombustible" ng-init="HTML_CurrentVersion = 1.01; init();">
+  <div class="row">
+      <div class="col-md-12">
+          <red-Toolbar titulo="{{titulo}}">
+              <button ng-if="sn_Agregar" class="btn-icon25p btn-regresar25p" title="Regresar" ng-click="regresar()"></button>
+              <button ng-if="!sn_Agregar" class="btn-icon25p btn-agregar25p" title="Agregar" ng-click="agregarSolicitud()"></button>
+          </red-Toolbar>
+      </div>
+  </div>
+  <br>
+  <div ng-show="!sn_Agregar">
+      <div red-panel>
+          <div class="row">
+              <div class="col-md-12">
+                  <div class="col-md-3">
+                      <label>Empresa:</label>
+                      <select id="empresasFiltro"
+                              ng-model="filtro.id_Empresa"
+                              ng-change="listarProductos()"
+                              ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in empresas"
+                              class="form-control">
+                          <option value="">Seleccione</option>
+                      </select>
+                  </div>
+                  <div class="col-md-3">
+                      <label>Proveedor:</label>
+                      <select id="proveedorFiltro"
+                              chosen
+                              ng-model="filtro.id_Proveedor"
+                              ng-disable="sn_Editar"
+                              ng-options="item.ID_PROVEEDOR  as item.DE_RAZONSOCIAL for item in Proveedores"
+                              class="form-control">
+                          <option value="">Seleccione</option>
+                      </select>
+                  </div>
+                  <div class="col-md-3">
+                      <label>Producto:</label>
+                      <select ng-model="filtro.id_Producto"
+                              chosen
+                              id="productosFiltro"
+                              class="form-control"
+                              ng-options="item.ID_PRODUCTO as item.NB_PRODUCTO for item in productos">
+                          <option value="">Seleccione</option>
+                      </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label>Estatus:</label>
+                    <select id="estatusFiltro"
+                            ng-model="filtro.id_Estatus"
+                            ng-options="item.ID_ESTATUS  as item.DE_ESTATUS for item in estatuscmb | filter:filterEstatusCombustible"
+                            class="form-control">
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+              </div>
+              <div class="col-md-12">
+                  <div class="col-md-3">
+                      <label>Fecha Inicio:</label>
+                      <red-calendar   focus-open="false"
+                                      id="fh_inicio"
+                                      ng-model="fh_inicio"
+                                      format="dd/MM/yyyy"
+                                      ng-change="reset()"
+                                      >
+                      </red-calendar>
+                  </div>
+                  <div class="col-md-3">
+                      <label>Fecha Fin:</label>
+                      <red-calendar   focus-open="false"
+                                      id="fh_fin"
+                                      ng-model="fh_fin"
+                                      format="dd/MM/yyyy"
+                                      ng-change="reset()"
+                                      >
+                      </red-calendar>
+                  </div>
+                  <div class="col-md-3">
+                      <label>Folio Orden Compra:</label>
+                      <input  type="text"
+                              id="id_OrdenCompra"
+                              class="form-control contenido_numerico"
+                              max-length="9"
+                              sip-type="text"
+                              placeholder="ej. 123"
+                              ng-model="filtro.id_OrdenCompra">
+
+                  </div>
+                  <div class="col-md-1" style="margin-top: 20px;">
+                      <button class="btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <br>
+      <div class="row">
+          <div class="col-md-12" ui-i18n="{{lang}}">
+              <div ui-grid="OrdenesDeComprasGrid" ui-grid-auto-resize ui-grid-pagination class="gridStyle"></div>
+          </div>
+      </div>
+      <br>
+  </div>
+
+  <div ng-show="sn_Agregar" style="margin-bottom: 25rem;">
+      <div red-panel>
+        <div class="row">
+          <div class="col-md-12" style="margin: 0px; padding: 0px;">
+            <fieldset class="cajas">
+              <label class="fieldset-label">Orden de Compra</label>
+              <form class="form-horizontal">
+                <div class="row">
+
+                  <!-- Columna Izquierda -->
+                  <div class="col-md-8">
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">Empresa:</label>
+                      <div class="col-sm-10">
+                        <select id="id_Empresa"
+                                ng-model="solicitud.id_Empresa"
+                                ng-change="listarProductos()"
+                                ng-disabled="sn_Visualizar"
+                                ng-options="item.ID_EMPRESA  as item.NB_EMPRESA for item in empresas"
+                                class="form-control">
+                            <option value="">Seleccione</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">Proveedor:</label>
+                      <div class="col-sm-10">
+                        <select id="id_Proveedor"
+                                chosen
+                                ng-model="solicitud.id_Proveedor"
+                                ng-disabled="sn_Visualizar && !sn_Editar"
+                                ng-change="direccionRetiro()"
+                                ng-options="item.ID_PROVEEDOR as item.DE_RAZONSOCIAL for item in Proveedores"
+                                class=" form-control">
+                            <option value="">Seleccione</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">Dirección de Retiro:</label>
+                      <div class="col-sm-10">
+                        <select id="id_Direccion"
+                              chosen
+                              ng-model="solicitud.id_DireccionRetiro"
+                              ng-disabled="sn_Visualizar && !sn_Editar"
+                              ng-options="item.ID_DIRECCIONRETIRO as item.DE_DIRECCION for item in Direcciones"
+                              class="form-control">
+                          <option value="">Seleccione</option>
+                      </select>
+                      </div>
+                    </div>      
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">Producto SIPP:</label>
+                      <div class="col-sm-10">
+                        <select ng-model="solicitud.id_Producto"
+                              chosen
+                              id="id_Producto"
+                              class="form-control"
+                              ng-disabled="sn_Visualizar && !sn_Editar"
+                              ng-change="calcularPrecios()"
+                              ng-options = "item.NB_PRODUCTO for item in productos track by item.ID_PRODUCTO">
+                          <option value="">Seleccione</option>
+                      </select>
+                      </div>
+                    </div>
+                    <div class="form-group" ng-show="productosProveedor.length > 0">
+                      <label class="col-sm-2 control-label">Producto Proveedor:</label>
+                      <div class="col-sm-10">
+                        <select ng-model="solicitud.id_ProductoProveedor"
+                                id="id_ProductoProveedor"
+                                class="form-control"
+                                ng-disabled="sn_Visualizar && !sn_Editar"
+                                ng-options = "item.ID_PRODUCTOPROVEEDOR  as item.NB_PRODUCTO for item in productosProveedor">
+                            <option value="">Seleccione</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">Comentarios:</label>
+                      <div class="col-sm-10">
+                        <textarea ng-model="solicitud.de_Comentario"
+                            class="form-control contenido_nopage"
+                            id="de_Comentario"
+                            maxlength="500"
+                            alias="de_Comentarios"
+                            rows="8"
+                            ng-disabled="sn_Visualizar && !sn_Editar"
+                            placeholder="Comentarios">
+                        </textarea>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">
+                        Archivo de Soporte:
+                      </label>
+                      <div class="col-sm-10">
+                        <table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
+                          <tr>
+                            <td ng-show="verArchivoSoporte">
+                              <ver-archivo dir="verArchivoSoporte"></ver-archivo>
+                            </td>
+                            <td>
+                              <input
+                                  class="form-control"
+                                  type="file"
+                                  id="ar_ArchivoSoporte"
+                                  ng-model-instant
+                                  ng-disabled="sn_Visualizar && !sn_Editar"
+                                  onchange="angular.element(this).scope().loadArchivoSoporte(event)" multiple />
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Columna Derecha -->
+                  <div class="col-md-4">
+                    <div class="form-group" ng-show="sn_Visualizar">
+                      <label class="col-sm-3 control-label">Folio O.C.:</label>
+                      <div class="col-sm-9">
+                        <input  
+                            type="text"
+                            class="form-control"
+                            ng-model="solicitud.id_OrdenCompra"
+                            ng-disabled="true">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Fecha:</label>
+                      <div class="col-sm-9">
+                        <red-calendar
+                            id="fh_Pedido"
+                            focus-open="false"
+                            ng-model="fh_Pedido"
+                            ng-disabled="sn_Visualizar && !sn_Editar"
+                            format="dd/MM/yyyy">
+                        </red-calendar>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Cantidad (LT):</label>
+                      <div class="col-sm-9">
+                        <input  type="text"
+                                id="nu_Cantidad"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                max-length="9"
+                                style="text-align: right;"
+                                validacionLength="4"
+                                sip-type="text"
+                                ng-decimal="2"
+                                placeholder="Ej. 123"
+                                ng-change="calcularPrecios()"
+                                ng-disabled="sn_Visualizar && !sn_Editar"
+                                ng-format="number"
+                                ng-model="solicitud.nu_Cantidad">
+                      </div>
+                    </div>
+                    <div class="form-group" ng-show="solicitud.id_Producto && (solicitud.id_Producto.ID_TIPOPRODUCTO == ID_TIPO_PRODUCTO_GAS_LP)">
+                      <label class="col-sm-3 control-label">
+                        Cantidad (KG):
+                        <a popover-template="showPopOverKG_Message.templateUrl"
+                          popover-is-open="showPopOverKG_Message.isOpen"
+                          popover-placement="right"
+                          ng-click="showPopOverKG_Message.open('popOverHelpMessageKG')"
+                          type="button"
+                          class="btn btn-warning btn-xs"
+                          >
+                          <i class="fas fa-question"></i>
+                        </a>
+                      </label>
+                      <div class="col-sm-9">
+                        <input  type="text"
+                                id="nu_CantidadKilogramos"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                max-length="9"
+                                style="text-align: right;"
+                                validacionLength="4"
+                                sip-type="text"
+                                ng-decimal="2"
+                                placeholder="0"
+                                ng-format="number"
+                                ng-model="solicitud.nu_CantidadKilogramos"
+                                disabled>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Precio (S/IVA):</label>
+                      <div class="col-sm-9">
+                        <div class="input-group">                          
+                          <div class="input-group-addon bg-info" style="padding: 5px">$</div>
+                          <input type="text"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                id="im_Precio"
+                                ng-model="solicitud.im_Precio"
+                                style="text-align:right"
+                                max-length="19"
+                                validacionLength="6"
+                                ng-decimal="6"
+                                ng-format="number"
+                                ng-change="calcularPrecios()"
+                                ng-disabled="sn_Visualizar && !sn_Editar"
+                                sip-type="text">
+                        </div>
+                      </div>
+                    </div>
+                    <!-- <div class="form-group">
+                      <label class="col-sm-3 control-label">Precio Flete:</label>
+                      <div class="col-sm-9">
+                        <div class="input-group">                          
+                          <div class="input-group-addon bg-info" style="padding: 5px">$</div>
+                          <input type="text"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                id="im_PrecioFlete"
+                                ng-model="solicitud.im_PrecioFlete"
+                                style="text-align:right"
+                                max-length="19"
+                                validacionLength="6"
+                                ng-decimal="2"
+                                ng-format="number"
+                                ng-disabled="sn_Visualizar && !sn_Editar"
+                                sip-type="text">
+                        </div>
+                      </div>
+                    </div> -->
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label"></label>
+                      <div class="col-sm-9">
+                        <div class="checkbox checkbox-primary"  title="Seleccionar Todos">
+                          <input type="checkbox" checkbox
+                                id="chk_sn_PrecioSimbolico"
+                                title="¿Es precio simbólico?"
+                                ng-model="solicitud.sn_PrecioSimbolico"
+                                ng-disabled="sn_Visualizar && !sn_Editar"
+                                >
+                          <label for="chk_sn_PrecioSimbolico"><b>¿Es precio simbólico?</b></label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Moneda:</label>
+                      <div class="col-sm-9">
+                        <select
+                              ng-model="solicitud.id_Moneda"
+                              id="id_Moneda"
+                              class="form-control"
+                              ng-disabled="sn_Visualizar && !sn_Editar"
+                              ng-options = "item.NB_MONEDA for item in Monedas track by item.ID_MONEDA">
+                          <option value="">Seleccione</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Tasa IVA:</label>
+                      <div class="col-sm-9">
+                        <select id="im_TasaIVA"
+                              ng-model="solicitud.im_TasaIVA"
+                              ng-options = "item.DE_TAZAIMPUESTO for item in tasasIVA track by item.ID_IMPUESTOTASA"
+                              ng-change="calcularPrecios()"
+                              ng-disabled="sn_Visualizar && !sn_Editar"
+                              class="form-control">
+                          <option value="">Seleccione</option>
+                      </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">SubTotal:</label>
+                      <div class="col-sm-9">
+                        <div class="input-group">
+                          <div class="input-group-addon bg-info" style="padding: 5px">$</div>
+                          <input type="text"
+                                id="im_SubTotal"
+                                ng-model="solicitud.im_SubTotalFormat"
+                                style="text-align:right"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                max-length="19"
+                                validacionLength="6"
+                                ng-change="calcularPrecios()"
+                                ng-disabled="sn_Visualizar"
+                                sip-type="text">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Impuestos:</label>
+                      <div class="col-sm-9">
+                        <div class="input-group">
+                          <div class="input-group-addon bg-info" style="padding: 5px">$</div>
+                          <input type="text"
+                                id="im_Impuesto"
+                                ng-model="solicitud.im_ImpuestoFormat"
+                                style="text-align:right"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                max-length="19"
+                                validacionLength="6"
+                                ng-disabled="sn_Visualizar"
+                                sip-type="text">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Total:</label>
+                      <div class="col-sm-9">
+                        <div class="input-group">
+                          <div class="input-group-addon bg-info" style="padding: 5px">$</div>
+                          <input type="text"
+                                id="im_Total"
+                                ng-model="solicitud.im_TotalFormat"
+                                style="text-align:right"
+                                class="form-control contenido_flotante contenido_validarcantidad"
+                                max-length="19"
+                                validacionLength="6"
+                                ng-disabled="sn_Visualizar"
+                                sip-type="text">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            
+            </fieldset>
+          </div>
+        </div>
+        
+
+        <div class="row">
+          <!-- info de Descuentos -->
+          <div class="col-md-8" style="margin: 0px; padding: 0px;">
+            <fieldset class="cajas">
+              <label class="fieldset-label">Descuentos</label>
+              <div class="row">
+                
+                <div class="col-md-6">
+                    <div class="radio radio-timbrar">
+                      <input
+                          type="radio"
+                          ng-model="solicitud.id_Descuento"
+                          value="1"
+                          ng-disabled="sn_Visualizar && !sn_Editar"
+                          id="rdb_Ninguno">
+                      <label for="rdb_Ninguno">
+                          Ninguno
+                      </label>
+                    </div>
+
+                    <div class="radio radio-timbrar">
+                      <input
+                          type="radio"
+                          ng-model="solicitud.id_Descuento"
+                          value="2"
+                          ng-disabled="sn_Visualizar && !sn_Editar"
+                          id="rdb_DescuentoGeneral">
+                      <label for="rdb_DescuentoGeneral">
+                          Descuento General
+                      </label>
+                    </div>
+
+                    <div class="radio radio-timbrar">
+                      <input
+                          type="radio"
+                          ng-model="solicitud.id_Descuento"
+                          value="3"
+                          ng-disabled="sn_Visualizar && !sn_Editar"
+                          id="rdb_DescuentoTar">
+                      <label for="rdb_DescuentoTar">
+                          Descuento Por Día y Tar de Retiro
+                      </label>
+                    </div>
+                </div>
+              
+                <div class="col-md-6" ng-show="solicitud.id_Descuento == 2">
+                  <label>Descuento por Litro:</label>
+                 <input type="text"
+                        id="im_DescuentoGeneral"
+                        class="form-control contenido_flotante contenido_validarcantidad"
+                        max-length="19"
+                        validacionLength="6"
+                        sip-type="text"
+                        ng-decimal="6"
+                        placeholder="ej. 0.123"
+                        ng-disabled="sn_Visualizar && !sn_Editar"
+                        ng-format="number"
+                        ng-model="solicitud.im_DescuentoGeneral">
+                </div>
+
+                <div class="col-md-6" ng-show="solicitud.id_Descuento == 3">
+                  <table class="table table-condensed table-striped table-hover" cellpadding="0" cellspacing="0">
+                    <thead>
+                      <tr>
+                        <!-- Documento Proveedor -->
+                        <th style="text-align:center; border-top: none;">Tar de Retiro</th>
+                        <th style="text-align:center; border-top: none;">Descuento</th>
+                        
+                        <!-- Acciones -->
+                        <th style="text-align:center; border-top: none; width:30px; border-left: solid 2px #dddddd;" ng-hide="sn_Visualizar && !sn_Editar">
+                          <button class="btn-icon25p btn-agregar25p" 
+                                  title="Agregar" 
+                                  style="margin-top: 12px;" 
+                                  ng-model="btnAgregar" 
+                                  ng-click="agregarDescuentoTar()" 
+                                  ng-hide="sn_Visualizar && !sn_Editar"></button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="item in solicitud.descuentosTar">
+                        <!-- Documento Proveedor -->
+                        <td style="text-align:left;" title="{{item.NB_TAR}}">
+                          {{item.NB_TAR}}
+                        </td>
+                        <td style="text-align:right;" title="{{item.IM_DESCUENTO | number : 6}}">
+                          {{item.IM_DESCUENTO | number : 6}}
+                        </td>
+                        <!-- Acciones -->
+                        <td style="text-align:center; border-left: solid 2px #dddddd; padding: 0px;" ng-hide="sn_Visualizar && !sn_Editar">
+                          <button class="btn-icon15p btn-eliminar15p" title="Eliminar" style="margin-top: 5px;" ng-click="eliminarDescuentoTar($index)"></button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <!-- Info de Sucursales -->
+          <div class="col-md-4" style="margin: 0px; padding: 0px;">
+            <fieldset class="cajas">
+              <label class="fieldset-label">Sucursales</label>
+              <div class="row" style="padding-top: 15px;">
+                <div class="col-md-12 form-group">
+                    <label>Sucursales Retiro:</label>
+                    <div class="input-group" style="width: 100%;">
+                        <select class="form-control" chosen data-placeholder="Todas" multiple id="id_Sucursal" ng-model="solicitud.Sucursales" ng-disabled="sn_Visualizar && !sn_EditarSucursales"
+                            ng-options="item.NB_SUCURSAL for item in sucursales | orderBy : 'NB_SUCURSAL' track by item.ID_SUCURSAL" ng-change="cargarTipoDestino()">
+                        </select>
+                        <span ng-show="solicitud.Sucursales.length" ng-click="solicitud.Sucursales = []; cargarTipoDestino();"
+                            class="input-group-addon bg-info input_span glyphicon glyphicon-remove-circle" style="color: #336998;"
+                            title="Deseleccionar Todas" ng-disabled="sn_Visualizar && !sn_EditarSucursales"></span>
+                        <span ng-show="sn_Visualizar && sn_EditarSucursales" class="btn btn-default glyphicon glyphicon-floppy-disk " title="Guardar" ng-click="editarSucursales();" style="margin-left: 5px;"></span>
+                        <span ng-show="sn_Visualizar && !sn_EditarSucursales" class="btn btn-default glyphicon glyphicon-pencil" title="Editar" ng-click="sn_EditarSucursales = true;" style="margin-left: 5px;"></span>
+                    </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+
+        <div class="row">
+          <!--info de Vencimientos -->
+          <div class="col-md-8" style="margin: 0px; padding: 0px;">
+            <fieldset class="cajas">
+              <label class="fieldset-label">Vencimientos</label>
+              <div class="row" style="padding-top: 15px;">
+                <!-- dias de vencimiento de las facturas relacionadas para la Orden de Compra -->
+                <div class="col-md-6">
+                  <label>Días Vencimiento Factura:</label>
+                  <input type="number"
+                          id="nu_DiasVencimiento"
+                          ng-model="solicitud.nu_DiasVencimiento"
+                          style="text-align:right"
+                          class="form-control"
+                          ng-disabled="sn_Visualizar && !sn_Editar">
+                </div>
+                <div class="col-md-6">
+                  <label>
+                    Vigencia OC: 
+                    <button class="btn btn-warning" 
+                            ng-click="finalizarOC()" 
+                            ng-show="solicitud.sn_FinalizarOC" 
+                            title="Finalizar OC" 
+                            style="margin-left: 15px; padding-top: 0px; padding-bottom: 0px; margin-bottom: 0px; margin-top: 0px;" >Finalizar OC</button>
+                  </label>
+                  <table border="0" cellpadding="0" cellspacing="0" style="width:100%">
+                    <tr>
+                      <td>
+                        <red-calendar
+                              id="fh_Vencimiento"
+                              focus-open="false"
+                              ng-model="fh_Vencimiento"
+                              ng-disabled="sn_Visualizar && !sn_Editar && !sn_EditarVencimiento"
+                              format="dd/MM/yyyy">
+                        </red-calendar>
+                      </td>
+                      <td ng-show="sn_Visualizar && sn_PuedeEditarFechaVencimiento && !sn_EditarVencimiento">
+                        <span class="btn btn-default glyphicon glyphicon-pencil" title="Editar"  ng-click="sn_EditarVencimiento = true;" style="margin-left: 5px;"></span>
+                      </td>
+                      <td ng-show="sn_Visualizar && sn_PuedeEditarFechaVencimiento && sn_EditarVencimiento">
+                        <span class="btn btn-default glyphicon glyphicon-floppy-disk " title="Guardar" ng-click="editarFechaVencimiento();" style="margin-left: 5px;"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div class="col-md-4" style="margin: 0px; padding: 0px;">
+            <fieldset class="cajas" style="border-color:#428bca;">
+                <label class="fieldset-label" style="color:#428bca;">Tipo de Destino</label>
+                <div class="col-md-6" style=" margin-top: 15px;">
+                    <label for="tipoDestino">
+                        <input type="radio" name="tipoDestino" ng-model="id_tipoDestino" value="1" ng-change="cargarTipoDestino()" ng-disabled="sn_Visualizar && !sn_EditarSucursales">
+                        Patios
+                    </label>
+                </div>
+                <div class="col-md-6" style=" margin-top: 15px;">
+                    <label for="tipoDestino">
+                        <input type="radio" name="tipoDestino" ng-model="id_tipoDestino" value="2" ng-change="cargarTipoDestino()" ng-disabled="sn_Visualizar && !sn_EditarSucursales">
+                        Traspaso
+                    </label>
+                </div>
+                <div class="col-md-12" style=" margin-top: 15px;">
+                  <select class="form-control"
+                      id="id_PatioDestino"
+                      ng-model="solicitud.id_PatioDestino"
+                      ng-options="item.ID_PATIO as item.NB_PATIO for item in patios"
+                      ng-show="id_tipoDestino == 1"
+                      ng-disabled="sn_Visualizar && !sn_EditarSucursales">
+                      <option value="">Seleccione un Patio</option>
+                  </select>
+                    <select class="form-control"
+                      id="id_SucursalDestino"
+                      ng-model="solicitud.id_SucursalDestino"
+                      ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in sucursales"
+                      ng-show="id_tipoDestino == 2"
+                      ng-disabled="sn_Visualizar && !sn_EditarSucursales">
+                      <option value="">Seleccione una Sucursal</option>
+                  </select>
+                </div>
+            </fieldset>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="col-md-12 alignRight" style="padding-top:20px; margin-bottom: 30px;">
+          <button class="btn btn-success" ng-click="guardar()" ng-show="!sn_Visualizar" title="Guardar">Guardar</button>
+          <button class="btn btn-success" ng-click="guardarEdicion()" ng-show="sn_Editar" title="Editar">Editar</button>
+          <button
+            class="btn btn-danger"
+            ng-click="abrirModalCancelarConMotivo()"
+            ng-show="sn_CancelarConMotivoGlobal"
+            title="Cancelar"
+          >
+          Cancelar
+          </button>
+          <button class="btn btn-warning" ng-click="regresar()" title="Regresar">Regresar</button>
+      </div>
+  </div>
+
+  <!-- Modal para Descuento por Tar -->
+  <red-modal name="modalDescuentoTar" width="550">
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12">
+              <fieldset>
+                <legend>Descuento Por Dia y Tar de Retiro</legend>
+                <div class="col-md-12">
+                  <div class="col-md-6">
+                    <label>Tar de Retiro:</label>
+                    <select id="id_TarRetiro"
+                            chosen
+                            ng-model="descuentosTar.ID_TAR"
+                            class="form-control"
+                            ng-options="item.ID_TAR as item.NB_TAR for item in tarRetiro">
+                        <option value="">Seleccione</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label>Descuento:</label>
+                    <input 
+                          type="number"
+                          id="im_DescuentoTar"
+                          class="form-control"
+                          ng-model="descuentosTar.IM_DESCUENTO">
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="modal-footer">
+      <button ng-model="btn_guardar" class="btn btn-success" ng-click="GuardarDescuentoTar()">Guardar </button>
+    </div>
+  </red-modal>
+
+  <!-- Modal para Seguimiento -->
+  <red-modal name="modalSeguimiento" width="70%">
+    <div red-panel>
+        <div class="row">
+            <div class="col-md-12">
+              <fieldset>
+                <legend>Seguimiento de la Orden de Compra {{id_OrdenCompra}}</legend>
+                <div class="col-md-12">
+                    <table class="table table-bordered grid table-striped" style="margin-bottom: 0">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center; width:15%">Descripción</th>
+                                <th style="text-align:center; width:10%">Folio</th>
+                                <th style="text-align:center; width:10%">Estatus</th>
+                                <th style="text-align:center; width:25%">Responsable</th>
+                                <th style="text-align:center; width:15%">Fecha</th>
+                                <th style="text-align:center; width:25%">Comentarios</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in Seguimiento" style="height: 35px">
+                                <td style="width:15%; text-align: center;">
+                                  <i
+                                    class="fas fa-info-circle"
+                                    ng-show="item.SN_ICONOREACTIVADA"
+                                    style="font-size: 1.4rem; margin-right: .4rem;"
+                                    title="Orden de Compra Reactivada"
+                                  ></i>
+                                  {{item.DE_OPERACION}}
+                                </td>
+                                <td style="width:10%; text-align: center;">
+                                  {{item.FOLIO}}
+                                </td>
+                                <td style="width:10%; text-align:center; ">
+                                    {{item.DE_ESTATUS}}
+                                </td>
+                                <td style="width:25%; text-align: center;">
+                                    {{item.DE_EMPLEADO}}
+                                </td>
+                                <td style="width:15%; text-align: center;">
+                                    {{item.FH_REGISTROFORMAT}}
+                                </td>
+                                <td style="width:25%; text-align: center; word-break: break-word;">
+                                  {{item.DE_COMENTARIO}}
+                              </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+              </fieldset>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="modal-footer">
+      <div style="text-align: start;">
+        <i
+          class="fas fa-info-circle"
+          style="font-size: 1.4rem; margin-right: .4rem;"
+          title="Orden de compra reactivada"
+        ></i>
+        Orden de Compra Reactivada
+      </div>
+      <button ng-model="btn_guardar" class="btn btn-danger" ng-if="sn_CancelarEnSeguimiento" ng-click="cancelarOrdenCompra(row)">Cancelar </button>
+    </div>
+  </red-modal>
+  
+  <red-modal name="modalCancelacion" width="40%">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="col-md-12">
+          <label>Comentarios de Cancelación:</label>
+          <textarea ng-model="row.DE_COMENTARIOSCANCELA" class="form-control contenido_nopage"
+            id="de_ComentariosCancelacion" maxlength="300" alias="de_ComentariosCancelacion" rows="4"
+            placeholder="Comentarios de Cancelación">
+                  </textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a ng-model="btnCancelar" ng-click="cancelar(row)" class="btn btn-danger"><i class="fas fa-ban"></i> Cancelar </a>
+    </div>
+  </red-modal>
+
+  <red-modal name="modalCancelacionConMotivo" width="100%">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="col-md-12" ng-repeat="motivo in motivosCancelacion">
+          <div class="col-md-12 motivoCancelacionContenedor">
+            <label for="ID_MOTIVOCANCELACION{{motivo.ID_MOTIVOCANCELACION}}">
+              {{motivo.DE_MOTIVOCANCELACION}}
+            </label>
+            <input
+              type="radio"
+              id="ID_MOTIVOCANCELACION{{motivo.ID_MOTIVOCANCELACION}}"
+              ng-model="motivoSeleccionado"
+              ng-value="motivo.ID_MOTIVOCANCELACION"
+              ng-checked="motivo.ID_MOTIVOCANCELACION === motivoSeleccionado"
+              ng-click="changeMotivoCancelacionActivo(motivo)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a ng-model="btnCancelarConMotivo" ng-click="cancelar(row)" class="btn btn-info"> Aceptar </a>
+    </div>
+  </red-modal>
+
+  <red-modal name="modalReactivacion" width="40%">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="col-md-12">
+          <label>Comentarios de Reactivación:</label>
+          <textarea
+            ng-model="paramsReactivacion.de_ComentarioReactivacion"
+            class="form-control contenido_nopage"
+            id="de_ComentariosReactivacion"
+            maxlength="300"
+            alias="de_ComentariosReactivacion"
+            rows="4"
+            placeholder="Comentarios de Reactivación"
+          >
+          </textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a
+        ng-model="btnReactivar"
+        ng-click="reactivarOrdenDeCompra()"
+        class="btn btn-info"
+      >
+        <i class="fas fa-check"></i>
+        Reactivar
+      </a>
+    </div>
+  </red-modal>
+
+</div>
+
+<script type="text/ng-template" id="popOverHelpMessageKG">
+  <div class="pop-div">
+      <div class="pop-title">
+          <a ng-click="showPopOverKG_Message.close()"><i class="far fa-times-circle " style="float:right; margin-top:5px;" ></i></a>
+          <span>Valor aproximado</span>
+      </div>
+      <div class="pop-content">
+        La densidad del Gas LP puede variar ligeramente según la temperatura y la presión. La fórmula usada en esta operación es la siguiente:<br><br>
+        Densidad = 0.54 <br>
+        Cant. (Kg) = Cant (Lts) * Densidad 
+      </div>
+  </div>
+</script>

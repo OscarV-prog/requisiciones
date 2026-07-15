@@ -1,0 +1,45 @@
+<div ng-app="appConfNotificacionesRegistroRequisicionesListado" ng-controller="ctrlConfNotificacionesRegistroRequisicionesListado">
+    <red-toolbar titulo="Notificación de registro de Requisiciones de Compra - Listado">
+        <button class="btn-icon25p btn-agregar25p" title="Configuración de autorizaciones" ng-click="goToConfiguracion()"></button>
+    </red-toolbar>
+    <br>
+    <div red-panel class="row">
+        <div class="col-md-12">
+            <div class="col-md-6">
+                Sucursal:
+                <select ng-model="id_sucursal" class="form-control">
+                    <option value="">Seleccionar</option>
+                    <option ng-repeat="sucursal in sucursales" value="{{sucursal.ID_SUCURSAL}}">{{sucursal.NB_SUCURSAL}}</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                Puesto:
+                <select ng-model="id_puesto" class="form-control">
+                    <option value="">Seleccionar</option>
+                    <option ng-repeat="puesto in puestos" value="{{puesto.ID_PUESTO}}">{{puesto.NB_PUESTO}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="col-md-6">
+                Empleado:
+                <select ng-model="id_empleado" class="form-control">
+                    <option value="">Seleccionar</option>
+                    <option ng-repeat="empleado in empleados" value="{{empleado.ID_EMPLEADO}}">{{empleado.NB_EMPLEADO}}</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                Departamento:
+                <select ng-model="id_departamento" class="form-control">
+                    <option value="">Seleccionar</option>
+                    <option ng-repeat="departamento in departamentos" value="{{departamento.ID_DEPARTAMENTO}}">{{departamento.NB_DEPARTAMENTO}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-12" style="text-align: center">
+            <button class="btn-icon25p btn-buscar25p" ng-click="crearFiltros()" title="Obetener listado de configuraciones"></button>
+        </div>
+    </div>
+    <br>
+    <div ng-grid="gridNotificaciones" class="gridStyle"></div>
+</div>

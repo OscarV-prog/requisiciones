@@ -1,0 +1,170 @@
+<html>
+        <head>
+            <title></title>
+            <style type="text/css">
+                @page {
+                    size:letter;
+                    margin: 0.5cm;
+
+                    @bottom-center{
+                        content: "Pagina " counter(page) " de " counter(pages);
+                    }
+                }
+                .panelHeader {
+                    /*background-color: #f5f5f5;*/
+                    border: 1px solid #e5e5e5;
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 10px;
+                    font-size: 9pt;
+                }
+                body{
+                    margin: auto;
+                    width: 95%;;
+                }
+                .grid{
+                    border: solid 1px #e5e5e5;
+                    border-spacing: 0px;
+                }
+                .grid th{
+                    border: solid 1px #B5AEAE;
+                }
+                .grid td{
+                    border: solid 1px #B5AEAE;
+                }
+                .noGrid td{
+                    border: none;
+                    border-spacing: 0px;
+                }
+                .text{
+                    font-size: 12pt;
+                    font-family: arial;
+                    color: rgb(37, 37, 139);
+                }
+                
+            </style>
+        </head>
+        <body>
+            <div class="panelHeader">
+                <table width="100%">
+                    <tr>
+                        <td colspan="3" align="left">
+                            <cfif isDefined('Arguments.ordenCompra.ar_ImagenReporte')>
+                                <cfset ImagenReporte = expandPath('../#Arguments.ordenCompra.ar_ImagenReporte#')>
+                            <cfelse>
+                                <cfset ImagenReporte = expandPath('../#session.AR_IMAGENREPORTE#')>
+                            </cfif>
+                            <cfoutput><div id='logo' class='media' data-src="#ImagenReporte#" style='width: 30%' align="left" ></div></cfoutput>
+                        <td>
+                    </tr>
+                    <tr>
+                        <td align="right" style="width:51px"><b>Asunto:</b></td>
+                        <td align="left" style="width:300px">Solicitud de autorizaci&oacute;n de orden compra</td>
+                        <td align="right"><cfoutput>#Arguments.ordenCompra.nb_sucursal#</cfoutput></td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+            <div class="text">
+                Se solicita la autorizaci&oacute;n de la orden de compra descrita a continuaci&oacute;n:
+            </div>
+            <br>
+            <div class="text">Detalle de insumos</div>
+            <table class="panelHeader grid" width="100%">
+                <tr>
+                    <th>Cantidad</th>
+                    <th>Insumo</th>
+                    <th>Unidad de Medida</th>
+                    <th>Caracteristicas</th>                    
+                    <th>Moneda</th>
+                    <!-- <th>Tipo Cambio</th> -->
+                    <th  width="10%" >Precio Unitario</th>
+                    <th width="10%">% Descuento</th>
+                    <th width="10%">Descuento</th>
+                    <th width="10%" >Total Insumo</th>
+                </tr>
+                <cfloop from="1" to="#arrayLen(Arguments.ordenCompraDetalle)#" index="local.detalle">
+                    <cfoutput>
+                        <tr>
+                            <td align="center">#Arguments.ordenCompraDetalle[Local.detalle].nu_CantidadComprar#</td>
+                            <td>#Arguments.ordenCompraDetalle[Local.detalle].nb_nombreInsumo#</td>
+                            <td>#Arguments.ordenCompraDetalle[Local.detalle].nb_UnidadMedida#</td>
+                            <td>#Arguments.ordenCompraDetalle[Local.detalle].ValoresDetalle#</td>
+                            <td>#Arguments.ordenCompra.nb_moneda#</td>
+                            <!-- <td align="right">#numberFormat(Arguments.ordenCompraDetalle[Local.detalle].im_tipoCambio,"$___,___.__")#</td> -->
+                            <td width="10%" align="right">#numberFormat(Arguments.ordenCompraDetalle[Local.detalle].im_precioUnitario,"$___,___.__")#</td>
+                            <td width="10%" align="right">%#Arguments.ordenCompraDetalle[Local.detalle].pj_descuento#</td>
+                            <td width="10%"align="right">#numberFormat(Arguments.ordenCompraDetalle[Local.detalle].im_descuento,"$___,___.__")#</td>
+                            <td  width="10% " align="right">#numberFormat(Arguments.ordenCompraDetalle[Local.detalle].im_totalInsumo,"$___,___.__")#</td>
+                        </tr>
+                    </cfoutput>
+                </cfloop>
+                <tr class="noGrid">
+                    <td colspan="8" align="right">Sub-total:</td>
+                    <td  width="10%" align="right"><cfoutput>#numberFormat(Arguments.ordenCompra.im_subTotal,"$___,___.__")#</cfoutput></td>
+                </tr>
+                <tr class="noGrid">
+                    <td colspan="8" align="right">Descuento:</td>
+                    <td width="10%" align="right"><cfoutput>#numberFormat(Arguments.ordenCompra.im_descuento,"$___,___.__")#</cfoutput></td>
+                </tr>
+                <tr class="noGrid">
+                    <td colspan="8" align="right">Sub-Total <span style="color:red">-</span> Descuento:</td>
+                    <td  width="10%" align="right"><cfoutput>#numberFormat(Arguments.ordenCompra.im_subTotal-Arguments.ordenCompra.im_descuento,"$___,___.__")#</cfoutput></td>
+                </tr>
+                <cfif NOT isDefined('ordenCompra.im_Envio')>
+                    <cfset Arguments.ordenCompra.im_Envio = 0>
+                </cfif>
+                <cfif Arguments.ordenCompra.im_Envio GT 0>
+                    <tr class="noGrid">
+                        <td colspan="8" align="right">Gastos de Envio:</td>
+                        <td width="10%" align="right"><cfoutput>#numberFormat(Arguments.ordenCompra.im_Envio,"$___,___.__")#</cfoutput></td>
+                    </tr>
+                </cfif>
+
+                <cfset Arguments.ordenCompra.im_total = Arguments.ordenCompra.im_subTotal - Arguments.ordenCompra.im_descuento + Arguments.ordenCompra.im_Envio>
+                <cfloop array="#Arguments.impuestos#" index="Local.impuesto">
+                    <cfif Local.impuesto.SN_APLICAR>
+                        <cfset Arguments.ordenCompra.im_total=Arguments.ordenCompra.im_total+Local.impuesto.im_aplicacionImpuesto>
+                        <cfoutput>
+                            <tr class="noGrid">
+                                <td colspan="8" align="right">#Local.impuesto.nb_impuesto# (#Local.impuesto.pj_aplicar#%):</td>
+                                <td width="10%"  align="right">#numberFormat(Local.impuesto.im_aplicacionImpuesto,"$___,___.__")#</td>
+                            </tr>
+                        </cfoutput>
+                    </cfif>
+                </cfloop>
+                <tr class="noGrid">
+                    <td colspan="8" align="right">Total:</td>
+                    <td width="10%" align="right"><cfoutput>#numberFormat(Arguments.ordenCompra.im_total,"$___,___.__")#</cfoutput></td>
+                </tr>
+            </table>
+            <br>
+            <cfoutput>
+                <table width="95%">
+                    <tr>
+                        <td align="right"><b>Clave Orden de Compra:</b></td>
+                        <td align="left" style="width:74%">#Arguments.ordenCompra.id_OrdenDeCompra#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Generada por:</b></td>
+                        <td align="left" style="width:74%">#Arguments.ordenCompra.nb_empleado#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Proveedor:</b></td>
+                        <td align="left" style="width:74%">#Arguments.ordenCompra.nb_proveedor#</td>
+                    </tr>
+                    <tr>
+                        <td align="right"><b>Fecha programada:</b></td>
+                        <td align="left" style="width:74%">#DateFormat(Arguments.ordenCompra.fh_entregaProbable,'dd/mm/yyyy')#</td>
+                    </tr>
+                    <cfif Arguments.ordenCompra.id_requisicion NEQ ''>
+                        <tr>
+                            <td align="right"><b>Requisici&oacute;n Origen:</b></td>
+                            <td align="left" style="width:74%">#Arguments.ordenCompra.id_requisicion#</td>
+                        </tr>
+                    </cfif>
+                </table>
+            </cfoutput>
+        </body>
+    </html>

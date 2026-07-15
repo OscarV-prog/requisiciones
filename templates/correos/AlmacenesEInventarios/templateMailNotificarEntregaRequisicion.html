@@ -1,0 +1,82 @@
+<html lang="es">
+    <meta charset="UTF-8">
+    <head>
+        <title></title>
+        <style type="text/css">
+            .panelHeader {
+                background-color: #f5f5f5;
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 10px;
+            }
+            .divFooter{
+                font-style:normal;
+                font-variant:normal;
+                line-height:normal;
+                text-align:-webkit-auto;
+                text-transform:none;
+                white-space:normal;
+                color:rgb(48,144,96);
+                font-family:arial,sans-serif;
+                font-size:13px;
+            }
+            .spanFooter{
+                font-size:9pt;
+                font-family:'Museo 300';
+                color:rgb(48,144,96);
+                text-decoration:underline;
+            }
+            .bodyMail{
+                font-size: 15pt;
+                font-family: arial;
+                color: rgb(37, 37, 139);
+            }
+            body{
+                margin: auto;
+                width: 60%;;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bodyMail">
+            <p><b>Estimado/a <cfoutput>"#arguments.parametros.nb_Requisitante#"</cfoutput>.</b></p>
+            <p>Los siguientes insumos  solicitados en la requisición: <cfoutput><b>"#arguments.parametros.id_Requisicion#"</b></cfoutput> en <cfoutput><b>"#arguments.parametros.nb_Empresa#", "#arguments.parametros.nb_Sucursal#"</b></cfoutput> estan disponibles en el almacén de materiales: </p>
+            <br>
+            <p>
+                <cfoutput>
+                    <cfloop array="#arguments.parametros.Insumos#" index="insumo">
+                        <ul>
+                            <li>"#insumo.NB_NOMBREINSUMO#" - <b>"#insumo.NU_CANTIDADSURTIR# unidades"</b></li>
+                        </ul>
+                    </cfloop>
+                </cfoutput>
+            </p>
+            <br>
+
+            <br><p>Estos insumos <b>estan reservados</b> para surtir esta requisición, favor de acudir al almacén dentro del plazo establecido de <b>3 días hábiles</b> a partir de este aviso.</p>
+            <p>Después de este periodo, la requisición podrá ser finalizada si así se requiere y los materiales quedarán disponibles para todos los usuarios, de manera que para obtener lo solicitado deberá elaborar una nueva requisición.</p>
+            <br>
+
+            <p>Por favor, no dude en contactarnos si requiere asistencia adicional o tiene alguna consulta.</p>
+            <p>Encargado de Almacén: <cfoutput>#arguments.parametros.nb_Almacenista#</p></cfoutput>
+            <p>Correo Electrónico: <cfoutput>#arguments.parametros.de_Contacto#</cfoutput></p>
+            <p>Horario de Entrega: <cfoutput>#arguments.parametros.de_Horario#</cfoutput></p>
+            <p>Dirección de Entrega: <cfoutput>#arguments.parametros.de_Direccion#</cfoutput></p>
+            <br>
+
+            <p><b>Agradecemos su pronta visita y colaboración.</b></p>
+        </div>
+        <div class="divFooter">
+            <span class="spanFooter">
+                Antes de imprimir este correo, por favor asegúrate que es necesario y considera su impacto en el medio ambiente<img src="cid:footer">
+            </span>
+            <br>
+            <div class="spanFooter" style="text-decoration: none;margin-top: 10px;">
+                *Este correo fue enviado automaticamente, no responder
+            </div>
+        </div>
+    </body>
+</html>

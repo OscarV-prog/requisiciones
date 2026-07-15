@@ -1,0 +1,490 @@
+<script type="text/javascript" src="/js/services/reportes/AlmacenRefacciones/RequisicionesConsultaAlmacen/reporte.js"></script>
+<style type="text/css">
+    span.label {
+		margin: 2px 2px;
+		font-size: 12px !important;
+	}
+	.cajas {
+		padding-top: 15px;
+    margin-bottom: 10px;
+    border-color: hsl(0, 0%, 50%);
+    border-radius: 15px;
+	}
+    .fieldset-label {
+		color: #fff;
+		background-color: #428bca;
+		border-radius: 4px;
+		font-weight: normal;
+		padding: 5px 10px;
+		top: -13px;
+	}
+	--span.label {
+    font-size: 9px !important;
+  }
+  div.margenes-style {
+    margin: 5px;
+    margin-left: 15px;
+    margin-top: 20px
+  }
+
+  .divisor {
+      background-color: #00437f;
+      padding: 1px;
+      border-radius: 30px;
+  }
+  /* Modal de Seguimiento */
+  .hiddenBtn { visibility: hidden; }
+  .timeline { list-style: none; padding: 0 0 20px; position: relative; margin-top: -15px; }
+  .timeline:before { top: 30px !important; bottom: 25px; position: absolute; content: ""; width: 2px; background-color: #d6dbe3; left: 27px !important; }
+  .timeline > li { margin-bottom: 10px; position: relative; }
+  .timeline > li > .timeline-panel { margin-left: 56px; border: 1px solid #e0e4eb; border-radius: 10px; background-color: #fff; width: calc(100% - 72px) !important; box-shadow: 0 2px 6px rgba(0,0,0,0.04); overflow: hidden; transition: box-shadow 0.2s ease; }
+  .timeline > li > .timeline-panel:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .timeline > li > .timeline-badge { color: #fff; width: 36px; height: 36px; line-height: 36px; font-size: 1.2em; text-align: center; position: absolute; top: 10px; left: 9px !important; background-color: #bbb; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  .timeline-badge.primary { background-color: #3b82f6 !important; }
+  .timeline-badge.success { background-color: #22c55e !important; }
+  .timeline-badge.warning { background-color: #f59e0b !important; }
+  .timeline-badge.danger { background-color: #ef4444 !important; }
+  .timeline-badge.info { background-color: #06b6d4 !important; }
+  .timeline-badge > .glyphicon { margin-right: 0; color: #fff; }
+  .timeline-title { margin: 0; color: #1e293b; font-weight: 600; font-size: 14px; }
+  .timeline-heading { background-color: #f8fafc; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+  .tl-clickable { position: relative; padding-right: 26px; cursor: pointer; }
+  .tl-chevron { position: absolute; right: 10px; top: 50%; transform: translateY(-50%) rotate(0deg); transition: transform .18s ease; color: #475569; }
+  .tl-chevron.is-open { transform: translateY(-50%) rotate(180deg); }
+  .timeline-body { padding: 10px 12px; color: #374151; font-size: 13.5px; line-height: 1.4rem; }
+  .timeline-body b { color: #111827; }
+  .timeline-body.tl-body-closed { display: grid; grid-template-rows: 0fr; overflow: hidden; opacity: 0; transition: grid-template-rows .22s ease, opacity .18s ease; height: 15px; }
+  .timeline-body.tl-body-open { display: grid; grid-template-rows: 1fr; overflow: hidden; opacity: 1; transition: grid-template-rows .22s ease, opacity .18s ease; }
+  .timeline-body.tl-body-open > div, .timeline-body.tl-body-closed > div { overflow: hidden; }
+  .disabled { background-color: #9e9e9e2b; cursor: no-drop; }
+  .tl-disabled { cursor: default; opacity: 0.8; }
+  .seg-2col { position: relative; display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 16px; min-height: 70vh; transition: grid-template-columns .25s ease; }
+  .seg-2col.viewer-collapsed { grid-template-columns: 1fr 0px; }
+  .seg-col-right { display: flex; flex-direction: column; background: #fff; border: 1px dashed #e2e8f0; border-radius: 10px; height: 80vh; overflow: hidden; transition: opacity .2s ease, visibility .2s ease; opacity: 1; visibility: visible; }
+  .seg-2col.viewer-collapsed .seg-col-right { opacity: 0; visibility: hidden; pointer-events: none; }
+  @media (max-width: 1024px) { .seg-2col { grid-template-columns: 1fr; } }
+  .seg-col-left { height: 80vh; overflow: auto; padding-right: 8px; }
+  .seg-col-left::-webkit-scrollbar { width: 8px; }
+  .seg-col-left::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+  .seg-pdf-toolbar { display: flex; gap: 8px; justify-content: flex-end; padding: 8px; }
+  .seg-pdf-box { flex: 1; margin: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; display: flex; min-height: 420px; }
+  .seg-pdf-frame { flex: 1; border: 0; width: 100%; height: 100%; }
+  .seg-pdf-empty { margin: auto; text-align: center; color: #6b7280; display: flex; flex-direction: column; gap: 6px; }
+  .seg-pdf-title { font-weight: 600; color: #1f2937; }
+  .seg-pdf-footer { padding: 8px; display: flex; justify-content: flex-end; }
+  .seg-html-box { flex:1; width:100%; height:100%; overflow:auto; background:#fff; padding:10px; }
+  .viewer-toggle { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); background: #3b82f6; color: white; padding: 6px 4px; border-radius: 0 4px 4px 0; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
+  .viewer-toggle:hover { background: #2563eb; }
+  #content_modalSeguimientoRequisicion { max-width: 1500px !important; }
+  body { width: 100% !important; }
+  #panelSeguimiento { margin: 0 auto; padding-top: 30px; }
+  #content_modalSeguimientoRequisicion { transition: max-width 0.25s ease; }
+  .viewer-collapsed #content_modalSeguimientoRequisicion { max-width: 750px !important; }
+  .seg-pdf-sub { display: flex; align-items: center; gap: 5px; }
+</style>
+ <div ng-app="appRequisicionesConsultasAlmacen" ng-controller="ctrlRequisicionesConsultasAlmacen">
+    <red-Toolbar titulo="Requisiciones Consulta Almacén - Listado">
+    <!-- <button class="btn-icon25p btn-excel25p" ng-click="generarExcel()" ng-show="RequisicionesConsultasAlmacen.length"></button> -->
+        <!-- <button class="btn-icon25p btn-agregar25p" ng-click="abrirModal()"></button> -->
+        <ng-excel name="RequisicionesListado" extension="xlsx" scale="80" ng-click="generarExcel()">
+            <ng-sheet name="Reporte" dataset="ConcentradoDatos"></ng-sheet>
+        </ng-excel>
+    </red-Toolbar>
+    <br>
+  <div red-panel>
+    <div class="row">
+      <div class="col-md-4 margenes-style">
+        <div class="row">
+          Folio Requisición:
+          <input type="text"
+                  id="Requisicion"
+                  ng-model="id_RequisicionListado"
+                  class="form-control contenido_numerico"
+                  placeholder="Requisicion"
+                  maxlength="9">
+        </div>
+        <div class="row">
+          Solicitado A Compras:
+          <select ng-model="id_SolicitadoCompras"
+                  id="SolicitadoCompras"
+                  class="form-control"
+                  >
+              <option value="">Seleccionar</option>
+              <option value="0">No</option>
+              <option value="1">Totalmente</option>
+              <option value="2">Parcial</option>
+              <!-- <option value="401">No Trabajado</option>
+              <option value="402">Cotizado</option>
+              <option value="403">Comprado Parcial</option>
+              <option value="404">Comprado Completo</option>
+              <option value="405">Rechazado/Cancelado</option> -->
+          </select>
+        </div>
+        <div class="row" style="margin-top: 8px;">
+          Empleado:
+          <select chosen class="form-control"
+              ng-model="id_empleado"
+              id="empleado"
+              ng-options="item.NB_EMPLEADO for item in Empleados track by item.ID_EMPLEADO">
+              <option value="">Seleccionar</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-7" style="margin: 5px;">
+        <div class="row">
+          <fieldset class="cajas">
+            <div class="fieldset-label">Tipo de búsqueda</div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="radio radio-timbrar">
+                  <input id="fh_requisicion" type="radio" ng-model="nu_tipoFecha" ng-value="1">
+                  <label for="fh_requisicion">
+                    <strong>Fecha de Requisición</strong>
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="radio radio-timbrar">
+                  <input id="fh_autorizacion" type="radio" ng-model="nu_tipoFecha" ng-value="2">
+                  <label for="fh_autorizacion">
+                    <strong>Fecha de Autorización</strong>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6" id="fechainicio">
+                Fecha Inicio:
+                      <red-calendar ng-model="FechaInicioListado"
+                            open-focus="true"
+                            id="fh_inicio"
+                            format="dd/MM/yyyy">
+                      </red-calendar>
+              </div>
+              <div class="col-md-6">
+                Fecha Fin:
+                      <red-calendar ng-model="FechaFinListado"
+                            open-focus="true"
+                            format="dd/MM/yyyy">
+                      </red-calendar>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        <div class="row">
+        <div class="col-md-12">
+          <div class="col-md-5">
+            Estatus Autorización:
+            <select ng-model="id_EstatusListado"
+                    id="EstatusListado"
+                    class="form-control"
+                    ng-options="Estatu.DE_ESTATUSAUTORIZACIONREQUISICION for Estatu in Estatus track by Estatu.ID_ESTATUSAUTORIZACIONREQUISICION"
+                    >
+                  <option value="">Seleccionar</option>
+                <!-- <option ng-repeat="Estatu in Estatus " value="{{Estatu.ID_ESTATUSAUTORIZACIONREQUISICION}}">{{Estatu.DE_ESTATUSAUTORIZACIONREQUISICION}}</option> -->
+            </select>
+          </div>
+          <div class="col-md-6">
+            Estatus Surtido:
+            <select ng-model="id_EstatusSurtidoListado"
+                    id="EstatusSurtidoListado"
+                    class="form-control">
+                <option value="">Seleccionar</option>
+                <option ng-repeat="EstatuSurtido in EstatusSurtidos " value="{{EstatuSurtido.ID_ESTATUSSURTIDOREQUISICION}}">{{EstatuSurtido.DE_ESTATUSSURTIDOREQUISICION}}</option>
+            </select>
+          </div>
+          <div class="col-md-1" style="padding-top:18px; text-align:center;">
+            <button class="contenido btn-icon25p btn-buscar25p" ng-click="listar()" title="Buscar"></button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <div style="height:400px;" ng-grid="RequisicionesConsultasAlmacenData" class="gridStyle" red-grid ></div>
+  <!-- <div red-panel>
+      <fieldset>
+          <legend class="text-primary">Requisiciones Consulta Almacén</legend>
+      </fieldset>
+  </div> -->
+
+    <red-modal name="modalNotificacion" title="Visor de Notificación" width="1000px">
+    <div class="row" style="padding: 3%;">
+
+        <!-- Info superior -->
+        <div class="row" style="margin-bottom: 15px;">
+            <div class="col-md-12">
+                <div style="background: linear-gradient(135deg, #1a3a5c, #2d6a9f); border-radius: 8px; padding: 15px 20px;">
+                    <div class="row">
+
+                        <div class="col-md-3" style="border-right: 1px solid rgba(255,255,255,0.2); padding-right: 20px;">
+                            <div style="color: rgba(255,255,255,0.6); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                                <i class="fa fa-envelope" style="margin-right: 5px;"></i>Enviado a
+                            </div>
+                            <div style="color: #ffffff; font-size: 13px; font-weight: 600; word-break: break-all;">
+                                {{notif_email}}
+                            </div>
+                        </div>
+
+                        <div class="col-md-3" style="border-right: 1px solid rgba(255,255,255,0.2); padding-left: 20px; padding-right: 20px;">
+                            <div style="color: rgba(255,255,255,0.6); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                                <i class="fa fa-file-text" style="margin-right: 5px;"></i># Requisición
+                            </div>
+                            <div style="color: #f0c040; font-size: 18px; font-weight: 700;">
+                                {{notif_idRequisicion}}
+                            </div>
+                        </div>
+
+                        <div class="col-md-3" style="border-right: 1px solid rgba(255,255,255,0.2); padding-left: 20px; padding-right: 20px;">
+                            <div style="color: rgba(255,255,255,0.6); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                                <i class="fa fa-paper-plane" style="margin-right: 5px;"></i>Fecha de envío
+                            </div>
+                            <div style="color: #ffffff; font-size: 14px; font-weight: 600;">
+                                {{notif_fhEnvio | date:'dd/MM/yyyy'}}
+                            </div>
+                        </div>
+
+                        <div class="col-md-3" style="padding-left: 20px;">
+                            <div style="color: rgba(255,255,255,0.6); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                                <i class="fa fa-clock-o" style="margin-right: 5px;"></i>Fecha de expiración
+                            </div>
+                            <div style="color: #ff6b6b; font-size: 14px; font-weight: 600;">
+                                {{notif_fhExpira | date:'dd/MM/yyyy'}}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTML del correo -->
+        <div class="row" style="padding: 2%; background-color: #464545; border-radius: 6px;">
+            <div style="overflow: auto; max-height: 60vh; background-color: #ffffff; padding: 2%;">
+                <div ng-bind-html="htmlBind"></div>
+            </div>
+        </div>
+
+    </div>
+</red-modal>
+
+  <red-modal name="modalSeguimientoRequisicion" titulo="Seguimiento Requisición" width="100%" ng-class="{'viewer-collapsed': viewerCollapsed}" >
+    <div class="seg-2col" ng-class="{'viewer-collapsed': viewerCollapsed}">
+        <!-- IZQUIERDA: tu diseño original SIN CAMBIOS -->
+        <div class="seg-col-left">
+            <div id="panelSeguimiento">
+                <div class="seg-container">
+                    <ul class="timeline">
+                        <li ng-repeat="item in descripcionesTimeline track by $index">
+                            <div class="timeline-badge {{item.class}}">
+                                <i class="glyphicon {{item.icono}}"></i>
+                            </div>
+
+                            <div class="timeline-panel">
+                                <!-- ENCABEZADO clickeable -->
+                                <div class="timeline-heading tl-clickable {{item.classDisabled}}" ng-click="item.ID == 16 ? ejecutarAccion(item) : toggleTl(item)">
+                                    <span class="timeline-title">{{item.titulo}}</span>
+                                    <span class="tl-chevron" ng-class="{'is-open': isTlOpen(item)}">▾</span>
+                                </div>
+
+                                <!-- CUERPO con colapso/expand -->
+                                <div class="timeline-body {{item.classDisabled}}" ng-class="{'tl-body-open': isTlOpen(item), 'tl-body-closed': !isTlOpen(item)}">
+                                    <div ng-repeat="des in item.DE_DESCRIPCION">
+                                        <div ng-repeat="x in des.des" style="line-height: 1.8rem;">
+                                            <div ng-show="((x[0] != '===' && x[0] != '%%%') && (x['ID'] != ''))">
+                                                <b>{{x[0]}}:</b> {{x[1]}}
+                                            </div>
+                                            <div ng-show="x[0] == '==='"><br></div>
+                                            <div ng-show="x[0] == '%%%'"><div class="divisor"></div><br></div>
+                                        </div>
+
+                                        <div ng-if="!item.classDisabled" style="text-align:end;">
+                                            <button
+                                                ng-if="des.ID != 4 || des.SN_COTIZACIONELEGIDA"
+                                                title="Ver Detalles"
+                                                style="margin-right:4px; margin-bottom:2px;"
+                                                ng-click="ejecutarAccion(des)"
+                                                class="btn-icon15p btn-survey15p">
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón flotante entre columnas -->
+        <div class="viewer-toggle" ng-click="toggleViewer()" title="{{ viewerCollapsed ? 'Mostrar visor' : 'Ocultar visor' }}">
+            <i ng-class="viewerCollapsed ? 'fa fa-chevron-right' : 'fa fa-chevron-left'"></i>
+        </div>
+
+        <!-- DERECHA: visor PDF (nuevo) -->
+        <div class="seg-col-right">
+            <div class="seg-pdf-toolbar">
+                <a class="btn btn-primary me-2" ng-hide="!viewer.type || (facturaCtx.id >= 12 && facturaCtx.id <= 15)" ng-click="imprimir()">
+                    <i class="fa fa-print"></i> Imprimir
+                </a>
+
+                <a class="btn btn-success" ng-hide="!viewer.type || (facturaCtx.id >= 12 && facturaCtx.id <= 15)" ng-click="descargar()">
+                    <i class="fa fa-download"></i> Descargar
+                </a>
+                <div ng-hide="(!facturaCtx || !facturaCtx.xmlUrl) || facturaCtx.id == 15">
+                    <span style="font-size: 14px; color: black;">xml:</span> <ver-archivo dir="dirxml"></ver-archivo>
+                </div>
+
+
+            </div>
+
+
+            <div class="seg-pdf-box">
+                <!-- PDF por URL -->
+                <iframe
+                    ng-if="viewer.type === 'pdf'"
+                    class="seg-pdf-frame"
+                    ng-src="{{viewer.url}}">
+                </iframe>
+
+                <!-- HTML embebido -->
+                <div
+                    ng-if="viewer.type === 'html'"
+                    class="seg-html-box"
+                    ng-bind-html="viewer.html">
+                </div>
+
+                <!-- XML por URL (iframe) -->
+                <!-- <iframe ng-if="viewer.type === 'xml'"
+                        class="seg-pdf-frame"
+                        ng-src="{{viewer.url}}">
+                </iframe> -->
+
+
+
+                <!-- Vacío -->
+                <div ng-if="!viewer.type" class="seg-pdf-empty">
+                    <div class="seg-pdf-title">Visualizador de PDF</div>
+                    <div class="seg-pdf-sub">Selecciona un documento de la izquierda dando click al icono <button class="btn-icon15p btn-survey15p ng-scope"></button></div>
+                    <button class="btn btn-primary" ng-click="abrirPicker()">Cargar PDF</button>
+                </div>
+            </div>
+
+
+            <div class="seg-pdf-footer">
+                <button class="btn btn-danger btn-sm" ng-click="cerrarModalSeguimientoRequisicion()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+  </red-modal>
+
+	<red-modal name="modalEntradaAlmacen" title="Visor de Entrada de Almacén" width="1000px">
+		<div class="row" style="padding: 3%;">
+				<div class="row" style="padding: 2%; background-color: #464545;">
+						<div style="overflow: auto; max-height: 60vh; background-color: #ffffff; padding: 2%;">
+								<div ng-bind-html="htmlBind"></div>
+						</div>
+				</div>
+		</div>
+		<div>
+				<span id="descargarEntradaAlmacen" class="text-bg-primary"></span>
+		</div>
+	</red-modal>
+
+	<red-modal name="modalCotizaciones" titulo="Insumos de la Cotización" width="1100px">
+		<div class="row">
+				<div class="col-md-12">
+						<div style="height:250px;" ui-grid="CotizacionesGrid" class="grid-ui" ui-grid-pinning ui-grid-pagination ui-grid-selection ui-grid-auto-resize></div>
+				</div>
+		</div>
+		<br>
+		<div red-panel style="color:#34495e">
+				<div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+						<!-- Contenedor vacío para ocupar espacio -->
+						<div style="flex: 4;"></div>
+						<!-- Contenedor de los totales -->
+						<div style="flex: 2; min-width: 300px;">
+								<div style="display: flex; gap: 16px; font-size: 14px;">
+										<strong style="width: 250px; text-align: right;">SubTotal Cotización:</strong>
+										<p>{{CotizacionesData[0].IM_SUBTOTALCOTIZACIONFORMAT}}</p>
+								</div>
+								<div style="display: flex; gap: 16px; font-size: 14px;">
+										<strong style="width: 250px; text-align: right;">IVA:</strong>
+										<p>{{CotizacionesData[0].IM_IVAFORMAT}}</p>
+								</div>
+								<div style="display: flex; gap: 16px; font-size: 14px;">
+										<strong style="width: 250px; text-align: right;">Envío:</strong>
+										<p>{{CotizacionesData[0].IM_ENVIOFORMAT}}</p>
+								</div>
+								<div style="display: flex; gap: 16px; font-size: 14px;">
+										<strong style="width: 250px; text-align: right;">Retenciones:</strong>
+										<p>{{CotizacionesData[0].IM_RETENCIONFORMAT}}</p>
+								</div>
+								<div style="display: flex; gap: 16px; font-size: 14px;">
+										<strong style="width: 250px; text-align: right;">Descuentos:</strong>
+										<p>{{CotizacionesData[0].IM_TOTALDESCUENTOFORMAT}}</p>
+								</div>
+								<div style="display: flex; gap: 16px; font-size: 14px;">
+										<strong style="width: 250px; text-align: right;">Total Cotización:</strong>
+										<p>{{CotizacionesData[0].IM_TOTALCOTIZACIONFORMAT}}</p>
+								</div>
+						</div>
+				</div>
+		</div>
+
+
+		<div class="modal-footer">
+		</div>
+	</red-modal>
+
+	<red-modal name="modalHistorialRequisicion" titulo="Historial de Cambios" width="1100px">
+		<div class="row" red-panel>
+				<div class="col-md-4">
+						<label for="id_InsumoHC">Insumos:</label>
+						<select chosen multiple
+								id="id_InsumoHC"
+								class="form-control"
+								ng-model="filtros.Insumos"
+								data-placeholder="Seleccionar"
+								ng-options="item.ID_INSUMO as item.NB_NOMBREINSUMO for item in InsumosHistorialCambios">
+								<option value="">Seleccionar</option>
+						</select>
+				</div>
+				<div class="col-md-3">
+						<label for="id_EmpleadoHC">Empleados:</label>
+						<select chosen multiple
+								id="id_EmpleadoHC"
+								class="form-control"
+								ng-model="filtros.Empleados"
+								data-placeholder="Seleccionar"
+								ng-options="item.ID_EMPLEADO as item.NB_USUARIO for item in EmpleadosHistorialCambios">
+								<option value="">Seleccionar</option>
+						</select>
+				</div>
+				<div class="col-md-3">
+						<label for="id_TipoMovimientoHC">Tipo Movimiento:</label>
+						<select chosen
+								id="id_TipoMovimientoHC"
+								class="form-control"
+								ng-model="filtros.id_TipoMovimiento"
+								ng-options="item.ID_TIPOMOVIMIENTO as item.DE_TIPOMOVIMIENTO for item in TipoMovimientoHistorialCambios">
+								<option value="">Seleccionar</option>
+						</select>
+				</div>
+				<div class="col-md-2">
+						<button class="btn-icon25p btn-buscar25p" style="margin-top: 21px;" ng-click="buscarCambios()"></button>
+				</div>
+		</div>
+		<br>
+
+		<div class="row">
+				<div class="col-md-12">
+						<div ng-grid="HistorialCambiosGrid" class="gridStyle" id="id_HistorialCambiosGrid"></div>
+				</div>
+		</div>
+
+		<div class="modal-footer">
+		</div>
+	</red-modal>
+</div>

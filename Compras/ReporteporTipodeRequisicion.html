@@ -1,0 +1,85 @@
+<div  ng-app="appreportedeordenesdecompraportipoderequisicion" ng-controller="ctrlReporteOrdenesdeCompraporTipodeRequisicion">
+    <red-Toolbar titulo="Reporte de Compras por Tipo de Requisición - Listado">
+        <!--<button class="btn-icon25p btn-pdf25p" title="Generar PDF" ng-click="generarPDF()" ng-show="DatosReporte.length > 0 && sn_Acumulado == 1"></button>-->
+        <button class="btn-icon25p btn-excel25p" title="Generar Excel" ng-click="generarExcel()" ng-show="DatosReporte.length > 0 && sn_Acumulado == 1"></button>
+        <!--<button ng-click="generarPDFDetalle()" ng-show="DatosReporteDetalle.length > 0 && sn_Acumulado == 0" class="btn-icon25p btn-pdf25p"></button>         -->
+        <button ng-click="generarExcelDetalle()" ng-show="DatosReporteDetalle.length > 0 && sn_Acumulado == 0" class="btn-icon25p btn-excel25p"></button>
+    </red-Toolbar>
+    <br>
+    <div class="row" red-panel>
+        <div class="col-md-12">
+            <div class="col-md-3">
+                Tipos de Requisición:
+                <select ng-model="id_TipoRequisicion"
+                        id="id_TipoRequisicion"
+                        ng-change="sn_PDF=false;sn_Excel=false"
+                        class="form-control">
+                    <option value="">Seleccionar</option>
+                    <option ng-repeat="TipoRequisicion in TiposRequisiciones" value="{{TipoRequisicion.ID_TIPOREQUISICION}}">{{TipoRequisicion.DE_TIPOREQUISICION}}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                Fecha Inicio:
+                <red-calendar   ng-model="fh_Inicio"
+                                open-focus="false"
+                                format="dd/MM/yyyy"
+                                red-validatorName="fechas"
+                                red-validator
+                                required
+                                alias="Fecha Inicio"
+                                >
+                </red-calendar>
+            </div>
+            <div class="col-md-4">
+                Fecha Fin:
+                <red-calendar   ng-model="fh_Fin"
+                                open-focus="false"
+                                format="dd/MM/yyyy"
+                                red-validatorName="fechas"
+                                red-validator
+                                required
+                                alias="Fecha Fin"
+                                >
+                </red-calendar>
+            </div>
+
+            <div class="col-md-offset-1 col-md-2" style="text-align: center;padding-top: 17px;">
+                <label style="cursor:pointer;">
+                    <input  type="radio"
+                            ng-model="sn_Acumulado"
+                            value="1"
+                            ng-init="sn_Acumulado = 1"
+                            ng-click="rebuildGrid()">
+
+                    Acumulado
+                </label>
+            </div>
+            <div class="col-md-3" style="text-align: center;padding-top: 17px;">
+                <label style="cursor:pointer;">
+                    <input  type="radio"
+                            ng-model="sn_Acumulado"
+                            value="0"
+                            ng-click="rebuildGridDetalle()">
+
+                    Detallado
+                </label>
+            </div>
+            <div class="col-md-1" style="text-align: center;padding-top: 20px;">
+                <button ng-model="buscar" class="btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="row" ng-hide="sn_Acumulado == 0">
+        <div class="gridStyle" ng-grid="DatosReporteData"></div>
+        <div class="col-md-12" style="text-align:right">
+            <label>Total:</label> {{txtTotal}}
+        </div>
+    </div>
+
+    <div class="row" ng-hide="sn_Acumulado == 1">
+        <div class="gridStyle" ng-grid="DatosReporteDataDetalle"></div>
+        <div class="col-md-12" style="text-align:right">
+            <label>Total:</label> {{txtTotalDetalle}}
+        </div>
+    </div>

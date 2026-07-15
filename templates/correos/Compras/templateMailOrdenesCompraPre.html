@@ -1,0 +1,118 @@
+<html lang="es">
+    <meta charset="UTF-8">
+    <head>
+        <title></title>
+        <style type="text/css">
+            .panelHeader {
+                /*margin-left: 10px;*/
+                /*margin-right: 20px;*/
+                background-color: #f5f5f5;
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 10px;
+            }
+            .divFooter{
+                font-style:normal;
+                font-variant:normal;
+                line-height:normal;
+                text-align:-webkit-auto;
+                text-transform:none;
+                white-space:normal;
+                color:rgb(48,144,96);
+                font-family:arial,sans-serif;
+                font-size:13px;
+            }
+            .spanFooter{
+                font-size:9pt;
+                font-family:'Museo 300';
+                color:rgb(48,144,96);
+                text-decoration:underline;
+            }
+            .bodyMail{
+                font-size: 12pt;
+                font-family: arial;
+                color: rgb(37, 37, 139);
+            }
+            body{
+                margin: auto;
+                width: 60%;;
+            }
+        </style>
+    </head>
+    <body >
+        <div class="panelHeader" >
+            <table width="100%">
+                <tr>
+                    <td colspan="2" align="left">
+                        <img src="cid:logo" width="40%">
+                    <td>
+                </tr>
+                <tr>
+                    <td align="right" style="width:51px"><b>Asunto:</b></td>
+                    <td align="left">Solicitud de pre-autorizaci&oacute;n de orden compra</td>
+                </tr>
+            </table>
+        </div>
+        <br>
+        <div class="bodyMail">
+            Se solicita la pre-autorizaci&oacute;n de la orden de compra descrita en el documento adjunto.<br>
+            <br>
+            <table>
+                <tr>
+                    <td align="right"><b>Orden de compra:</b></td>
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#Arguments.parametros.nu_ordenCompra#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right"><b>Sucursal:</b></td>
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#Arguments.parametros.nb_sucursal#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right"><b>Generada por:</b></td>
+                    <td align="left"><cfoutput>&nbsp;&nbsp;<i>#Arguments.parametros.nb_empleado#</i></cfoutput></td>
+                </tr>
+                <tr>
+                    <td align="right"><b>Proveedor:</b></td>
+                    <td align="left"><cfoutput>&nbsp;&nbsp;<i>#Arguments.parametros.nb_proveedor#</i></cfoutput></td>
+                </tr>
+                <tr>
+                    <td align="right"><b>Fecha programada:</b></td>
+                    <td align="left"><cfoutput>&nbsp;&nbsp;<i>#dateFormat(Arguments.parametros.fh_programada,'dd/mm/yyyy')#</i></cfoutput></td>
+                </tr>
+                <cfif Arguments.parametros.nu_requisicion NEQ ''>
+                    <tr>
+                        <td align="right"><b>Requisici&oacute;n origen:</b></td>
+                        <td align="left"><cfoutput>&nbsp;&nbsp;<i>#Arguments.parametros.nu_requisicion#</i></cfoutput></td>
+                    </tr>
+                </cfif>
+                <tr>
+                    <td align="right"><b>Total:</b></td>
+                    <td align="left"><cfoutput>&nbsp;&nbsp;<i>#numberFormat(Arguments.parametros.im_total,"$___,___.__")#
+                        <cfif isDefined("Arguments.parametros.nb_moneda") AND Len(Trim(Arguments.parametros.nb_moneda)) GT 0>
+                            &nbsp;#Arguments.parametros.nb_moneda#
+                        </cfif>
+                    </i></cfoutput></td>
+                </tr>
+                <tr>
+                    <td align="right"><b>Pre-Autorizar OC:</b></td>
+                    <td align="left"><cfoutput>&nbsp;&nbsp;<a href="https://sipp.petroil.com.mx/">Ir al portal para Pre-Autorizar</cfoutput></td>
+                </tr>
+            </table>
+        </div>
+        <br>
+        <div class="divFooter">
+            <span class="spanFooter">
+                Antes de imprimir este correo, por favor aseg&uacute;rate que es necesario y considera su impacto en el medio ambiente<img src="cid:footer">
+            </span>
+            <br>
+            <div class="spanFooter" style="text-decoration: none;margin-top: 10px;">
+                *Este correo fue enviado automaticamente, no responder
+            </div>
+        </div>
+    </body>
+</html>

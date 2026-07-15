@@ -1,0 +1,103 @@
+<style type="text/css">
+    /*Border de color azul claro para señalar el grid con error*/
+    .errorInfo{
+        border: solid 2px #5bc0de !important;
+    }
+    /*Border gris, para conservar el espacio que abarcara el border de error*/
+    .border{
+        border: solid 2px #f5f5f5;
+    }
+
+    #clearDep {
+     position : absolute;
+     top: 21%;
+     left: 96%;
+     cursor: pointer;
+    }
+</style>
+<div  ng-app="appConfNotificacionesRegistroRequisiciones" ng-controller="ctrlConfNotificacionesRegistroRequisiciones">
+    <red-toolbar titulo="Notificación de registro de requisiciones - Configurar">
+        <button class="btn-icon25p btn-regresar25p" title="Regresar al listado" ng-click="goToListado()"></button>
+    </red-toolbar>
+    <br>
+    <div class="row" red-panel>
+        <div class="col-md-12">
+            <div class="col-md-4">
+                Sucursal:
+                <select ng-model="id_sucursal"
+                        class="form-control"
+                        red-validatorName="agregar"
+                        red-validator
+                        alias="sucursal"
+                        change-focus
+                        required>
+                    <option value="">Seleccionar</option>
+                    <option ng-repeat="sucursal in sucursales" value="{{sucursal.ID_SUCURSAL}}">{{sucursal.NB_SUCURSAL}}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                Puesto:
+                <select ng-model="id_puesto"
+                        class="form-control"
+                        ng-change="validarinfoempleado()"
+                        red-validatorName="agregar"
+                        red-validator
+                        alias="puesto"
+                        change-focus
+                        required>
+                    <option value="0">Seleccionar</option>
+                    <option ng-repeat="puesto in puestos" value="{{puesto.ID_PUESTO}}">{{puesto.NB_PUESTO}}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                Empleado:
+                <select ng-model="id_empleado"
+                        class="form-control"
+                        ng-change="filtrarDepartamentos()"
+                        red-validatorName="agregar"
+                        red-validator
+                        alias="empleado"
+                        change-focus
+                        red-bind="empleados.listarEmpleadosAutorizacion(id_puesto=id_puesto@change)"
+                        value="id_empleado"
+                        display="nb_empleado"
+                        required>
+                    <option value="0">Seleccionar</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-12" style="margin-top: 15px;">
+            <div class="col-md-1"></div>
+            <fieldset class="col-md-10" style="padding-right: 0;">
+                <legend>Departamentos</legend>
+                <!-- Campo de busqueda -->
+                <input  type="text"
+                        class="form-control"
+                        ng-model="filterDep.filterText"
+                        placeholder="Buscar Departamento">
+                <!-- Boton para restablecer el campo de busqueda -->
+                <span   class="glyphicon glyphicon-remove"
+                        id="clearDep" ng-click="clearFilterDep()"
+                        ng-show="filterDep.filterText!=''"></span>
+                <!-- Grid de Empleados -->
+                <div    ng-grid="gridDepartamentos"
+                        class="gridStyle border"
+                        style="height: 180px;"
+                        ng-class="{'errorInfo': sn_depSelect}"></div>
+            </fieldset>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+    <div red-panel class="row" style="margin-top: 15px !important;margin-bottom: 15px !important;">
+        <div class="col-md-12" style="text-align: right;padding-top: 10px;padding-bottom: 10px;">
+            <button class="btn btn-primary" ng-click="addNotificacion()">Agregar</button>
+        </div>
+    </div>
+    <div class="row">
+        <div ng-grid="gridNotificaciones" class="gridStyle" style="margin-bottom: 15px;border: solid 2px rgba(0,0,0,0)" ng-class="{errorInfo: !sn_notifOk}"></div>
+    </div>
+    <div style="text-align:center;margin-bottom: 15px;">
+        <button class="btn btn-primary" ng-click="guardarConfiguracion()">Guardar</button>
+        <button class="btn btn-warning" ng-click="goToListado()">Regresar</button>
+    </div>
+</div>

@@ -1,0 +1,165 @@
+<style type="text/css">
+    .error{
+        border: solid 1px red !important;
+    }
+</style>
+
+<div id="controller" ng-app="appConfAutorizacionRequisicionesCompraListado" ng-controller="ctrlConfAutorizacionRequisicionesCompraListado">
+    <red-toolbar titulo="Autorización de Requisiciones - Listado">
+        <button class="btn-icon25p btn-agregar25p" title="Configuración de autorizaciones" ng-click="goToConfiguracion(0,1)"></button>
+    </red-toolbar>
+    <br>
+
+    <div red-panel class="row">
+        <div class="col-md-12">
+            <div class="col-md-6">
+                <label> Divisiones:</label>
+                <select ng-model="filtro.id_tipodivision"
+                    class="form-control"
+                    chosen
+                    ng-options="tipoDivision.ID_TIPODIVISION as tipoDivision.DE_TIPODIVISION for tipoDivision in tiposDivisiones">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label>Sucursal:</label>
+                <select ng-model="filtro.id_sucursal"
+                    class="form-control"
+                    chosen
+                    ng-options="sucursal.ID_SUCURSAL as sucursal.NB_SUCURSAL for sucursal in sucursales">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-12" style="margin-top: 12px;">
+            <div class="col-md-6">
+                <label>Puesto:</label>
+                <select ng-model="filtro.id_puesto"
+                        class="form-control"
+                        ng-change="listarEmpleados()"
+                        chosen
+                        ng-options="puesto.ID_PUESTO as puesto.NB_PUESTO for puesto in puestos">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+               <label>Empleado:</label>
+                <select ng-model="filtro.id_empleado"
+                        class="form-control"
+                        chosen
+                        ng-options="empleado.ID_EMPLEADO as empleado.NB_EMPLEADO for empleado in empleados">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-1" style="text-align: center">
+                <br>
+                <button class="btn-icon25p btn-buscar25p" ng-click="listar()" title="Obetener listado de configuraciones" style="margin-top: 10px;"></button>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <div ng-grid="gridAutorizaciones" class="gridStyle"></div>
+
+    <red-modal titulo="Configuracion de Autorización" width="750px" name="confAutoriza">
+        <div class="row">
+            <div class="col-md-6">
+                <br>
+                <label> División:</label>
+                <select ng-model="id_tipodivision"
+                        id="id_tipodivision"
+                        red-validatorName="agregar"
+                        red-validator
+                        alias="division"
+                        change-focus
+                        ng-change="obtenerNivelConfiguracion(id_sucursal,id_tipodivision)"
+                        class="form-control"
+                        chosen
+                        ng-options="tipoDivision.ID_TIPODIVISION as tipoDivision.DE_TIPODIVISION for tipoDivision in tiposDivisiones"
+                        required>
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <br>
+                <label>Sucursal:</label>
+                <select ng-model="id_sucursal"
+                        class="form-control"
+                        ng-change="obtenerNivelConfiguracion(id_sucursal,id_tipodivision)"
+                        ng-options="sucursal.ID_SUCURSAL as sucursal.NB_SUCURSAL for sucursal in sucursales"
+                        chosen>
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <br>
+                <label>Nivel de Autorización:</label>
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" ng-click="decrement()">-</button>
+                    </span>
+                    <input type="text" class="form-control" ng-model="id_nivel" pattern="\d*" max="{{nivelMaxOriginal}}" disabled maxlength="3"/>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" ng-click="increment()">+</button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6" style="margin-top:38px;">
+                <div class="col-md-6">
+                    <input type="checkbox" checkbox id="chk_JefeImediato" ng-model="sn_JefeImediato" ng-change="chkJefeInmediato(sn_JefeImediato)">
+                    <label for="chk_JefeImediato">Jefe Inmediato</label>
+                </div>
+                <div class="col-md-6">
+                    <input type="checkbox" checkbox ng-model="sn_EnvioCorreo" id="chk_EnvioCorreo">
+                    <label for="chk_EnvioCorreo">Envio Correo</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <br>
+               <label> Puesto: </label>
+                <select ng-model="id_puesto"
+                        id="id_puesto"
+                        class="form-control"
+                        chosen
+                        red-validatorName="agregar"
+                        red-validator
+                        ng-options="puesto.ID_PUESTO as puesto.NB_PUESTO for puesto in puestos"
+                        alias="puesto"
+                        change-focus
+                        ng-change="obtenerEmpleadosConf(id_puesto)"
+                        ng-disabled="sn_JefeImediato"
+                        required>
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <br>
+                <label> Empleado: </label>
+                <select ng-model="id_empleado"
+                        id="id_empleado"
+                        ng-disabled="sn_JefeImediato"
+                        class="form-control"
+                        red-validatorName="agregar"
+                        red-validator
+                        alias="empleado"
+                        change-focus
+                        required
+                        chosen
+                        ng-options="emp.ID_EMPLEADO as emp.NB_EMPLEADOCOMPLETO for emp in empleadosConfiguracion">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-footer" style="padding:10px 15px 3px;">
+            <button class="btn btn-primary" ng-click="guardarConfiguracion()">Guardar</button>
+        </div>
+    </red-modal>
+</div>
+

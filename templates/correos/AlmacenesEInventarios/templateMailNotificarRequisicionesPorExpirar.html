@@ -1,0 +1,80 @@
+<html lang="es">
+    <meta charset="UTF-8">
+    <head>
+        <title></title>
+        <style type="text/css">
+            .panelHeader {
+                background-color: #f5f5f5;
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 10px;
+            }
+            .divFooter{
+                font-style:normal;
+                font-variant:normal;
+                line-height:normal;
+                text-align:-webkit-auto;
+                text-transform:none;
+                white-space:normal;
+                color:rgb(48,144,96);
+                font-family:arial,sans-serif;
+                font-size:13px;
+            }
+            .spanFooter{
+                font-size:9pt;
+                font-family:'Museo 300';
+                color:rgb(48,144,96);
+                text-decoration:underline;
+            }
+            .bodyMail{
+                font-size: 15pt;
+                font-family: arial;
+                /* color: rgb(37, 37, 139); */
+            }
+            body{
+                margin: auto;
+                width: 60%;;
+            }
+            .title {
+                font-size: 1.25em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bodyMail">
+            <p>
+                Por medio del presente correo le informamos que las siguientes requisiciones se encuentran en su último día para ser entregadas al requisitante.
+            </p>
+            <br>
+
+            <p class="title"><b>Detalles de las Requisiciones:</b></p>
+            <ul>
+                <li><b>Empresa:</b> <cfoutput>#arguments.parametros.nb_Empresa#</cfoutput></li>
+                <li><b>Sucursal:</b> <cfoutput>#arguments.parametros.nb_Sucursal#</cfoutput></li>
+                <li><b>Almacen:</b> <cfoutput>#arguments.parametros.nb_Almacen#</cfoutput></li>
+                <cfoutput>
+                    <li><b>Requisiciones:</b></li>
+                    <cfloop array="#arguments.parametros.requisiciones#" index="Req">
+                        <ul>
+                            <li><b>Folio:</b> "#Req#"</li>
+                        </ul>
+                    </cfloop>
+                </cfoutput>
+            </ul>
+            <br>
+
+            <p>Si la requisición no es surtida para el final del día, puede empezar a realizar la finalización de las requisiciones.</p>
+        </div>
+        <div class="divFooter">
+            <span class="spanFooter">
+                Antes de imprimir este correo, por favor asegúrate que es necesario y considera su impacto en el medio ambiente<img src="cid:footer">
+            </span>
+            <br>
+            <div class="spanFooter" style="text-decoration: none;margin-top: 10px;">
+                *Este correo fue enviado automaticamente, no responder
+            </div>
+        </div>
+    </body>
+</html>

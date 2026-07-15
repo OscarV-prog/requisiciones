@@ -1,0 +1,188 @@
+<html lang="es">
+    <meta charset="UTF-8">
+    <head>
+        <title></title>
+        <style type="text/css">
+            .panelHeader {
+                /*margin-left: 10px;*/
+                /*margin-right: 20px;*/
+                background-color: #f5f5f5;
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 10px;
+            }
+            .divFooter{
+                font-style:normal;
+                font-variant:normal;
+                line-height:normal;
+                text-align:-webkit-auto;
+                text-transform:none;
+                white-space:normal;
+                color:rgb(48,144,96);
+                font-family:arial,sans-serif;
+                font-size:13px;             
+            }
+            .spanFooter{
+                font-size:9pt;
+                font-family:'Museo 300';
+                color:rgb(48,144,96);
+                text-decoration:underline;
+            }
+            .bodyMail{
+                font-size: 12pt;
+                font-family: arial;
+                color: rgb(37, 37, 139);
+            }
+            body{
+                margin: auto;
+                width: 60%;
+            }
+            #t01 th td {
+                border: 1px solid black;
+                border-collapse: collapse;
+                padding: 5px;
+                text-align: left;
+            }
+            table#t01 tr:nth-child(even) {
+                background-color: #eee;
+            }
+            table#t01 tr:nth-child(odd) {
+               background-color:#fff;
+            }
+            table#t01 th    {
+                background-color: #999;
+                color: black;
+            }
+        </style>
+    </head>
+    <body >
+        <div class="panelHeader" >
+            <table width="100%">
+                <tr>
+                    <td colspan="2" align="left">
+                        <img src="cid:logo" width="40%">
+                    <td>
+                </tr>
+                <tr>
+                    
+                    <td align="right" style="width:51px"><b>Asunto:</b></td>
+                    <cfif #arguments.parametros.sn_autorizado#>
+                        <td>Autorizaci&oacute;n de requisici&oacute;n</td>
+                        <cfelse>
+                            <td>Rechazo de requisici&oacute;n</td>
+                    </cfif>
+                </tr>
+            </table>
+        </div>
+        <br>
+        <div class="bodyMail">
+            <cfoutput>#arguments.parametros.de_mensaje#</cfoutput><br>
+            <br>
+
+        <table>
+                <tr>
+                    <td align="left">
+                        <b>Empresa:</b>
+                    </td>   
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#arguments.parametros.nb_Empresa#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <b>Folio:</b>
+                    </td>   
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#arguments.parametros.id_requisicion#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <b>Sucursal: </b>
+                    </td>   
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#arguments.parametros.nb_sucursal#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <b>&Aacute;rea:</b>
+                    </td>   
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#arguments.parametros.nb_departamento#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <b>Tipo de requisici&oacute;n:</b>
+                    </td>   
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#arguments.parametros.de_tipoRequisicion#</i></cfoutput>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <b>Fecha de registro requisici&oacute;n:</b>
+                    </td>   
+                    <td align="left">
+                        <cfoutput>&nbsp;&nbsp;<i>#arguments.parametros.fh_registroRequisicion#</i></cfoutput>
+                    </td>
+                </tr>
+        </table>
+
+        <cfif #arguments.parametros.sn_autorizado#>
+            <br>
+            <table id="t01">
+                <tr class="insumoRow">
+                        <th>Insumo</th>
+                    <cfif arguments.parametros.id_tipoRequisicion NEQ 1>
+                        <th>Caracteristicas</th>
+                        <th>Utilizarse En</th>
+                    </cfif>
+                        <th>Almac&eacute;n</th>
+                        <th>Cantidad</th>
+                        <th>Unidad Medida</th>
+                    
+                    <cfif arguments.parametros.id_tipoRequisicion NEQ 1>
+                        <th>Surtido</th>
+                        <th>Existencia</th>
+                    </cfif>
+                </tr>
+                
+                <cfloop array="#arguments.parametros.insumos#" index="Local.opcion">
+                    <cfoutput>
+                        <tr>
+                                <td>#Local.opcion.NB_NOMBREINSUMO#</td>
+                            <cfif arguments.parametros.id_tipoRequisicion NEQ 1>
+                                <td>#Local.opcion.VALORESDETALLE#</td>
+                                <td>#Local.opcion.NB_CENTROCOSTOFORMAT#</td>
+                            </cfif>
+                                <td>#Local.opcion.NB_ALMACEN#</td>
+                                <td>#Local.opcion.NU_CANTIDAD#</td>
+                                <td>#Local.opcion.NB_UNIDADMEDIDA#</td>
+                            
+                            <cfif arguments.parametros.id_tipoRequisicion NEQ 1>
+                                <td>#Local.opcion.NU_CANTIDADSURTIDA#</td>
+                                <td>#Local.opcion.NU_EXISTENCIA#</td>
+                            
+                            </cfif>
+                        </tr>
+                    </cfoutput>
+                </cfloop>
+            </table>
+        </cfif>
+        </div>
+        <br>
+        <div class="divFooter">
+            <span class="spanFooter">
+                Antes de imprimir este correo, por favor aseg&uacute;rate que es necesario y considera su impacto en el medio ambiente<img src="cid:footer">
+            </span>
+            <br>
+            <div class="spanFooter" style="text-decoration: none;margin-top: 10px;">
+                *Este correo fue enviado automaticamente, no responder
+            </div>
+        </div>
+    </body>
+</html>

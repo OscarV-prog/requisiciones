@@ -1,0 +1,178 @@
+<html>
+        <head>
+            <title></title>
+            <style type="text/css">
+                @page {
+                    size:landscape;
+                    margin: 0.5cm;
+
+                    @bottom-center{
+                        content: "Pagina " counter(page) " de " counter(pages);
+                    }
+                }
+                .panelHeader {
+                    background-color: #f5f5f5;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 10px;
+                }
+                body{
+                    margin: auto;
+                    width: 95%;;
+                }
+                .grid{
+                    border-spacing: 0px;
+                }
+                .grid th{
+                    border-left: solid 1px #B5AEAE;
+                    border-bottom: solid 1px #B5AEAE;
+                    background-color: #B5AEAE;
+                    font-size: 10pt;
+                }
+                .grid td{
+                    border-left: solid 1px #B5AEAE;
+                    border-bottom: solid 1px #B5AEAE;
+                    font-size: 9pt;
+                }
+                .noGrid td{
+                    border: none;
+                    border-spacing: 0px;
+                    background-color: #B5AEAE;
+                    font-weight: bold;
+                }
+                .text{
+                    font-size: 11pt;
+                    font-family: arial;
+                    color: rgb(37, 37, 139);
+                }
+            </style>
+        </head>
+        <body>
+            <table width="100%">
+                <tr>
+                    <td >
+                        Compras generadas por Tipo de Requisici&oacute;n
+                    </td>
+                    <td align="right">
+                        <cfoutput>
+                            #dateFormat(now(),'dd/mm/yyyy')#
+                        </cfoutput>
+                    </td>
+                </tr>
+            </table>
+            <br>
+            <div class="panelHeader">
+                <table width="100%">
+                    <tr>
+                        <td colspan="2" align="left">
+
+                            <cfoutput><img id='logo' class='media' src="#SESSION.ar_ImagenLogo#" style='width: 60%' align="left" ></cfoutput>
+                        <td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+                <!-- <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            Tipo de Requisicion:
+                        </div>
+                        <div class="col-md-3">
+                            <cfoutput>
+                                #local.DatosReporte.fh_Inicio#
+                            </cfoutput>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            De:
+                        </div>
+                        <div class="col-md-3">
+                            <cfoutput>
+                                #local.DatosReporte.fh_Inicio#
+                            </cfoutput>
+                        </div>
+                        <div class="col-md-3">
+                            A:
+                        </div>
+                        <div class="col-md-3">
+
+                        </div>
+                    </div>
+                </div> -->
+                <table >
+                    <tr>
+                        <td style="width:200px" align="right">
+                            Tipo de Requisici&oacute;n:
+                        </td>
+                        <td >
+                            <cfoutput>
+                                #local.DatosReporte.de_Requisiciones#
+                            </cfoutput>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:200px" align="right">
+                            De:
+                        </td>
+                        <td>
+                            <cfoutput>
+                                #local.DatosReporte.fh_Inicio#
+                            </cfoutput>
+                        </td>
+                        <td style="width:200px" align="right">
+                            A:
+                        </td>
+                        <td>
+                            <cfoutput>
+                                #local.DatosReporte.fh_Fin#
+                            </cfoutput>
+                        </td>
+                    </tr>
+                </table>
+                <table style="width:100%" class="grid">
+                    <tr>
+                        <th align="center">Sucursal</th>
+                        <th align="center">Tipo de Requisici<cfoutput>#chr(243)#</cfoutput>n</th>
+                        <th align="center">Insumo</th>
+                        <th align="center">Cantidad</th>
+                        <th align="center">Precio Unitario</th>
+                        <th align="center" style="min-width:75px">SubTotal</th>
+                        <th align="center" style="min-width:75px">IVA</th>
+                        <th align="center" style="min-width:75px">Total</th>
+                        <th align="center">Puesto</th>
+                        <th align="center">Empleado</th>
+                    </tr>
+                    <cfset SubTotal = 0>
+                    <cfset IVA = 0>
+                    <cfset Total = 0>
+                    <cfoutput>
+                        <cfloop from="1" to="#arrayLen(arguments.Requisiciones)#"  index="i" >
+                            <tr>
+                                <td align="left">#arguments.Requisiciones[i]['NB_SUCURSAL']#</td>
+                                <td align="left">#arguments.Requisiciones[i]['DE_TIPOREQUISICION']#</td>
+                                <td align="left">#arguments.Requisiciones[i]['NB_NOMBREINSUMO']#</td>
+                                <td align="right">#arguments.Requisiciones[i]['NU_CANTIDAD']#</td>
+                                <td align="right">#numberFormat(arguments.Requisiciones[i]['IM_PRECIOUNITARIO'],'$___,___.__')#</td>
+                                <td align="right">#numberFormat(arguments.Requisiciones[i]['IM_SUBTOTAL'],'$___,___.__')#</td>
+                                <cfset SubTotal += arguments.Requisiciones[i]['IM_SUBTOTAL']>
+                                <td align="right">#numberFormat(arguments.Requisiciones[i]['IM_IVA'],'$___,___.__')#</td>
+                                <cfset IVA += arguments.Requisiciones[i]['IM_IVA']>
+                                <td align="right" >#numberFormat(arguments.Requisiciones[i]['im_total'],'$___,___.__')#</td>
+                                <cfset Total += arguments.Requisiciones[i]['IM_TOTAL']>
+                                <td align="left">#arguments.Requisiciones[i]['NB_PUESTO']#</td>
+                                <td align="left" style="border-right:solid 1px ##B5AEAE;">#arguments.Requisiciones[i]['NB_EMPLEADO']#</td>
+                            </tr>
+                        </cfloop>
+                            <tr class="noGrid">
+                                <td colspan="5" align="right"  class="noGrid" style="border-left:none;">Total:</td>
+                                <td align="right" class="noGrid">#numberFormat(SubTotal,'$___,___.__')#</td>
+                                <td align="right" class="noGrid" style="border-left:none;">#numberFormat(IVA,'$___,___.__')#</td>
+                                <td align="right" class="noGrid" style="border-left:none; border-right:none;">#numberFormat(Total,'$___,___.__')#</td>
+                                <td colspan="3" style="border-right:solid 1px ##B5AEAE;"></td>
+                            </tr>
+                    </cfoutput>
+            </table>
+    </body>

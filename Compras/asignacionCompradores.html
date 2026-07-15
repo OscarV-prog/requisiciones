@@ -1,0 +1,122 @@
+<style>
+span.label{font-size: 12px!important; }
+</style>
+<div  ng-app="appAsignacionCompradores" ng-controller="ctrlAsignacionCompradores" ng-init="init()">
+    <red-Toolbar titulo="Asignación de Sucursal a Compradores">
+        <!-- <button class="btn-icon25p btn-regresar25p" ng-click="regresar()"></button> -->
+    </red-Toolbar>
+    <br>
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom:10px;">
+            <div class="col-md-6">
+                <div class="col-md-8" style="padding-left: 0px;padding-right: 0px;">
+                    <label>Empleado:</label>
+                    <input
+                        class="form-control"
+                        ng-model="nb_empleadofiltro"
+                        placeholder="Empleado"
+                        maxlenght="100"
+                        ng-keyup="filtrarempleados($event)">
+                </div>
+                <div class="col-md-3" style="padding-top: 20px;">
+                    <span style="float: right;">
+                        <a class="btn btn-primary" title="Buscar" ng-click="listarCompradores();"><i class="fas fa-search"></i></a>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="col-md-5" style="padding-left:0;">
+                    <label>Empresa:</label>
+                    <input
+                        class="form-control"
+                        ng-model="nb_empresafiltro"
+                        placeholder="Empresa"
+                        ng-keyup="filtrarsucursales($event)"
+                        maxlenght="100">
+                </div>
+                <div class="col-md-5" style="padding-left:0;">
+                    <label>Sucursal:</label>
+                    <input
+                        class="form-control"
+                        ng-model="nb_sucursalfiltro"
+                        placeholder="Sucursal"
+                        ng-keyup="filtrarsucursales($event)"
+                        maxlenght="100">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="col-md-6">
+                <label style="font-size: 12pt;color: #34638c;">Compradores:</label>
+                <div style="height:350px;" ng-grid="EmpleadosData" class="gridStyle" red-grid ></div>
+            </div>
+            <div class="col-md-6">
+                <label style="font-size: 12pt;color: #34638c;">Sucursales:</label>
+                <div style="height:350px;" ng-grid="Sucursalesdata" class="gridStyle" red-grid ></div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="bs-callout bs-callout-warning">
+                            <div>
+                                <span class="glyphicon glyphicon-exclamation-sign parpadea" aria-hidden="true" style="color:#FFA500"></span>
+                                <label>Se perderá la seleccion de Sucursales al cambiar de página.</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div style="text-align: right;padding-right: 15px;">
+                <button ng-model="btn_cerrar" title="Cerrar" class="btn btn-primary" ng-click="guardar()">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <!-- Modal Historial  -->
+    <red-modal name="modalHistorial" width="60%">
+        <div class="row" red-panel>
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="col-md-5" style="padding-left:0;">
+
+                        <label>Empresa:</label>
+                        <select chosen class="form-control"
+                                ng-model="id_empresaHistorial"
+                                id="id_empresaHistorial"
+                                ng-change="changeEmpresa(id_empresaHistorial);"
+                                ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in EmpresasHistorial">
+                            <option value="">Seleccione</option>
+                        </select>
+
+                    </div>
+                    <div class="col-md-5" style="padding-left:0;">
+
+                        <label>Sucursal:</label>
+                        <select chosen class="form-control"
+                                ng-model="id_sucursalHistorial"
+                                id="id_sucursalHistorial"
+                                ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in SucursalesHistorial">
+                            <option value="">Seleccione</option>
+                        </select>
+
+                    </div>
+                    <div class="col-md-2">
+                        <div style="margin-top:20px; float: right;">
+                            <button class="btn-icon25p btn-buscar25p" ng-model="btnBuscar" ng-click="getHistorico(id_empresaHistorial,id_sucursalHistorial);"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class ="col-md-12">
+                <div style="height:400px;" ng-grid="gridHistorial" class="gridStyle" red-grid></div>
+            </div>
+        </div>
+        <div class="modal-footer"></div>
+    </red-modal>
+</div>

@@ -1,0 +1,189 @@
+<html>
+    <head>
+
+        <title></title>
+
+        <style>
+            @page {
+                    size:letter;
+                    margin: 0.5cm;
+
+                    @bottom-center{
+                        content: "Pagina " counter(page) " de " counter(pages);
+                    }
+                }
+                .panelHeader {
+                    background-color: #f5f5f5;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 10px;
+                }
+                body{
+                    margin: auto;
+                    width: 95%;;
+                }
+                .grid{
+                    border: solid 1px #e5e5e5;
+                    border-spacing: 0px;
+                }
+                .grid th{
+                    border: solid 1px #B5AEAE;
+                }
+                .grid td{
+                    border: solid 1px #B5AEAE;
+                }
+                .noGrid td{
+                    border: none;
+                    border-spacing: 0px;
+                }
+                table tr td {
+                    width: 1%;
+                    text-align: left;
+                }
+                .grid tr td {
+                    width: 1%;
+                    text-align: center;
+                }
+                .headers {
+                    font-size: small;
+                    text-align: center;
+                }
+        </style>
+
+    </head>
+
+    <body>
+
+        <table width="100%">
+            <td align="right">
+                <cfoutput>
+                    #dateFormat(now(),'dd/mm/yyyy')#
+                </cfoutput>
+            </td>
+        </table>
+        
+        <br>
+
+        <div class="panelHeader">
+            <table width="100%">
+                <tr>
+                    <td align="left">
+                        <cfoutput><img id='logo' class='media' src="#SESSION.ar_ImagenLogo#" style='width: 60%' align="left" ></cfoutput>
+                    <td>
+                    <td align="left"> 
+                            Cotizaciones solicitud de compra
+                    </td>
+                    <td align="right">
+                        <cfoutput>
+                            #local.Datos.folioSolicitudCompra#
+                        </cfoutput>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <br>
+
+        <table width="100%">
+            <tr>
+                <td>
+                    Solicitud compra:
+                </td>
+                <td align="left">
+                    <cfoutput>
+                        #local.Datos.id_solicitudCompra#
+                    </cfoutput>
+                </td>
+                <td>
+                    Fecha registro SC:
+                </td>
+                <td align="left">
+                    <cfoutput>
+                        #local.Datos.fh_registroSC#
+                    </cfoutput>
+                </td>
+            </tr>
+            <tr>
+                <td align="left">
+                    Folio Requisición origen:
+                </td>
+                <td align="left">
+                    <cfoutput>
+                        #local.Datos.id_requisicion#
+                    </cfoutput>
+                </td>
+                <td align="left">
+                    Fecha registro requisicion:
+                </td>
+                <td align="left">
+                    <cfoutput>
+                        #local.Datos.fh_requisicion#
+                    </cfoutput>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Comentarios:
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <cfoutput>
+                        #local.Datos.comentarios#
+                    </cfoutput>
+                </td>
+            </tr>
+        </table>
+        <br><br><br>
+        <div>Comparativa de precios</div>
+        <table class="grid" width="100%">
+            <tr>
+                <th class="headers">
+                    Solicitud Compra
+                </th>
+                <th class="headers">
+                    Insumo
+                </th>
+                <th class="headers">
+                    Cantidad
+                </th>
+                <cfloop from="1" to="#arrayLen(Arguments.titulos)#"  index="i">
+                    <th class="headers">
+                        <cfoutput>
+                            #Arguments.titulos[i]#
+                        </cfoutput>
+                    </th>
+                </cfloop>
+            </tr>
+            <cfloop from="1" to="#arrayLen(Arguments.comparativa)#"  index="i">
+                <tr>
+                    <td>
+                        <cfoutput>
+                            #Arguments.comparativa[i].ID_SOLICITUDCOMPRA#
+                        </cfoutput>
+                    </td>
+                    <td class="headers">
+                        <cfoutput>
+                            #Arguments.comparativa[i].NB_NOMBREINSUMO#
+                        </cfoutput>
+                    </td>
+                    <td>
+                        <cfoutput>
+                            #Arguments.comparativa[i].NU_CANTIDAD#
+                        </cfoutput>
+                    </td>
+                    <cfloop from="1" to="#arrayLen(Arguments.encabezados)#"  index="y">
+                        <td>
+                            <cfoutput>
+                                <cfif #Arguments.comparativa[i]['#Arguments.encabezados[y]#']# EQ ''>$0
+                                <cfelse>$#Arguments.comparativa[i]['#Arguments.encabezados[y]#']#</cfif>
+                            </cfoutput>
+                        </td>
+                    </cfloop>
+                </tr>
+            </cfloop>
+        </table>
+    </body>
+</html>

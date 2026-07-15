@@ -1,5 +1,7 @@
-<style>
-    /* Modal Seguimiento */
+<style type="text/css">
+    .chosen-container{
+        margin-bottom: 10px;
+    }
     .hiddenBtn { visibility: hidden; } 
     .timeline { list-style: none; padding: 0 0 20px; position: relative; margin-top: -15px; } 
     .timeline:before { top: 30px !important; bottom: 25px; position: absolute; content: ""; width: 2px; background-color: #d6dbe3; left: 27px !important; } 
@@ -50,142 +52,158 @@
     .viewer-collapsed #content_modalSeguimientoRequisicion { max-width: 750px !important; } 
     .seg-pdf-sub { display: flex; align-items: center; gap: 5px; }
 </style>
-
-<div ng-app="appRequisiciones" ng-controller="ctrlRequisiciones" ng-init="init()">
-    <red-Toolbar titulo="Requisiciones - Listado">
+<script type="text/javascript" src="/js/services/reportes/ControlOrdenesCompras/reporte.js"></script>
+<div ng-app="appcontrolordenescompras" ng-controller="ctrlControlOrdenesCompras" ng-init="init()">
+    <red-toolbar titulo="Órdenes de Compra - Control">
         <div>
-            <button class="btn-icon25p btn-agregar25p" ng-click="nuevaRequisicion()" title="Agregar nueva (ALT+N)"></button>
+            <ng-excel name="Ordenes de Compra" extension="xlsx" scale="80" ng-click="generarReporte()" button-type="icon" title="Generar Reporte">
+                <ng-sheet name="Reporte" dataset="dataReporte"></ng-sheet>
+            </ng-excel>
         </div>
-        <div class="avisoManual">
-            <a href=""  ng-model="btnAviso" class="avisoManual" ng-click="abrirModalManual()" title="Manual de Usuario">
-                 <i class="far fa-question-circle"></i>
-            </a>
-        </div>
-        <div class="divIconAviso" ng-show="btnAviso">
-            <a  href=""
-                popover-template="myPopover.templateUrl"
-                popover-is-open="myPopover.isOpen"
-                popover-placement="left-bottom"
-                ng-click="myPopover.open('myPopoverTemplate')"
-                type="button"
-                class="btn btn-warning btn-xs"
-                title="Aviso de Actualizaciones">
-                <i class="far fa-lightbulb iconAviso"></i>
-            </a>
-        </div>
-    </red-Toolbar>
+    </red-toolbar>
     <br>
-    <div red-panel style="color:#34495e">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    Empresa:
-                    <select class="form-control" ng-model="filtros.id_Empresa" chosen
-                        alias="Empresa"
-                        ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in Empresas | unique:'NB_EMPRESA'"
-                        ng-change="getSucursalEmpleado()">
-                        <option value="">Seleccionar</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    Sucursal:
-                  <select class="form-control"
-                      ng-model="filtros.id_sucursal"
-                      ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in Sucursales">
-                      <option value="">Seleccionar</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                    Centro de Costo:
-                    <select class="form-control" ng-model="centro" chosen
-                        alias="Centro"
-                        ng-options="centro.NB_CENTROCOSTO for centro in CentrosCostos track by centro.ID_CENTROCOSTO">
-                        <option value="">Seleccionar</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    Estatus:
-                    <select ng-model="filtros.id_estatus" class="form-control" change-focus>
-                        <option value="">Seleccionar</option>
-                        <option ng-repeat="status in statusRequisiciones" value="{{status.ID_ESTATUSAUTORIZACIONREQUISICION}}">{{status.DE_ESTATUSAUTORIZACIONREQUISICION}}</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    Nombre de la Requisición:
-                    <input type="text"
-                        ng-model="filtros.de_Requisicion"
-                        id="descripcion"
-                        class="form-control"
-                        placeholder="Descripción de la requisición">
-                </div>
-            </div>
+    <div class="row" red-panel>
 
-            <div class="col-md-12">
-                <div class="col-md-2">
-                    Folio:
-                    <input type="text"
-                           ng-model="filtros.id_requisicion"
-                           id="folio"
-                           class="form-control contenido_numerico"
-                           placeholder="Folio de requisición"
-                           maxlength="9"
-                           change-focus>
+        <div class="col-md-12">
+
+            <fieldset class="cajas border-blue" >
+
+                <label class="fieldset-label">Filtros</label>
+
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <label>Empresa:</label>
+                        <select class="form-control" ng-model="id_Empresa" chosen
+                                alias="Empresa"
+                                id="id_Empresa"
+                                ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in Empresas | unique:'NB_EMPRESA'"
+                                ng-change="getSucursalEmpleado()">
+                        <option value="">Seleccionar</option>
+                    </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Sucursal:</label>
+                        <select
+                                class="form-control"
+                                ng-model="id_Sucursal"
+                                id="id_Sucursal"
+                                chosen
+                                ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in Sucursales | orderBy:'NB_SUCURSAL'"
+                                >
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Fecha Inicio:</label>
+                        <red-calendar ng-model="fh_inicio"
+                                   open-focus="false"
+                                   format="dd/MM/yyyy"
+                                   style="margin-bottom: 10px;">
+                        </red-calendar>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Fecha fin:</label>
+                        <red-calendar ng-model="fh_fin"
+                                         open-focus="false"
+                                         format="dd/MM/yyyy"
+                                        style="margin-bottom: 10px;">
+                        </red-calendar>
+                    </div>  
                 </div>
 
-                 <div class="col-md-3">
-                    Insumo:
-                    <input type="text"
-                           ng-model="filtros.nb_NombreInsumo"
-                           id="nb_NombreInsumo"
-                           class="form-control"
-                           placeholder="Descripción del insumo"
-                           change-focus>
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <label>Estatus Autorización:</label>
+                        <select ng-model="estatusAutorizacion"
+                                id="estatusAutorizacion"
+                                class="form-control"
+                                ng-options="est.DE_ESTATUSAUTORIZACIONORDENCOMPRA for est in estatusAutorizaciones track by est.ID_ESTATUSAUTORIZACIONORDENCOMPRA">>
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Estatus Surtido:</label>
+                        <select ng-model="estatusSurtido"
+                                id="estatusSurtido"
+                                class="form-control"
+                                ng-options="est.DE_ESTATUSSURTIDOORDENDECOMPRA for est in estatusSurtidos track by est.ID_ESTATUSSURTIDOORDENDECOMPRA">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Division:</label>
+                        <select ng-model="tipoDivision"
+                                id="tipoDivision"
+                                class="form-control"
+                                ng-options="reg.DE_TIPODIVISION for reg in TiposDivisiones track by reg.ID_TIPODIVISION">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Proveedor:</label>
+                        <select 
+                                chosen 
+                                ng-model="id_proveedor" 
+                                id="id_proveedor" 
+                                class="form-control"
+                                ng-options="a.ID_PROVEEDOR as a.NB_PROVEEDOR for a in proveedores">
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="col-md-2">
-            Número Siniestro:
-            <input type="text"
-                  ng-model="filtros.nu_Siniestro"
-                  id="siniestro"
-                  class="form-control contenido_alfanumerico_con_espacios"
-                  placeholder="Número Siniestro"
-                  change-focus>
+
+
+                <div class="col-md-12">                 
+                    <div class="col-md-3">
+                        <label>Folio Requisicion:</label>
+                        <input type="text"
+                               ng-model="id_Requisicion"
+                               id="id_Requisicion"
+                               class="form-control contenido_numerico"
+                               placeholder="Requisicion"
+                               maxlength="9">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Folio SC:</label>
+                        <input type="text"
+                               ng-model="id_SolicitudCompra"
+                               id="id_SolicitudCompra"
+                               class="form-control contenido_numerico"
+                               placeholder="Solicitud de Compra"
+                               maxlength="9">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Folio OC:</label>
+                        <input type="text"
+                               ng-model="id_ordenDeCompra"
+                               id="id_ordenDeCompra"
+                               class="form-control contenido_numerico"
+                               placeholder="Orden de Compra"
+                               maxlength="9">
+                    </div>
+                    <div class="col-md-2">
+                        <label>Siniestro:</label>
+                        <input type="text"
+                               ng-model="nu_Siniestro"
+                               id="folio"
+                               class="form-control contenido_alfanumerico_con_espacios"
+                               placeholder="No. Siniestro" 
+                               change-focus>
+                    </div>
+                    <div class="col-md-1" style="text-align: center; padding-top: 20px;">
+                        <button ng-model="btnBuscar" class="btn-icon25p btn-buscar25p" ng-click="listar()"></button>
+                    </div>
+                </div>
+
+            </fieldset>
         </div>
-
-                <div class="col-md-2">
-                    Fecha Inicio:
-                    <red-calendar ng-model="fh_inicio"
-                            focus-open="false"
-                            format="dd/MM/yyyy"></red-calendar>
-                </div>
-                <div class="col-md-2">
-                    Fecha Fin:
-                    <red-calendar ng-model="fh_fin"
-                                  focus-open="false"
-                                  format="dd/MM/yyyy"></red-calendar>
-                </div>
-                <div class="col-md-1" style="text-align: center;padding-top: 17px;">
-                    <button ng-model="botonsini" class="btn-icon25p btn-buscar25p" ng-click="listar()"></button>
-                </div>
-            </div>
-        </div>
+    
     </div>
     <br>
-    <!-- <div style="overflow-x: scroll;"> -->
-        <div ng-grid="gridRequisiciones" class="gridStyle" red-grid style="height:425px;"></div>
-
-    <red-modal name="modal" titulo="Seleccionar Autorizador" width="600px">
-    <div ng-grid="gridEmpleados" class="gridStyle" red-grid style="height:300px;"></div>
-        <div class="modal-footer">
-        </div>
-    </red-modal>
-
-    <!-- </div> -->
-    <red-hotkey key="n" altkey="true" action="nuevaRequisicion"/>
-
-    <!-- Modal Para Manuales -->
-    <red-modal id="manual" name="modalManual" width="96%">
-        <div ng-include="'ModalManuales.html'"></div>
-    </red-modal>
+    <div class="gridStyle" ng-grid="gridOrdenesCompra" red-grid></div>
 
     <red-modal name="modalSeguimientoRequisicion" titulo="Seguimiento Requisición" width="100%" ng-class="{'viewer-collapsed': viewerCollapsed}" >
         <div class="seg-2col" ng-class="{'viewer-collapsed': viewerCollapsed}">
@@ -201,7 +219,7 @@
 
                                 <div class="timeline-panel">
                                     <!-- ENCABEZADO clickeable -->
-                                    <div class="timeline-heading tl-clickable {{item.classDisabled}}" ng-click="item.ID == 16 ? ejecutarAccion(item) : toggleTl(item)">
+                                    <div class="timeline-heading tl-clickable {{item.classDisabled}}" ng-click="toggleTl(item)">
                                         <span class="timeline-title">{{item.titulo}}</span>
                                         <span class="tl-chevron" ng-class="{'is-open': isTlOpen(item)}">▾</span>
                                     </div>
@@ -294,6 +312,31 @@
                     <button class="btn btn-danger btn-sm" ng-click="cerrarModalSeguimientoRequisicion()">Cerrar</button>
                 </div>
             </div>
+        </div>
+    </red-modal>
+
+    <red-modal name="modalCancelacionOC" titulo="Cancelar Orden de Compra" width="700px">
+        <div class="row">
+            <div class="col-md-12">
+                <label for="de_MotivoCancelacion">Motivo de Cancelación:</label>
+                <textarea id="de_MotivoCancelacion"
+                    cols="30" rows="10"
+                    class="form-control"
+                    ng-change="limpiarCadena()"
+                    ng-model="de_MotivoCancelacion"
+                    maxlength="250"
+                    placeholder="Motivo de Cancelación">
+                </textarea>
+            </div>
+        </div>
+        <div class="row" ng-show="cancelOC.sn_CorreoProveedor == 1">
+            <div class="col-md-12">
+                <input type="checkbox" name="sn_CorreoProveedor" id="sn_CorreoProveedor" ng-model="sn_CorreoProveedor" ng-checked="">
+                <label for="sn_CorreoProveedor">Enviar Correo al Proveedor</label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" ng-click="cancelarOC()" ng-disabled="de_MotivoCancelacion == ''">Cancelar Orden de Compra</button>
         </div>
     </red-modal>
 
@@ -404,18 +447,6 @@
         </div>
 
         <div class="modal-footer">
-        </div>
-    </red-modal>
-    <red-modal name="notificacionPresupuestoFaltante" width="750px">
-        <div style="display: table-cell; vertical-align: middle;">
-            <p style="font-size: 16px;">
-                <b>No se cuenta con el presupuesto suficiente</b> para cubrir la <b>requisición</b>. <br><b>¿Desea recibir los detalles por correo?</b>
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary" ng-click="enviarCorreoPresupuesto(info)">
-                <i class="fas fa-envelope"></i> Aceptar
-            </button>
         </div>
     </red-modal>
 </div>

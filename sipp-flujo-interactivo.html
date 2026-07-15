@@ -1,0 +1,5342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIPP — Flujo Interactivo de Requisiciones</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --happy: #58a6ff;
+    --happy-glow: rgba(88,166,255,0.3);
+    --done: #3fb950;
+    --done-glow: rgba(63,185,80,0.3);
+    --cancel: #f85149;
+    --cancel-glow: rgba(248,81,73,0.3);
+    --loop: #d29922;
+    --loop-glow: rgba(210,153,34,0.3);
+    --external: #bc8cff;
+    --external-glow: rgba(188,140,255,0.3);
+    --neutral: #30363d;
+    --node-bg: #1c2128;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 340px;
+    min-width: 340px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  #sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+  }
+
+  #sidebar-header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--happy);
+    letter-spacing: -0.3px;
+  }
+
+  #sidebar-header p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* PATHS */
+  #paths-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    max-height: 38vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  #paths-section h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+
+  .path-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    margin-bottom: 4px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--node-bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    line-height: 1.2;
+  }
+
+  .path-btn:hover { border-color: var(--happy); background: rgba(88,166,255,0.08); }
+  .path-btn.active { border-color: var(--happy); background: rgba(88,166,255,0.15); color: var(--happy); }
+  .path-btn .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* CONTROLS */
+  #controls {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ctrl-btn {
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--node-bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .ctrl-btn:hover { border-color: var(--happy); color: var(--happy); }
+  .ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .ctrl-btn.primary { background: var(--happy); border-color: var(--happy); color: #0d1117; font-weight: 600; }
+  .ctrl-btn.primary:hover { background: #79b8ff; }
+  .ctrl-btn.primary.playing { background: var(--cancel); border-color: var(--cancel); }
+
+  #step-counter {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* INFO PANEL */
+  #info-panel {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  #info-panel::-webkit-scrollbar { width: 4px; }
+  #info-panel::-webkit-scrollbar-track { background: transparent; }
+  #info-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  #step-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  #step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  #step-desc {
+    font-size: 13px;
+    line-height: 1.65;
+    color: #cdd9e5;
+  }
+
+  #step-desc strong { color: var(--text); font-weight: 600; }
+  #step-desc em { color: var(--loop); font-style: normal; font-weight: 500; }
+  #step-desc .red { color: var(--cancel); font-weight: 600; }
+  #step-desc .green { color: var(--done); font-weight: 600; }
+  #step-desc .blue { color: var(--happy); font-weight: 600; }
+  #step-desc .purple { color: var(--external); font-weight: 600; }
+
+  .next-steps {
+    margin-top: 14px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .next-steps h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
+  .next-step-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 12px; color: #cdd9e5; margin-bottom: 5px; line-height: 1.4;
+  }
+  .arrow-icon { color: var(--happy); flex-shrink: 0; font-weight: 700; }
+  .arrow-cancel { color: var(--cancel); }
+  .arrow-loop { color: var(--loop); }
+
+  /* LEGEND */
+  #legend {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; color: var(--muted);
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-line { width: 18px; height: 2px; border-radius: 1px; }
+
+  /* DIAGRAM AREA */
+  #diagram-area {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 1px 1px, rgba(48,54,61,0.4) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  #diagram-area::-webkit-scrollbar { width: 8px; height: 8px; }
+  #diagram-area::-webkit-scrollbar-track { background: var(--panel); }
+  #diagram-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  svg#diagram {
+    display: block;
+    cursor: default;
+  }
+
+  /* NODE STYLES */
+  .node-group { cursor: pointer; }
+  .node-group:hover .node-rect { filter: brightness(1.2); }
+
+  .node-rect {
+    rx: 10; ry: 10;
+    stroke-width: 2;
+    transition: all 0.3s;
+  }
+
+  .node-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    fill: #e6edf3;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+  }
+
+  .node-sub {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    fill: #7d8590;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+  }
+
+  .edge-path {
+    fill: none;
+    stroke-width: 2;
+    marker-end: url(#arrow-happy);
+    transition: all 0.4s;
+  }
+
+  .edge-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    fill: var(--muted);
+    text-anchor: middle;
+  }
+
+  /* ANIMATIONS */
+  @keyframes pulse-node {
+    0%, 100% { filter: drop-shadow(0 0 6px currentColor); }
+    50% { filter: drop-shadow(0 0 16px currentColor); }
+  }
+
+  @keyframes dash-anim {
+    to { stroke-dashoffset: -20; }
+  }
+
+  .active-edge {
+    stroke-dasharray: 8 4;
+    animation: dash-anim 0.4s linear infinite;
+  }
+
+  .node-active .node-rect {
+    animation: pulse-node 1.2s ease-in-out infinite;
+  }
+
+  /* Scrollbar hint */
+  #scroll-hint {
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    background: rgba(22,27,34,0.9);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+  }
+
+  /* EXPLORER MODE */
+  #explorer-controls {
+    display: none;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  #explorer-controls.active { display: flex; }
+
+  .choice-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 14px;
+    margin-bottom: 7px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--node-bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left;
+    line-height: 1.35;
+  }
+  .choice-btn:hover { transform: translateX(3px); }
+  .choice-btn.type-happy  { border-color: var(--done);     color: var(--done); }
+  .choice-btn.type-cancel { border-color: var(--cancel);   color: var(--cancel); }
+  .choice-btn.type-loop   { border-color: var(--loop);     color: var(--loop); }
+  .choice-btn.type-external{ border-color: var(--external); color: var(--external); }
+  .choice-btn:hover.type-happy   { background: rgba(63,185,80,0.1); }
+  .choice-btn:hover.type-cancel  { background: rgba(248,81,73,0.1); }
+  .choice-btn:hover.type-loop    { background: rgba(210,153,34,0.1); }
+  .choice-btn:hover.type-external{ background: rgba(188,140,255,0.1); }
+
+  #explorer-breadcrumb {
+    padding: 8px 16px;
+    font-size: 10px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    overflow-x: auto;
+    display: none;
+  }
+  #explorer-breadcrumb.active { display: block; }
+
+  .path-btn.explorer-btn {
+    border-color: rgba(88,166,255,0.4);
+    background: rgba(88,166,255,0.05);
+  }
+  .path-btn.explorer-btn.active {
+    border-color: var(--happy);
+    background: rgba(88,166,255,0.18);
+    color: var(--happy);
+  }
+    /* == Destello al seleccionar nodo == */
+    @keyframes node-flash-anim {
+      0%   { filter: drop-shadow(0 0 0px  var(--flash-color,#fff)) brightness(1);   }
+      30%  { filter: drop-shadow(0 0 22px var(--flash-color,#fff)) brightness(1.7); }
+      100% { filter: drop-shadow(0 0 0px  var(--flash-color,#fff)) brightness(1);   }
+    }
+    .node-flash { animation: node-flash-anim 0.55s ease-out; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>⚡ SIPP Requisiciones</h1>
+    <p>Diagrama interactivo del flujo completo</p>
+  </div>
+
+  <div id="paths-section">
+    <h2>Selecciona un escenario</h2>
+    
+    <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 5px 0;">Escenarios Exitosos</p>
+    <button class="path-btn active" onclick="selectPath('happy')" id="btn-happy"><span class="dot" style="background:var(--done)"></span> Happy Path Completo</button>
+    <button class="path-btn" onclick="selectPath('sin_stock')" id="btn-sin_stock"><span class="dot" style="background:var(--external)"></span> Sin Stock → Compras</button>
+    <button class="path-btn" onclick="selectPath('traspaso_logistico')" id="btn-traspaso_logistico"><span class="dot" style="background:var(--external)"></span> Traspaso Inter-Sucursales</button>
+    <button class="path-btn" onclick="selectPath('surtido_parcial')" id="btn-surtido_parcial"><span class="dot" style="background:var(--loop)"></span> Surtido Parcial / Backorder</button>
+    <button class="path-btn" onclick="selectPath('servicio_intangible')" id="btn-servicio_intangible"><span class="dot" style="background:var(--external)"></span> Compra de Servicios (Sin Almacén)</button>
+    <button class="path-btn" onclick="selectPath('compra_directa')" id="btn-compra_directa"><span class="dot" style="background:var(--external)"></span> Compra Directa</button>
+    
+    <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:15px 0 5px 0;">Variaciones de Presupuesto</p>
+    <button class="path-btn" onclick="selectPath('no_presupuesto')" id="btn-no_presupuesto"><span class="dot" style="background:var(--cancel)"></span> Sin Presupuesto (Bloqueo)</button>
+    <button class="path-btn" onclick="selectPath('ampliacion')" id="btn-ampliacion"><span class="dot" style="background:var(--loop)"></span> Trámite de Ampliación</button>
+    <button class="path-btn" onclick="selectPath('obras')" id="btn-obras"><span class="dot" style="background:var(--external)"></span> Proyecto / Obra (Inversión)</button>
+    <button class="path-btn" onclick="selectPath('activo_fijo')" id="btn-activo_fijo"><span class="dot" style="background:var(--external)"></span> Activo Fijo (Capex)</button>
+
+    <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:15px 0 5px 0;">Rechazos y Auditorías</p>
+    <button class="path-btn" onclick="selectPath('alta_insumo')" id="btn-alta_insumo"><span class="dot" style="background:var(--cancel)"></span> Insumo Inexistente (Alta)</button>
+    <button class="path-btn" onclick="selectPath('devolucion')" id="btn-devolucion"><span class="dot" style="background:var(--loop)"></span> Devolución del Jefe</button>
+    <button class="path-btn" onclick="selectPath('rechazo')" id="btn-rechazo"><span class="dot" style="background:var(--cancel)"></span> Rechazo del Jefe</button>
+    <button class="path-btn" onclick="selectPath('cancelacion_compras')" id="btn-cancelacion_compras"><span class="dot" style="background:var(--cancel)"></span> Proveedor sin Permisos (CRE)</button>
+    <button class="path-btn" onclick="selectPath('match_fallido')" id="btn-match_fallido"><span class="dot" style="background:var(--cancel)"></span> 3-Way Match Fallido (CxP)</button>
+    <button class="path-btn" onclick="selectPath('fraude_tesoreria')" id="btn-fraude_tesoreria"><span class="dot" style="background:var(--cancel)"></span> Fraude de CLABE (Tesorería)</button>
+    <button class="path-btn" onclick="selectPath('factura_rechazada')" id="btn-factura_rechazada"><span class="dot" style="background:var(--cancel)"></span> Factura Rechazada (SAT)</button>
+
+    <div style="margin-top:20px;border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;">
+      <button class="path-btn explorer-btn" onclick="startExplorer()" id="btn-explorer">
+        <span class="dot" style="background:var(--happy);box-shadow:0 0 6px var(--happy)"></span>
+        🗺️ Elige tu Camino — Modo Libre
+      </button>
+    </div>
+  </div>
+
+
+
+  <div id="controls">
+    <button class="ctrl-btn primary" id="btn-play" onclick="togglePlay()">▶ Iniciar</button>
+    <button class="ctrl-btn" id="btn-prev" onclick="stepBack()" disabled>◀ Anterior</button>
+    <button class="ctrl-btn" id="btn-next" onclick="stepForward()">Siguiente ▶</button>
+    <button class="ctrl-btn" style="background:rgba(248,81,73,0.1);border-color:var(--cancel);color:var(--cancel);" onclick="selectPath(currentPath)">↺ Reiniciar</button>
+    <span id="step-counter" style="margin-left:auto">0 / 0</span>
+  </div>
+  <div id="explorer-controls">
+    <button class="ctrl-btn" style="background:rgba(248,81,73,0.1);border-color:var(--cancel);color:var(--cancel)" onclick="resetExplorer()">↺ Reiniciar</button>
+    <button class="ctrl-btn" id="btn-exp-back" onclick="explorerBack()" disabled>◀ Regresar</button>
+  </div>
+  <div id="explorer-breadcrumb"></div>
+
+  <div id="info-panel">
+    <div id="step-badge" style="background:rgba(88,166,255,0.15);color:var(--happy);">
+      ⬤ Inicio
+    </div>
+    <div id="step-title">Selecciona un escenario</div>
+    <div id="step-desc">
+      Elige un escenario en la parte superior y presiona <strong>Iniciar</strong> para seguir el flujo paso a paso. También puedes hacer clic en cualquier nodo del diagrama para ver su información.
+    </div>
+  </div>
+
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--done)"></div> Happy Path</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cancel)"></div> Cancelación</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--loop)"></div> Retorno/Loop</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--external)"></div> Proceso Externo</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--happy)"></div> Nodo activo</div>
+  </div>
+</div>
+
+<!-- DIAGRAM -->
+<div id="diagram-area">
+  <svg id="diagram" width="20388" height="6000" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Arrows -->
+      <marker id="arrow-happy" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="var(--done)"/>
+      </marker>
+      <marker id="arrow-cancel" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="var(--cancel)"/>
+      </marker>
+      <marker id="arrow-loop" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="var(--loop)"/>
+      </marker>
+      <marker id="arrow-external" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="var(--external)"/>
+      </marker>
+      <marker id="arrow-neutral" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#7d8590"/>
+      </marker>
+      <!-- Glow filters -->
+      <filter id="glow-happy" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-cancel">
+        <feGaussianBlur stdDeviation="5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Rendered by JavaScript below -->
+    <g id="edges-layer"></g>
+    <g id="nodes-layer"></g>
+  </svg>
+</div>
+
+<div id="scroll-hint">← Desplaza para ver el diagrama completo →</div>
+
+<!-- PATH DESCRIPTION MODAL -->
+<div id="path-modal-backdrop" onclick="closePathModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:999;backdrop-filter:blur(3px);"></div>
+<div id="path-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;width:520px;max-width:90vw;max-height:80vh;background:#161b22;border:1px solid rgba(88,166,255,0.35);border-radius:16px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.7);">
+  <div style="padding:20px 24px 16px;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);border-bottom:1px solid rgba(88,166,255,0.15);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+    <div>
+      <div id="modal-badge" style="font-size:10px;font-weight:600;color:#58a6ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">📋 Escenario</div>
+      <div id="modal-title" style="font-size:16px;font-weight:700;color:#e6edf3;line-height:1.3;"></div>
+    </div>
+    <button onclick="closePathModal()" style="flex-shrink:0;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#7d8590;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(248,81,73,0.15)';this.style.color='#f85149'" onmouseout="this.style.background='rgba(255,255,255,0.05)';this.style.color='#7d8590'">✕</button>
+  </div>
+  <div id="modal-body" style="padding:20px 24px 24px;overflow-y:auto;max-height:calc(80vh - 90px);font-size:13px;line-height:1.7;color:#cdd9e5;"></div>
+</div>
+
+<script>
+// ─── EXPLORER MODE STATE ──────────────────────────────────────────────────────
+let explorerMode = false;
+let explorerCurrent = 'login';
+let explorerHistory = [];
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+
+const NODES = {
+  "login": {
+    "id": "login",
+    "x": 138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Login ERP",
+    "sub": "Portal SIPP",
+    "type": "happy",
+    "badge": "Etapa 1",
+    "title": "Inicio de Sesión",
+    "desc": "<strong>Acceso Seguro al ERP:</strong><br>El usuario ingresa al portal web del SIPP proporcionando sus credenciales corporativas (Usuario y Contraseña). El sistema valida la sesión contra el Active Directory o la base de datos de empleados activos.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/login.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "empresa",
+        "type": "happy"
+      }
+    ]
+  },
+  "empresa": {
+    "id": "empresa",
+    "x": 388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Selección Empresa",
+    "sub": "Multi-tenant",
+    "type": "happy",
+    "badge": "Etapa 1",
+    "title": "Selección de Empresa",
+    "desc": "<strong>Arquitectura Multi-tenant:</strong><br>El ERP soporta múltiples razones sociales. En este paso, el usuario selecciona con qué empresa va a operar financieramente (Ej. 'Operadora Comercial SA de CV' vs 'Inmobiliaria SA de CV').<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/bienvenida.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "sucursal",
+        "type": "happy"
+      }
+    ]
+  },
+  "sucursal": {
+    "id": "sucursal",
+    "x": 638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Selección Sucursal",
+    "sub": "Validación Permisos",
+    "type": "happy",
+    "badge": "Etapa 1",
+    "title": "Selección de Sucursal",
+    "desc": "<strong>Contexto Operativo:</strong><br>Se define la sucursal o centro de distribución desde donde se está originando la petición. Esto es crucial porque define qué almacén físico y qué reglas de negocio se aplicarán.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/bienvenida.html</code></span>",
+    "next": [
+      {
+        "label": "→ Módulo Reqs",
+        "to": "inicio",
+        "type": "happy"
+      }
+    ]
+  },
+  "inicio": {
+    "id": "inicio",
+    "x": 888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Módulo Requisiciones",
+    "sub": "Dashboard Principal",
+    "type": "happy",
+    "badge": "Etapa 2",
+    "title": "Dashboard de Requisiciones",
+    "desc": "<strong>Panel de Control:</strong><br>El usuario accede al Dashboard de Requisiciones donde puede ver sus métricas, solicitudes pendientes de aprobar, y accesos rápidos a la creación de nuevas requisiciones.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Requisiciones.html</code></span>",
+    "next": [
+      {
+        "label": "→ Nueva",
+        "to": "nueva_req",
+        "type": "happy"
+      },
+      {
+        "label": "↓ Seguimiento",
+        "to": "seguimiento",
+        "type": "done"
+      },
+      {
+        "label": "↓ Impresión",
+        "to": "impresion",
+        "type": "done"
+      }
+    ]
+  },
+  "seguimiento": {
+    "id": "seguimiento",
+    "x": 638,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Seguimiento",
+    "sub": "Consulta de Estatus",
+    "type": "done",
+    "badge": "Dashboard",
+    "title": "Consulta y Seguimiento",
+    "desc": "Consulta requisiciones previas.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/SeguimientoRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "← Volver",
+        "to": "inicio",
+        "type": "loop"
+      }
+    ]
+  },
+  "impresion": {
+    "id": "impresion",
+    "x": 1138,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Impresión PDF",
+    "sub": "Reporte Histórico",
+    "type": "done",
+    "badge": "Dashboard",
+    "title": "Impresión de Formatos",
+    "desc": "Descarga el PDF formal.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/DetalleRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "← Volver",
+        "to": "inicio",
+        "type": "loop"
+      }
+    ]
+  },
+  "nueva_req": {
+    "id": "nueva_req",
+    "x": 1138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Nueva Requisición",
+    "sub": "Tipo de Gasto",
+    "type": "happy",
+    "badge": "Etapa 3",
+    "title": "Tipo de Requisición",
+    "desc": "<strong>Clasificación del Gasto:</strong><br>El usuario debe definir el tipo de requisición. Una 'Normal' sigue el flujo de gasto operativo estándar, mientras que una 'Obra/Instalación' desvía el flujo para atarlo al presupuesto de un proyecto de inversión específico.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "Normal",
+        "to": "config_campos",
+        "type": "happy"
+      },
+      {
+        "label": "Obra/Instalación",
+        "to": "obras_buscador",
+        "type": "external"
+      }
+    ]
+  },
+  "obras_buscador": {
+    "id": "obras_buscador",
+    "x": 1388,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Buscador de Obras",
+    "sub": "Autocompletar",
+    "type": "external",
+    "badge": "Módulo Obras",
+    "title": "Búsqueda de Obra",
+    "desc": "<strong>Buscador de Proyectos:</strong><br>El usuario utiliza un campo de autocompletado para buscar la Obra en Proceso (Ej. 'Remodelación Sucursal Norte').<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SeguimientoObrasProceso.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "obras_peticion",
+        "type": "external"
+      }
+    ]
+  },
+  "obras_peticion": {
+    "id": "obras_peticion",
+    "x": 1638,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Petición a BD",
+    "sub": "Validación",
+    "type": "external",
+    "badge": "Módulo Obras",
+    "title": "Conexión BD",
+    "desc": "<strong>Validación de Estatus:</strong><br>El navegador lanza una petición asíncrona (AJAX) para verificar que la obra esté 'Activa' y no haya sido clausurada o finalizada financieramente.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SeguimientoObrasProceso.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "obras_extraccion",
+        "type": "external"
+      }
+    ]
+  },
+  "obras_extraccion": {
+    "id": "obras_extraccion",
+    "x": 1888,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Extracción Datos",
+    "sub": "CC y Cuenta",
+    "type": "external",
+    "badge": "Módulo Obras",
+    "title": "Extracción de Datos",
+    "desc": "<strong>Extracción de Parametrización:</strong><br>El sistema consulta la base de datos de Obras y extrae la <em>Cuenta Contable de Construcción en Proceso</em> y el <em>Departamento Destino</em> que fueron predefinidos por Ingeniería meses atrás.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SeguimientoObrasProceso.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "obras_inyeccion",
+        "type": "external"
+      }
+    ]
+  },
+  "obras_inyeccion": {
+    "id": "obras_inyeccion",
+    "x": 2138,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Inyección Cabecera",
+    "sub": "Autollenado",
+    "type": "external",
+    "badge": "Módulo Obras",
+    "title": "Inyección",
+    "desc": "<strong>Autollenado de Requisición:</strong><br>La información técnica y contable extraída de la obra se inyecta silenciosamente en la cabecera de la requisición actual para evitar errores de captura humana.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "obras_bloqueo",
+        "type": "external"
+      }
+    ]
+  },
+  "obras_bloqueo": {
+    "id": "obras_bloqueo",
+    "x": 2388,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Bloqueo Contable",
+    "sub": "Seguridad Financiera",
+    "type": "external",
+    "badge": "Módulo Obras",
+    "title": "Bloqueo",
+    "desc": "<strong>Candado Financiero:</strong><br>La interfaz gráfica bloquea los selectores de cuenta contable y centro de costo. Esto garantiza al 100% que el gasto de esta requisición se amortice exclusivamente contra el presupuesto autorizado de esa obra específica.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "config_campos",
+        "type": "external"
+      }
+    ]
+  },
+  "config_campos": {
+    "id": "config_campos",
+    "x": 2638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Configuración",
+    "sub": "Datos de Cabecera",
+    "type": "happy",
+    "badge": "Etapa 3",
+    "title": "Cabecera",
+    "desc": "Fecha, Solicitante, Uso/Justificación.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→ Agregar Insumos",
+        "to": "insumo_busqueda",
+        "type": "happy"
+      }
+    ]
+  },
+  "insumo_busqueda": {
+    "id": "insumo_busqueda",
+    "x": 2888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Buscar Insumo",
+    "sub": "Buscador BD",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Búsqueda",
+    "desc": "<strong>Buscador del Catálogo Maestro:</strong><br>El usuario utiliza el buscador inteligente, filtrando por Familia, Subfamilia, Clave o Descripción del producto. El catálogo asegura que las compras estén estandarizadas.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "Lo encontró",
+        "to": "insumo_cantidades",
+        "type": "happy"
+      },
+      {
+        "label": "✗ No existe",
+        "to": "alta_deteccion",
+        "type": "cancel"
+      }
+    ]
+  },
+  "insumo_cantidades": {
+    "id": "insumo_cantidades",
+    "x": 3138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Definir Cantidad",
+    "sub": "Unidad de Medida",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Cantidades",
+    "desc": "<strong>Definición de Volumen:</strong><br>Se especifica la <em>Cantidad</em> exacta requerida respetando la unidad de medida estándar configurada en el sistema (Ej. Piezas, Litros, Kilos, Cajas).<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "insumo_precios",
+        "type": "happy"
+      }
+    ]
+  },
+  "insumo_precios": {
+    "id": "insumo_precios",
+    "x": 3388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Precio Estimado",
+    "sub": "Importe Total",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Precios",
+    "desc": "<strong>Estimación Económica:</strong><br>El solicitante captura el <em>Precio Unitario Estimado</em> (antes de impuestos) y selecciona la Moneda (MXN, USD, EUR). El sistema proyecta el importe total de esta partida.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "insumo_cc",
+        "type": "happy"
+      }
+    ]
+  },
+  "insumo_cc": {
+    "id": "insumo_cc",
+    "x": 3638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Centro de Costos",
+    "sub": "Contabilidad",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Centro de Costos",
+    "desc": "<strong>Asignación Presupuestal:</strong><br>Paso crítico donde se elige el <em>Grupo de Centro de Costos (GCC)</em> y el <em>Centro de Costo Destino (CC)</em>. Esta elección define a qué departamento se le cobrará este gasto internamente.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "insumo_servicios",
+        "type": "happy"
+      }
+    ]
+  },
+  "insumo_servicios": {
+    "id": "insumo_servicios",
+    "x": 3888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Check Servicios",
+    "sub": "Validación Familia",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Servicios",
+    "desc": "<strong>Reglas Específicas de Servicios:</strong><br>Si la partida pertenece a la familia de 'Servicios' (Ej. Viáticos, Mantenimiento), el ERP despliega dinámicamente un panel obligatorio para registrar al colaborador beneficiario o el kilometraje de la unidad vehicular.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "activo_motor",
+        "type": "happy"
+      }
+    ]
+  },
+  "alta_deteccion": {
+    "id": "alta_deteccion",
+    "x": 2888,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Solicitar Alta",
+    "sub": "Botón Formato",
+    "type": "cancel",
+    "badge": "Alta Insumo",
+    "title": "Detección",
+    "desc": "<strong>Inicio de Solicitud de Alta:</strong><br>Al no encontrar el producto deseado en el catálogo oficial, el usuario hace clic en el botón 'Solicitar Alta de Insumo' para iniciar el protocolo de catalogación.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_formulario",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_formulario": {
+    "id": "alta_formulario",
+    "x": 3138,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Llenado Formato",
+    "sub": "Datos Técnicos",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Formulario",
+    "desc": "<strong>Captura de Ficha Técnica:</strong><br>Se abre un formulario emergente donde el usuario debe justificar técnicamente la necesidad del nuevo material, aportando: Descripción comercial, Unidad de medida sugerida, Marca y Modelo.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_bloqueo",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_bloqueo": {
+    "id": "alta_bloqueo",
+    "x": 3388,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Bloqueo Req.",
+    "sub": "Pausa",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Bloqueo Temporal",
+    "desc": "<strong>Congelamiento de Requisición:</strong><br>El ERP guarda temporalmente la captura, pero bloquea el envío de la requisición. Por regla de negocio, <em>no se puede avanzar al flujo de firmas si existen insumos 'fantasma' sin clave oficial.</em><br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_ticket",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_ticket": {
+    "id": "alta_ticket",
+    "x": 3638,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Envío Ticket",
+    "sub": "Notificación Almacén",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Ticket",
+    "desc": "<strong>Envío a Mesa de Ayuda:</strong><br>La ficha técnica capturada viaja en forma de Ticket a la bandeja del departamento de Catalogación o Almacén Central.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_revision",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_revision": {
+    "id": "alta_revision",
+    "x": 3888,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Revisión Analista",
+    "sub": "Búsqueda Duplicados",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Revisión",
+    "desc": "<strong>Análisis de Duplicidad:</strong><br>El catalogador recibe el ticket y realiza búsquedas exhaustivas usando sinónimos y comodines para garantizar que el insumo realmente no exista ya bajo otro nombre (Ej. 'Batería AA' vs 'Pila AA').<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_asignacion_clv",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_asignacion_clv": {
+    "id": "alta_asignacion_clv",
+    "x": 4138,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Asignación Clave",
+    "sub": "Generación Alfanumérica",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Clave Oficial",
+    "desc": "<strong>Creación del Registro Maestro:</strong><br>Una vez confirmada la necesidad, el analista genera la <em>Clave Alfanumérica Oficial</em> que representará a este producto de por vida en la empresa.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_contabilidad",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_contabilidad": {
+    "id": "alta_contabilidad",
+    "x": 4388,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Vinculación Contable",
+    "sub": "Cuenta de Gasto",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Contabilidad",
+    "desc": "<strong>Parametrización Contable:</strong><br>El catalogador vincula la nueva clave a una Familia y Subfamilia, lo cual determina automáticamente qué <em>Cuenta Contable de Gasto o Inventario</em> se afectará cuando se compre.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alta_notificacion",
+        "type": "external"
+      }
+    ]
+  },
+  "alta_notificacion": {
+    "id": "alta_notificacion",
+    "x": 4638,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Notificación",
+    "sub": "Alerta al Usuario",
+    "type": "external",
+    "badge": "Alta Insumo",
+    "title": "Desbloqueo",
+    "desc": "<strong>Liberación y Aviso:</strong><br>El insumo se activa formalmente en la BD. El ERP envía una alerta al usuario original indicándole que ya puede regresar a su requisición y buscar el material con la nueva clave oficial.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Insumos.html</code></span>",
+    "next": [
+      {
+        "label": "← Volver a buscar",
+        "to": "insumo_busqueda",
+        "type": "loop"
+      }
+    ]
+  },
+  "activo_motor": {
+    "id": "activo_motor",
+    "x": 4138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Motor Reglas AF",
+    "sub": "Lee sn_activofijo",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Activo Fijo",
+    "desc": "<strong>Análisis Automático de Inversión:</strong><br>El Motor de Reglas del ERP (BRO) analiza la partida recién agregada. Lee silenciosamente la bandera <code>sn_activofijo</code> pre-configurada en la familia del insumo. Si es Falso (papelería), avanza normal. Si es Verdadero (computadoras, maquinaria), detona el flujo de Activo Fijo.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/DeterminacionActivosFijos.html</code></span>",
+    "next": [
+      {
+        "label": "Falso → Consumo",
+        "to": "guardar_partida",
+        "type": "happy"
+      },
+      {
+        "label": "True → Activo Fijo",
+        "to": "af_formulario_tec",
+        "type": "external"
+      }
+    ]
+  },
+  "af_formulario_tec": {
+    "id": "af_formulario_tec",
+    "x": 4138,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Formulario Técnico",
+    "sub": "Placas / Serie",
+    "type": "external",
+    "badge": "Activos Fijos",
+    "title": "Datos Técnicos",
+    "desc": "<strong>Recabación de Datos del Bien:</strong><br>Al detectarse que es una inversión de capital, se despliega una matriz obligatoria para capturar las características físicas del bien que impactarán su depreciación: Número de Serie, Marca, Modelo, Placas (si es vehículo), etc.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/ActivosFijosNuevo.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "af_bloqueo_guardado",
+        "type": "external"
+      }
+    ]
+  },
+  "af_bloqueo_guardado": {
+    "id": "af_bloqueo_guardado",
+    "x": 4388,
+    "y": 1670,
+    "w": 175,
+    "h": 56,
+    "label": "Bloqueo Guardado",
+    "sub": "Validación Obligatoria",
+    "type": "external",
+    "badge": "Activos Fijos",
+    "title": "Validación",
+    "desc": "<strong>Validación Estricta:</strong><br>El sistema intercepta el intento de guardado. Si el usuario intentó evadir el formulario técnico dejándolo en blanco, el ERP bloquea la partida y muestra un error. Solo guardará si los datos están completos.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/ActivosFijosNuevo.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "guardar_partida",
+        "type": "external"
+      }
+    ]
+  },
+  "guardar_partida": {
+    "id": "guardar_partida",
+    "x": 4388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Guardar Partida",
+    "sub": "Estatus: BORRADOR",
+    "type": "happy",
+    "badge": "Etapa 4",
+    "title": "Guardado",
+    "desc": "<strong>Almacenamiento Temporal:</strong><br>La partida se inserta en la base de datos bajo el estatus de <strong>BORRADOR</strong>. En este punto, la información está segura, pero aún no causa ningún impacto financiero ni descuenta presupuesto.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→ Enviar",
+        "to": "enviar_req",
+        "type": "happy"
+      }
+    ]
+  },
+  "enviar_req": {
+    "id": "enviar_req",
+    "x": 4638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Enviar a Revisión",
+    "sub": "Cierre de Edición",
+    "type": "happy",
+    "badge": "Etapa 5",
+    "title": "Disparo",
+    "desc": "<strong>Cierre de Edición y Disparo:</strong><br>El usuario presiona 'Enviar a Revisión'. El sistema cambia el estatus, bloquea la interfaz de edición para el solicitante y detona el flujo de validación financiera más estricto del ERP.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesAgregar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "presup_check_flag",
+        "type": "happy"
+      }
+    ]
+  },
+  "presup_check_flag": {
+    "id": "presup_check_flag",
+    "x": 4888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Check Bandera Pres.",
+    "sub": "sn_Presupuestos",
+    "type": "external",
+    "badge": "Presupuestos",
+    "title": "Validación Sucursal",
+    "desc": "<strong>Validación de Entorno de Sucursal:</strong><br>El motor verifica si la sucursal operante tiene encendida la variable de entorno <code>sn_Presupuestos</code>. Si está apagada (sucursal libre), salta el proceso. Si está encendida (1), inicia la auditoría.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/ConsumoPresupuestos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "presup_build_json",
+        "type": "external"
+      }
+    ]
+  },
+  "presup_build_json": {
+    "id": "presup_build_json",
+    "x": 5138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Consolidación JSON",
+    "sub": "Agrupación Partidas",
+    "type": "external",
+    "badge": "Presupuestos",
+    "title": "Memoria",
+    "desc": "<strong>Consolidación en Memoria:</strong><br>El sistema recorre todas las partidas de la requisición y las agrupa. Si se pidieron 'Hojas Blancas' en la partida 1 y en la partida 5 para el mismo departamento, consolida el Importe Total Estimado en un solo paquete JSON.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/CargaPresupuestos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "presup_call_sp",
+        "type": "external"
+      }
+    ]
+  },
+  "presup_call_sp": {
+    "id": "presup_call_sp",
+    "x": 5388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Call SP BD",
+    "sub": "Petición Financiera",
+    "type": "external",
+    "badge": "Presupuestos",
+    "title": "Base de Datos",
+    "desc": "<strong>Ejecución Financiera:</strong><br>El Backend lanza una petición de alto rendimiento al Stored Procedure de Finanzas, enviando como parámetros: Año en curso, Mes de ejercicio, Cuenta Contable y Centro de Costo.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/ConsumoPresupuestos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "presup_calculo",
+        "type": "external"
+      }
+    ]
+  },
+  "presup_calculo": {
+    "id": "presup_calculo",
+    "x": 5638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Cálculo Saldo",
+    "sub": "Asignado - Gastado",
+    "type": "external",
+    "badge": "Presupuestos",
+    "title": "Cálculo",
+    "desc": "<strong>Cálculo Matemático del Saldo Real:</strong><br>La base de datos ejecuta el algoritmo base: <code>(Presupuesto Asignado Anual) - (Gastos Facturados en firme) - (Gastos Pre-Comprometidos de otras requisiciones en tránsito)</code>. El resultado es el Presupuesto Disponible al centavo.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/ConsumoPresupuestos.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "presup_comparacion",
+        "type": "external"
+      }
+    ]
+  },
+  "presup_comparacion": {
+    "id": "presup_comparacion",
+    "x": 5888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Match Línea a Línea",
+    "sub": "Importe <= Saldo",
+    "type": "external",
+    "badge": "Presupuestos",
+    "title": "Match",
+    "desc": "<strong>Match Línea por Línea:</strong><br>El sistema compara: <code>Importe Solicitado <= Presupuesto Disponible Real</code>. Si TODAS las líneas tienen saldo, la requisición es exitosa. Si UNA SOLA línea excede el saldo, la requisición completa fracasa.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/ConsumoPresupuestos.html</code></span>",
+    "next": [
+      {
+        "label": "✓ Todo Aprobado",
+        "to": "req_pendiente",
+        "type": "happy"
+      },
+      {
+        "label": "✗ Déficit (Bloqueo)",
+        "to": "presup_bloqueo_deficit",
+        "type": "cancel"
+      }
+    ]
+  },
+  "presup_bloqueo_deficit": {
+    "id": "presup_bloqueo_deficit",
+    "x": 5888,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Bloqueo por Déficit",
+    "sub": "Congelamiento",
+    "type": "cancel",
+    "badge": "Presupuestos",
+    "title": "Error",
+    "desc": "<strong>Bloqueo Inquebrantable:</strong><br>El sistema detiene agresivamente la requisición. El estatus se congela en <strong>BORRADOR</strong> y se muestra un modal rojo detallando exactamente en qué cuenta y con cuántos pesos ($) excede el saldo. El usuario no puede avanzar.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/DashboardPresupuestos.html</code></span>",
+    "next": [
+      {
+        "label": "← Reducir/Editar",
+        "to": "guardar_partida",
+        "type": "loop"
+      },
+      {
+        "label": "→ Tramitar Ampliación",
+        "to": "amp_formato",
+        "type": "loop"
+      }
+    ]
+  },
+  "amp_formato": {
+    "id": "amp_formato",
+    "x": 6138,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Formato Ampliación",
+    "sub": "Justificación",
+    "type": "loop",
+    "badge": "Ampliaciones",
+    "title": "Formato",
+    "desc": "<strong>Tramitación de Extensión:</strong><br>Ante el bloqueo, el Jefe de Área llena un formato formal de 'Justificación de Ampliación Presupuestal' explicando si el gasto es una emergencia operativa o un error de proyección anual.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/SolicitudesAmpliacionesPresupuesto.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "amp_propuesta",
+        "type": "loop"
+      }
+    ]
+  },
+  "amp_propuesta": {
+    "id": "amp_propuesta",
+    "x": 6388,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Propuesta Origen",
+    "sub": "Transferencia",
+    "type": "loop",
+    "badge": "Ampliaciones",
+    "title": "Propuesta",
+    "desc": "<strong>Propuesta de Fondeo:</strong><br>En el mismo formato, el Jefe debe proponer una solución transaccional (Ej. 'Quitar $5,000 de mi cuenta de viáticos y pasarlos a mi cuenta de mantenimiento').<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/SolicitudesAmpliacionesPresupuesto.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "amp_revision_finanzas",
+        "type": "external"
+      }
+    ]
+  },
+  "amp_revision_finanzas": {
+    "id": "amp_revision_finanzas",
+    "x": 6638,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Revisión Finanzas",
+    "sub": "Dirección",
+    "type": "external",
+    "badge": "Ampliaciones",
+    "title": "Finanzas",
+    "desc": "<strong>Auditoría de Dirección:</strong><br>La petición de fondos extraordinarios llega a la bandeja de la Dirección de Finanzas o Contraloría para su escrutinio inicial.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/SolicitudesAmpliacionesPresupuestoAutorizacion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "amp_auditoria",
+        "type": "external"
+      }
+    ]
+  },
+  "amp_auditoria": {
+    "id": "amp_auditoria",
+    "x": 6888,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Auditoría Flujo Caja",
+    "sub": "Cashflow",
+    "type": "external",
+    "badge": "Ampliaciones",
+    "title": "Auditoría",
+    "desc": "<strong>Revisión del Cashflow Global:</strong><br>Finanzas audita el flujo de caja actual de la compañía y revisa si existen remanentes 'escondidos' en otras partidas del presupuesto anual que puedan ser sacrificados para fondear esta emergencia.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/SolicitudesAmpliacionesPresupuestoAutorizacion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "amp_decision",
+        "type": "external"
+      }
+    ]
+  },
+  "amp_decision": {
+    "id": "amp_decision",
+    "x": 7138,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Decisión Financiera",
+    "sub": "Autoriza / Rechaza",
+    "type": "external",
+    "badge": "Ampliaciones",
+    "title": "Decisión",
+    "desc": "<strong>Veredicto Financiero:</strong><br>Si no hay viabilidad financiera, la petición muere y el solicitante original deberá cancelar su compra. Si es viable, Finanzas dictamina la autorización del movimiento.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/SolicitudesAmpliacionesPresupuestoAutorizacion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "amp_ejecucion",
+        "type": "external"
+      }
+    ]
+  },
+  "amp_ejecucion": {
+    "id": "amp_ejecucion",
+    "x": 7388,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Ejecución Contable",
+    "sub": "Cargo/Abono",
+    "type": "external",
+    "badge": "Ampliaciones",
+    "title": "Sistema",
+    "desc": "<strong>Operación Contable en BD:</strong><br>Finanzas accede al Módulo Especial de Presupuestos y ejecuta una <em>Transferencia de Presupuesto</em> (cargo a cuenta origen, abono a cuenta destino) o una <em>Ampliación Neta</em> (inyección de capital nuevo).<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/SolicitudesAmpliacionesPresupuestoAplicacion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "amp_actualizacion",
+        "type": "external"
+      }
+    ]
+  },
+  "amp_actualizacion": {
+    "id": "amp_actualizacion",
+    "x": 7638,
+    "y": 2330,
+    "w": 175,
+    "h": 56,
+    "label": "Actualización Bolsa",
+    "sub": "Saldo Inyectado",
+    "type": "external",
+    "badge": "Ampliaciones",
+    "title": "Actualización",
+    "desc": "<strong>Liberación de Fondos:</strong><br>La Base de Datos actualiza la bolsa de presupuesto autorizado en tiempo real. El sistema envía una notificación al usuario: 'Ya tienes fondos, vuelve a enviar tu requisición'.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Presupuestos/ReporteAmpliacionesPresupuesto.html</code></span>",
+    "next": [
+      {
+        "label": "↑ Re-enviar",
+        "to": "enviar_req",
+        "type": "loop"
+      }
+    ]
+  },
+  "req_pendiente": {
+    "id": "req_pendiente",
+    "x": 6138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Estatus PENDIENTE",
+    "sub": "Pre-Comprometido",
+    "type": "happy",
+    "badge": "Etapa 5",
+    "title": "PENDIENTE",
+    "desc": "<strong>Congelamiento Financiero (Pre-Comprometido):</strong><br>Tras superar el candado presupuestal, el sistema retira virtualmente el importe de la bolsa del Centro de Costo (Estatus Pre-Comprometido) para que nadie más lo gaste, y cambia el estatus global a <strong>PENDIENTE</strong>.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "auth_lectura_req",
+        "type": "happy"
+      }
+    ]
+  },
+  "auth_lectura_req": {
+    "id": "auth_lectura_req",
+    "x": 6388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Apertura de Req.",
+    "sub": "Lectura Jefe",
+    "type": "external",
+    "badge": "Autorización",
+    "title": "Jefe Inmediato",
+    "desc": "<strong>Notificación a Jefatura:</strong><br>El Jefe Inmediato recibe un correo automático y abre la requisición en su panel de autorizaciones para analizar la pertinencia y rentabilidad del gasto solicitado.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "auth_decision_n1",
+        "type": "external"
+      }
+    ]
+  },
+  "auth_decision_n1": {
+    "id": "auth_decision_n1",
+    "x": 6638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Decisión Nivel 1",
+    "sub": "Jefe Inmediato",
+    "type": "external",
+    "badge": "Autorización",
+    "title": "Decisión",
+    "desc": "<strong>Decisión del Jefe Inmediato (Nivel 1):</strong><br>El jefe revisa las partidas y tiene poder absoluto para tomar uno de 3 caminos: Autorizar el avance, Devolver para correcciones, o Rechazar definitivamente.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "Devolver (Error)",
+        "to": "auth_devolucion",
+        "type": "loop"
+      },
+      {
+        "label": "Rechazar (Fin)",
+        "to": "auth_rechazo_fin",
+        "type": "cancel"
+      },
+      {
+        "label": "→ Aprobar/Escalar",
+        "to": "auth_n2",
+        "type": "external"
+      }
+    ]
+  },
+  "auth_devolucion": {
+    "id": "auth_devolucion",
+    "x": 6388,
+    "y": 2090,
+    "w": 175,
+    "h": 56,
+    "label": "Devuelto a Borrador",
+    "sub": "Estatus = 1",
+    "type": "loop",
+    "badge": "Autorización",
+    "title": "Devolución",
+    "desc": "<strong>Regreso a Borrador:</strong><br>Si hay un error (ej. se pidió marca incorrecta), el Jefe anota el motivo, el sistema libera el presupuesto congelado y regresa la requisición a <strong>BORRADOR</strong> para que el usuario la edite.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "← Corrige",
+        "to": "enviar_req",
+        "type": "loop"
+      }
+    ]
+  },
+  "auth_rechazo_fin": {
+    "id": "auth_rechazo_fin",
+    "x": 6388,
+    "y": 1690,
+    "w": 175,
+    "h": 56,
+    "label": "RECHAZADA",
+    "sub": "Fin del Proceso",
+    "type": "cancel",
+    "badge": "Autorización",
+    "title": "Rechazo",
+    "desc": "<strong>Muerte de la Requisición:</strong><br>El jefe decide que el gasto es innecesario. El flujo termina permanentemente (Estatus RECHAZADA) y el 100% del presupuesto pre-comprometido se libera de inmediato.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "← Iniciar Nueva Req",
+        "to": "nueva_req",
+        "type": "loop"
+      }
+    ]
+  },
+  "auth_n2": {
+    "id": "auth_n2",
+    "x": 6888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Revisión Nivel 2",
+    "sub": "Gerente",
+    "type": "external",
+    "badge": "Autorización",
+    "title": "Nivel 2",
+    "desc": "<strong>Escalamiento a Gerencia (Nivel 2):</strong><br>El motor de firmas evalúa el monto o el tipo de insumo. Si excede cierto tabulador, la requisición no se aprueba automáticamente, sino que sube a la bandeja del Gerente de Área.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "auth_n3",
+        "type": "external"
+      }
+    ]
+  },
+  "auth_n3": {
+    "id": "auth_n3",
+    "x": 7138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Revisión Nivel 3",
+    "sub": "Director",
+    "type": "external",
+    "badge": "Autorización",
+    "title": "Nivel 3",
+    "desc": "<strong>Firma Directiva (Nivel 3):</strong><br>Para compras de capital mayores (Capex) o montos estratosféricos, se requiere el token electrónico de la Dirección General para liberar el presupuesto pre-comprometido.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "auth_autorizada",
+        "type": "happy"
+      }
+    ]
+  },
+  "auth_autorizada": {
+    "id": "auth_autorizada",
+    "x": 7388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Estatus AUTORIZADA",
+    "sub": "Pasa a Almacén",
+    "type": "happy",
+    "badge": "Etapa 6",
+    "title": "AUTORIZADA",
+    "desc": "<strong>Cambio de Estatus Oficial:</strong><br>Una vez obtenidas todas las firmas necesarias, la requisición cambia a <strong>AUTORIZADA</strong>. Ya es visible y legalmente exigible para el departamento de Almacén/Compras.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/AutorizaciondeRequisicion.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alm_apertura",
+        "type": "happy"
+      },
+      {
+        "label": "↘ Es Servicio",
+        "to": "cxp_recepcion_correo",
+        "type": "external"
+      }
+    ]
+  },
+  "alm_apertura": {
+    "id": "alm_apertura",
+    "x": 7638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Apertura Almacén",
+    "sub": "Pantalla Surtido",
+    "type": "external",
+    "badge": "Almacén",
+    "title": "Apertura",
+    "desc": "<strong>Bandeja de Surtido:</strong><br>El almacenista entra al Módulo de Almacén y abre la pantalla 'Detalle de Requisición Autorizada', donde se concentra la logística física.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesConsultasAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alm_calculo_ext",
+        "type": "external"
+      }
+    ]
+  },
+  "alm_calculo_ext": {
+    "id": "alm_calculo_ext",
+    "x": 7888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Cálculo de Existencia",
+    "sub": "Kárdex en Vivo",
+    "type": "external",
+    "badge": "Almacén",
+    "title": "Kárdex",
+    "desc": "<strong>Cálculo de Kárdex en Vivo:</strong><br>Paso crítico donde el sistema cruza la requisición contra el inventario real. Calcula: <code>Existencia Real = (Stock Físico) - (Cantidades comprometidas en surtidos pendientes de otros departamentos)</code>.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesConsultasAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alm_evaluacion",
+        "type": "external"
+      }
+    ]
+  },
+  "alm_evaluacion": {
+    "id": "alm_evaluacion",
+    "x": 8138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Evaluación Líneas",
+    "sub": "Revisión Manual",
+    "type": "external",
+    "badge": "Almacén",
+    "title": "Evaluación",
+    "desc": "<strong>Evaluación Partida por Partida:</strong><br>El almacenista analiza línea por línea el resultado del sistema frente a lo que físicamente ve en los anaqueles de la bodega.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesConsultasAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "alm_decision",
+        "type": "external"
+      }
+    ]
+  },
+  "alm_decision": {
+    "id": "alm_decision",
+    "x": 8388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Decisión Surtido",
+    "sub": "Tres Caminos",
+    "type": "external",
+    "badge": "Almacén",
+    "title": "Decisión",
+    "desc": "<strong>Bifurcación Logística Múltiple:</strong><br>Para cada insumo, el almacenista toma una decisión combinada: Surtir lo que hay, mandar a Comprar lo faltante, o solicitar Traspaso a otra sucursal.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RequisicionesConsultasAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "Surtir Total/Parcial",
+        "to": "surt_trazabilidad",
+        "type": "happy"
+      },
+      {
+        "label": "Sin Stock → Comprar",
+        "to": "comp_clonacion",
+        "type": "external"
+      },
+      {
+        "label": "Traspaso",
+        "to": "alm_traspaso",
+        "type": "external"
+      },
+      {
+        "label": "Surtir Parcial",
+        "to": "surt_parcial",
+        "type": "loop"
+      }
+    ]
+  },
+  "alm_traspaso": {
+    "id": "alm_traspaso",
+    "x": 8388,
+    "y": 2090,
+    "w": 175,
+    "h": 56,
+    "label": "Sol. Traspaso",
+    "sub": "Mov. Interno",
+    "type": "external",
+    "badge": "Almacén",
+    "title": "Traspaso",
+    "desc": "<strong>Solicitud de Movimiento Interno:</strong><br>Si la bodega local no tiene, pero el sistema indica que la sucursal vecina tiene 50 piezas estancadas, se emite una solicitud de Traspaso Inter-sucursal para ahorrarle dinero a la empresa.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SolicitudTraspaso.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "surt_trazabilidad",
+        "type": "external"
+      }
+    ]
+  },
+  "surt_trazabilidad": {
+    "id": "surt_trazabilidad",
+    "x": 8638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Trazabilidad",
+    "sub": "Lotes y Series",
+    "type": "happy",
+    "badge": "Almacén",
+    "title": "Series",
+    "desc": "<strong>Captura de Lotes y Series:</strong><br>Si la familia del insumo requiere trazabilidad (Ej. Llantas, Medicamentos, Electrónica), el almacenista está forzado a escanear el Código de Barras del Lote, Caducidad o Número de Serie exacto que entregará.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroSalidaAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "surt_poliza",
+        "type": "happy"
+      }
+    ]
+  },
+  "surt_poliza": {
+    "id": "surt_poliza",
+    "x": 8888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Generación Póliza",
+    "sub": "Consumo Interno",
+    "type": "happy",
+    "badge": "Almacén",
+    "title": "Póliza",
+    "desc": "<strong>Generación de Póliza en Background:</strong><br>El ERP construye automáticamente el movimiento contable: Cargo a la cuenta de Gastos del departamento solicitante, y Abono (salida) a la cuenta de Inventario de la empresa.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroSalidaAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "surt_kardex",
+        "type": "happy"
+      }
+    ]
+  },
+  "surt_kardex": {
+    "id": "surt_kardex",
+    "x": 9138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Descuento Kárdex",
+    "sub": "Resta Inventario",
+    "type": "happy",
+    "badge": "Almacén",
+    "title": "Kárdex",
+    "desc": "<strong>Afectación Física al Kárdex:</strong><br>El sistema registra la 'Salida por Consumo Interno', descontando las existencias físicas de la bodega de forma permanente al costo promedio ponderado de ese día.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroSalidaAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "surt_vale",
+        "type": "happy"
+      }
+    ]
+  },
+  "surt_vale": {
+    "id": "surt_vale",
+    "x": 9388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Impresión Vale",
+    "sub": "Firma Resguardo",
+    "type": "happy",
+    "badge": "Almacén",
+    "title": "Vale",
+    "desc": "<strong>Impresión del Vale de Salida:</strong><br>Se emite un documento PDF físico ('Vale de Materiales') que el empleado solicitante deberá firmar autógrafamente como acuse de recibo del inventario entregado.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroSalidaAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "surtido_final",
+        "type": "happy"
+      }
+    ]
+  },
+  "comp_clonacion": {
+    "id": "comp_clonacion",
+    "x": 8638,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Clonación Partida",
+    "sub": "Traspaso de Datos",
+    "type": "external",
+    "badge": "Compras",
+    "title": "SC",
+    "desc": "<strong>Nacimiento del Sub-Flujo:</strong><br>En el momento en que Almacén indica 'Sin Stock', la base de datos entra en acción y clona las características de las líneas faltantes en una nueva tabla transaccional aislada.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SolicitudesComprasAlmacenes.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "comp_gen_sc",
+        "type": "external"
+      }
+    ]
+  },
+  "comp_gen_sc": {
+    "id": "comp_gen_sc",
+    "x": 8888,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Generación Folio SC",
+    "sub": "Solicitud Compra",
+    "type": "external",
+    "badge": "Compras",
+    "title": "SC",
+    "desc": "<strong>Emisión de Solicitud de Compra (SC):</strong><br>Se genera un folio nuevo independiente llamado <em>Solicitud de Compra (SC)</em>, el cual queda atado jerárquica y eternamente a la Requisición madre.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SolicitudesComprasAlmacenes.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "comp_herencia",
+        "type": "external"
+      }
+    ]
+  },
+  "comp_herencia": {
+    "id": "comp_herencia",
+    "x": 9138,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Herencia Presupuesto",
+    "sub": "Transferencia $",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Presupuesto",
+    "desc": "<strong>Migración del Fondeo:</strong><br>La arquitectura presupuestal traslada el dinero 'Pre-Comprometido' (que originalmente amparaba a la Req) y lo ancla al nuevo folio de SC para garantizar liquidez al comprar.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SolicitudesComprasAlmacenes.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "comp_asignacion",
+        "type": "external"
+      }
+    ]
+  },
+  "comp_asignacion": {
+    "id": "comp_asignacion",
+    "x": 9388,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Asignación Comprador",
+    "sub": "Carga de Trabajo",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Comprador",
+    "desc": "<strong>Enrutamiento Inteligente:</strong><br>El motor revisa la Familia del Insumo (Ej. 'Tecnología') y deposita la SC automáticamente en la bandeja de trabajo del Comprador especializado en ese rubro.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/SolicitudesComprasAlmacenes.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cot_seleccion",
+        "type": "external"
+      }
+    ]
+  },
+  "cot_seleccion": {
+    "id": "cot_seleccion",
+    "x": 9638,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Selección Proveedores",
+    "sub": "Directorio",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Cotización",
+    "desc": "<strong>Búsqueda en Padrón:</strong><br>El comprador revisa la SC y consulta el catálogo de Proveedores Activos del ERP para buscar candidatos calificados que suministren ese material.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/Cotizaciones.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cot_envio",
+        "type": "external"
+      }
+    ]
+  },
+  "cot_envio": {
+    "id": "cot_envio",
+    "x": 9888,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Envío de Correos",
+    "sub": "Notificación",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Cotización",
+    "desc": "<strong>Disparo de Correos Automáticos:</strong><br>Usando el cliente SMTP del ERP, el comprador selecciona a 3 proveedores y el sistema les envía correos electrónicos formales solicitando cotización y tiempos de entrega.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/Cotizaciones.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cot_recepcion",
+        "type": "external"
+      }
+    ]
+  },
+  "cot_recepcion": {
+    "id": "cot_recepcion",
+    "x": 10138,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Recepción Respuestas",
+    "sub": "Tiempos y Costos",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Cotización",
+    "desc": "<strong>Ingreso de Propuestas:</strong><br>Los proveedores responden vía correo o portal con sus propuestas económicas, vigencia de precios, condiciones de pago (Crédito/Contado) y tiempo estimado de entrega (Lead Time).<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/Cotizaciones.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "compa_captura",
+        "type": "external"
+      }
+    ]
+  },
+  "compa_captura": {
+    "id": "compa_captura",
+    "x": 10388,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Captura Comparativo",
+    "sub": "Matriz de Costos",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Comparativo",
+    "desc": "<strong>Vaciado en Matriz:</strong><br>El comprador transcribe los montos, monedas, y fletes ofertados por cada proveedor dentro de la pantalla de 'Cuadro Comparativo' del sistema.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/Cotizaciones.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "compa_resaltado",
+        "type": "external"
+      }
+    ]
+  },
+  "compa_resaltado": {
+    "id": "compa_resaltado",
+    "x": 10638,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Resaltado Ganador",
+    "sub": "Algoritmo ERP",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Comparativo",
+    "desc": "<strong>Algoritmo de Elección:</strong><br>El ERP evalúa matemáticamente los montos (homologando monedas según el tipo de cambio del día) y sombrea en color verde al proveedor que representa el costo total más bajo.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/Cotizaciones.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "compa_val_transporte",
+        "type": "external"
+      }
+    ]
+  },
+  "compa_val_transporte": {
+    "id": "compa_val_transporte",
+    "x": 10888,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Validación Transporte",
+    "sub": "Filtro CRE",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Validación",
+    "desc": "<strong>Filtro Legal Restrictivo:</strong><br>Si el insumo marcado es 'Flete/Transporte', el sistema intercepta la decisión. Obliga a que el proveedor seleccionado tenga su permiso de la CRE (Comisión Reguladora de Energía) vigente en la BD; de lo contrario, bloquea la compra.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/Cotizaciones.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "compa_decision",
+        "type": "external"
+      }
+    ]
+  },
+  "compa_decision": {
+    "id": "compa_decision",
+    "x": 11138,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Decisión Comprador",
+    "sub": "Elección Final",
+    "type": "external",
+    "badge": "Compras",
+    "title": "Decisión",
+    "desc": "<strong>Veredicto Final:</strong><br>El comprador evalúa el cuadro. A veces no elige al más barato porque el material urge y otro proveedor entrega más rápido. Confirma su elección final en el sistema.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/OrdenesCompraGenerar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "oc_generacion",
+        "type": "external"
+      }
+    ]
+  },
+  "oc_generacion": {
+    "id": "oc_generacion",
+    "x": 11388,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Generación Folio OC",
+    "sub": "Orden de Compra",
+    "type": "external",
+    "badge": "Compras",
+    "title": "OC",
+    "desc": "<strong>Compromiso Legal:</strong><br>Se genera un número de folio irrepetible para la <em>Orden de Compra (OC)</em>. El presupuesto se amarra de manera definitiva a esta OC a favor del proveedor ganador.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/OrdenesCompraGenerar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "oc_pdf",
+        "type": "external"
+      }
+    ]
+  },
+  "oc_pdf": {
+    "id": "oc_pdf",
+    "x": 11638,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Emisión PDF Legal",
+    "sub": "Incoterms",
+    "type": "external",
+    "badge": "Compras",
+    "title": "OC",
+    "desc": "<strong>Emisión de Formato Legal:</strong><br>El sistema compila un documento PDF que incluye: Logotipos de la empresa, INCOTERMS (si es importación), penalizaciones por atraso, dirección de entrega y firma digital del comprador.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/OrdenesCompraGenerar.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "oc_auth_eval",
+        "type": "external"
+      }
+    ]
+  },
+  "oc_auth_eval": {
+    "id": "oc_auth_eval",
+    "x": 11888,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Evaluación Monto",
+    "sub": "Tabuladores",
+    "type": "external",
+    "badge": "Compras",
+    "title": "OC Auth",
+    "desc": "<strong>Matriz Directiva de Compras:</strong><br>El motor del ERP evalúa el Monto Total de la OC. Si la compra es de $500 pesos, avanza directo. Si es de $50,000 USD, se bloquea bajo el estatus 'Pendiente de Autorización Directiva'.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/AutorizarOrdenCompra.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "oc_auth_firmas",
+        "type": "external"
+      }
+    ]
+  },
+  "oc_auth_firmas": {
+    "id": "oc_auth_firmas",
+    "x": 12138,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Firma Directiva OC",
+    "sub": "Autorización",
+    "type": "external",
+    "badge": "Compras",
+    "title": "OC Auth",
+    "desc": "<strong>VoBo Financiero:</strong><br>Directores Generales o Contraloría acceden al sistema para estampar su firma electrónica en la OC de alto valor, validando el riesgo financiero de la transacción.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/AutorizarOrdenCompra.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "oc_envio_prov",
+        "type": "external"
+      },
+      {
+        "label": "✗ Rechazar",
+        "to": "oc_rechazo_dir",
+        "type": "cancel"
+      }
+    ]
+  },
+  "oc_envio_prov": {
+    "id": "oc_envio_prov",
+    "x": 12388,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Envío al Proveedor",
+    "sub": "Disparo de Compra",
+    "type": "external",
+    "badge": "Compras",
+    "title": "OC",
+    "desc": "<strong>Disparo al Proveedor:</strong><br>Con todas las firmas recabadas, el PDF de la Orden de Compra es despachado automáticamente por correo electrónico al proveedor para que inicie la fabricación o envío del material.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/AutorizarOrdenCompra.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "rec_llegada",
+        "type": "external"
+      }
+    ]
+  },
+  "rec_llegada": {
+    "id": "rec_llegada",
+    "x": 12638,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Llegada Física",
+    "sub": "Transportista",
+    "type": "external",
+    "badge": "Recepción",
+    "title": "Recepción",
+    "desc": "<strong>Arribo a Instalaciones:</strong><br>Días o semanas después, el transportista del proveedor llega físicamente a las rampas del Almacén Central portando el material y la Factura o Remisión impresa.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/EntradaCompra.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "rec_blind",
+        "type": "external"
+      }
+    ]
+  },
+  "rec_blind": {
+    "id": "rec_blind",
+    "x": 12888,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Blind Reception",
+    "sub": "Captura Ciega",
+    "type": "external",
+    "badge": "Recepción",
+    "title": "Recepción",
+    "desc": "<strong>Captura Ciega (Blind Reception):</strong><br>Para evitar colusión o pereza, el almacenista abre una pantalla de 'Recepción Ciega'. El sistema le oculta qué cantidades decía la OC, obligándolo a contar físicamente caja por caja e ingresar el número real.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/EntradaCompra.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "rec_conteo",
+        "type": "external"
+      }
+    ]
+  },
+  "rec_conteo": {
+    "id": "rec_conteo",
+    "x": 13138,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Match Conteo vs OC",
+    "sub": "Validación Almacén",
+    "type": "external",
+    "badge": "Recepción",
+    "title": "Recepción",
+    "desc": "<strong>Match Almacén vs Compras:</strong><br>El sistema cruza lo capturado a ciegas contra lo dictado en la OC. Si hay diferencias (ej. llegaron 8 de 10 piezas), el sistema permite recepciones parciales (Backorder).<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/EntradaCompra.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "rec_surtido_auto",
+        "type": "external"
+      }
+    ]
+  },
+  "rec_surtido_auto": {
+    "id": "rec_surtido_auto",
+    "x": 13388,
+    "y": 1590,
+    "w": 175,
+    "h": 56,
+    "label": "Surtido Automático",
+    "sub": "Inyección Inventario",
+    "type": "external",
+    "badge": "Recepción",
+    "title": "Recepción",
+    "desc": "<strong>Cierre y Transferencia:</strong><br>En el milisegundo exacto en que se firma la recepción, el material ingresa al Kárdex de inventario e, instantáneamente, el ERP ejecuta un 'Surtido Automático' para cumplir con la Requisición original pendiente.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/EntradaCompra.html</code></span>",
+    "next": [
+      {
+        "label": "↓",
+        "to": "surtido_final",
+        "type": "external"
+      }
+    ]
+  },
+  "surtido_final": {
+    "id": "surtido_final",
+    "x": 13638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Material Entregado",
+    "sub": "Estatus SURTIDA",
+    "type": "happy",
+    "badge": "Etapa 9",
+    "title": "Surtido",
+    "desc": "<strong>Hito de Entrega Física:</strong><br>Ya sea por surtido directo de stock local o por la llegada de material vía Compras, el producto es entregado físicamente al empleado solicitante. La Requisición Madre cambia a Estatus <strong>SURTIDA</strong>.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroSalidaAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "af_responsiva",
+        "type": "happy"
+      }
+    ]
+  },
+  "af_responsiva": {
+    "id": "af_responsiva",
+    "x": 13888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Carta Responsiva AF",
+    "sub": "Impresión / Depreciación",
+    "type": "happy",
+    "badge": "Etapa 9",
+    "title": "Activo Fijo",
+    "desc": "<strong>Activación y Resguardo:</strong><br>Si la partida se etiquetó como Activo Fijo (Etapa 4), al momento de entregar el bien, el sistema lo da de alta oficialmente en el libro de depreciación de la compañía e imprime la <em>Carta Responsiva</em> para firma del empleado.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/ActivosFijosNuevo.html</code></span>",
+    "next": [
+      {
+        "label": "→ Fiscal",
+        "to": "cxp_recepcion_correo",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_recepcion_correo": {
+    "id": "cxp_recepcion_correo",
+    "x": 14138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Recepción Correo XML",
+    "sub": "Bandeja Proveedores",
+    "type": "external",
+    "badge": "CxP",
+    "title": "Recepción",
+    "desc": "<strong>Recepción Fiscal:</strong><br>El proveedor envía un correo electrónico a la bandeja oficial de Facturación, adjuntando obligatoriamente el archivo XML (CFDI 4.0) y su representación gráfica en PDF.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_carga_erp",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_carga_erp": {
+    "id": "cxp_carga_erp",
+    "x": 14388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Carga XML al ERP",
+    "sub": "Drag & Drop",
+    "type": "external",
+    "badge": "CxP",
+    "title": "Carga",
+    "desc": "<strong>Alimentación del Sistema:</strong><br>El analista de Cuentas por Pagar descarga el XML y lo arrastra (Drag & Drop) hacia la bóveda digital del módulo fiscal del ERP para su procesamiento.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_vobo_servicios",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_vobo_servicios": {
+    "id": "cxp_vobo_servicios",
+    "x": 14638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "VoBo de Servicios",
+    "sub": "Firma de Conformidad",
+    "type": "external",
+    "badge": "CxP",
+    "title": "Servicios",
+    "desc": "<strong>Validación de Intangibles:</strong><br>Si la compra ampara 'Servicios' (los cuales no entran físicamente por el andén de Almacén), el ERP detiene la factura y exige que el Jefe del Departamento firme electrónicamente un 'Visto Bueno de Conformidad de Servicio' antes de poder subirla.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroFacturaServicios.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_val_uuid",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_val_uuid": {
+    "id": "cxp_val_uuid",
+    "x": 14888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Validación UUID / SAT",
+    "sub": "WebService SAT",
+    "type": "external",
+    "badge": "CxP - Validación",
+    "title": "SAT",
+    "desc": "<strong>Auditoría SAT en Tiempo Real:</strong><br>El ERP lee el UUID (Folio Fiscal) del XML y hace una llamada HTTP al WebService del SAT. Verifica que la factura exista, no haya sido cancelada por el emisor, y que el RFC no pertenezca a la lista negra de EFOS.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_val_rfc",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_val_rfc": {
+    "id": "cxp_val_rfc",
+    "x": 15138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Match RFCs",
+    "sub": "Auditoría",
+    "type": "external",
+    "badge": "CxP - Validación",
+    "title": "Auditoría",
+    "desc": "<strong>Cruce de Entidades Legales:</strong><br>El sistema verifica mecánicamente que el RFC Emisor del XML coincida a la perfección con el RFC capturado en el expediente del Proveedor, y que el RFC Receptor coincida con la Razón Social de la empresa logueada (Multi-tenant).<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_val_montos",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_val_montos": {
+    "id": "cxp_val_montos",
+    "x": 15388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "3-Way Match Montos",
+    "sub": "XML vs OC vs Recepción",
+    "type": "external",
+    "badge": "CxP - Validación",
+    "title": "Auditoría",
+    "desc": "<strong>Three-Way Match (Conciliación a 3 Bandas):</strong><br>El filtro más severo de CxP: El sistema cruza matemáticamente el <em>Precio Unitario del XML vs Precio de la OC vs Cantidad Recibida en Almacén</em>. Si te mandaron 10 piezas pero facturaron 12, el ERP bloquea la factura.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_val_fechas",
+        "type": "external"
+      },
+      {
+        "label": "✗ No Cuadra",
+        "to": "cxp_bloqueo_montos",
+        "type": "cancel"
+      }
+    ]
+  },
+  "cxp_val_fechas": {
+    "id": "cxp_val_fechas",
+    "x": 15638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Match Fechas",
+    "sub": "Auditoría Temporal",
+    "type": "external",
+    "badge": "CxP - Validación",
+    "title": "Auditoría",
+    "desc": "<strong>Prevención de Fraudes Cronológicos:</strong><br>El motor revisa el timestamp de timbrado del SAT. El sistema prohíbe terminantemente registrar una factura que haya sido timbrada <em>antes</em> de que se emitiera la Orden de Compra.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_prov_auth",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_prov_auth": {
+    "id": "cxp_prov_auth",
+    "x": 15888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Autorización CFDI",
+    "sub": "Validación Exitosa",
+    "type": "external",
+    "badge": "CxP - Provisión",
+    "title": "Aprobado",
+    "desc": "<strong>Aprobación Fiscal:</strong><br>El archivo XML ha superado íntegramente las auditorías del SAT, de Almacén y de Compras. El sistema emite luz verde para reconocer la factura internamente.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Contabilidad/CuentasPorPagarEmpleado.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_prov_poliza",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_prov_poliza": {
+    "id": "cxp_prov_poliza",
+    "x": 16138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Póliza de Diario",
+    "sub": "Background",
+    "type": "external",
+    "badge": "CxP - Provisión",
+    "title": "Contabilidad",
+    "desc": "<strong>Generador de Póliza de Diario:</strong><br>En background, el ERP construye de manera automática la <em>Provisión Contable</em>, afectando el Haber de 'Proveedores Nacionales' y cancelando la cuenta puente transitoria del inventario.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Contabilidad/GeneracionPolizas.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "cxp_prov_pasivo",
+        "type": "external"
+      }
+    ]
+  },
+  "cxp_prov_pasivo": {
+    "id": "cxp_prov_pasivo",
+    "x": 16388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Reconocimiento PASIVO",
+    "sub": "Deuda Formal",
+    "type": "external",
+    "badge": "CxP - Provisión",
+    "title": "Pasivo",
+    "desc": "<strong>Reconocimiento de Deuda (Pasivo):</strong><br>Oficialmente, la empresa reconoce un <strong>PASIVO</strong> (deuda exigible y legal) en su Balance General. La obligación de pago queda asentada.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Contabilidad/GeneracionPolizas.html</code></span>",
+    "next": [
+      {
+        "label": "→ Tesorería",
+        "to": "tes_bandeja",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_bandeja": {
+    "id": "tes_bandeja",
+    "x": 16638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Bandeja Tesorería",
+    "sub": "Pasivos",
+    "type": "external",
+    "badge": "Tesorería",
+    "title": "Bandeja",
+    "desc": "<strong>Traspaso a Finanzas:</strong><br>Con la provisión generada, la factura cae en la bandeja de trabajo de los analistas de pagos del Departamento de Tesorería.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_programacion",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_programacion": {
+    "id": "tes_programacion",
+    "x": 16888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Programación Pago",
+    "sub": "Lote Semanal",
+    "type": "external",
+    "badge": "Tesorería",
+    "title": "Programación",
+    "desc": "<strong>Agendamiento Financiero:</strong><br>Basándose en los días de crédito estipulados en la Orden de Compra (Ej. Pago a 30 días), el analista planea y asigna esta factura para ser liquidada en el Lote de Pagos de un viernes específico.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_val_clabe",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_val_clabe": {
+    "id": "tes_val_clabe",
+    "x": 17138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Validación CLABE",
+    "sub": "Expediente Proveedor",
+    "type": "external",
+    "badge": "Tesorería",
+    "title": "Validación",
+    "desc": "<strong>Auditoría de Destino de Fondos:</strong><br>El sistema verifica que el Proveedor cuente con una <em>Cuenta CLABE o SWIFT</em> verificada y dada de alta en su expediente maestro para poder dispersar la transferencia bancaria.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_bloqueo_lote",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_bloqueo_lote": {
+    "id": "tes_bloqueo_lote",
+    "x": 17388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Congelamiento Lote",
+    "sub": "Prevención Fraudes",
+    "type": "external",
+    "badge": "Tesorería - Contraloría",
+    "title": "Seguridad",
+    "desc": "<strong>Congelamiento Precautorio de Lote:</strong><br>Previo a soltar el dinero, el lote masivo de pagos (que incluye a cientos de proveedores) se bloquea temporalmente por protocolos internos de seguridad.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_auditoria",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_auditoria": {
+    "id": "tes_auditoria",
+    "x": 17638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Auditoría Cuentas",
+    "sub": "Antifraude",
+    "type": "external",
+    "badge": "Tesorería - Contraloría",
+    "title": "Auditoría",
+    "desc": "<strong>Auditoría Antifraude en CLABEs:</strong><br>Contraloría revisa el log de movimientos. Si un empleado malicioso alteró la cuenta CLABE del proveedor en el ERP cambiándola por su cuenta personal un día antes del pago, este filtro lo detecta.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_vobo",
+        "type": "external"
+      },
+      {
+        "label": "✗ Fraude",
+        "to": "tes_bloqueo_fraude",
+        "type": "cancel"
+      }
+    ]
+  },
+  "tes_vobo": {
+    "id": "tes_vobo",
+    "x": 17888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "VoBo Contraloría",
+    "sub": "Liberación Lote",
+    "type": "external",
+    "badge": "Tesorería - Contraloría",
+    "title": "Visto Bueno",
+    "desc": "<strong>Liberación de Contraloría:</strong><br>Al confirmar que las cuentas de depósito son legítimas, el Contralor emite su Visto Bueno y permite que el lote millonario avance hacia la Dirección para su liberación final.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_analisis_cash",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_analisis_cash": {
+    "id": "tes_analisis_cash",
+    "x": 18138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Análisis Cashflow",
+    "sub": "Flujo de Caja",
+    "type": "external",
+    "badge": "Tesorería - Dirección",
+    "title": "Cashflow",
+    "desc": "<strong>Visualización de Cashflow:</strong><br>El Director Financiero abre su panel de control y enfrenta el Total a Pagar del Lote contra el saldo líquido real disponible en las distintas cuentas bancarias de la compañía, evitando sobregiros.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_firma_token",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_firma_token": {
+    "id": "tes_firma_token",
+    "x": 18388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Firma Token Directiva",
+    "sub": "Aprobación Final",
+    "type": "external",
+    "badge": "Tesorería - Dirección",
+    "title": "Autorización",
+    "desc": "<strong>Firma Biometrica / Token:</strong><br>Si hay fondos suficientes para no descapitalizar a la empresa, el Director inserta su token bancario digital o autoriza biométricamente la salida legal del dinero.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_gen_layout",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_gen_layout": {
+    "id": "tes_gen_layout",
+    "x": 18638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Generación Layout TXT",
+    "sub": "Interfaz Bancaria",
+    "type": "external",
+    "badge": "Tesorería - Emisión",
+    "title": "Layout",
+    "desc": "<strong>Interfaz H2H (Host-to-Host):</strong><br>El ERP genera automáticamente un archivo de texto (Layout TXT o XML) estructurado con el formato propietario del Banco (Santander, BBVA, Banamex) que incluye todas las órdenes de SPEI a dispersar.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/MovimientosBancarios.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_carga_banco",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_carga_banco": {
+    "id": "tes_carga_banco",
+    "x": 18888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Dispersión SPEI",
+    "sub": "Portal Bancario",
+    "type": "external",
+    "badge": "Tesorería - Emisión",
+    "title": "Emisión",
+    "desc": "<strong>Dispersión Masiva:</strong><br>El analista sube el archivo generado al portal web corporativo del Banco. En cuestión de minutos, el banco ejecuta cientos de transferencias SPEI a los proveedores involucrados.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/MovimientosBancarios.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_descarga_edo",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_descarga_edo": {
+    "id": "tes_descarga_edo",
+    "x": 19138,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Descarga Edo. Cuenta",
+    "sub": "Movimientos Banco",
+    "type": "external",
+    "badge": "Tesorería - Conciliación",
+    "title": "Bancos",
+    "desc": "<strong>Obtención del Estado de Cuenta:</strong><br>Dos días hábiles después, Tesorería descarga el Estado de Cuenta digital de su Banco y lo importa masivamente a la herramienta de conciliación del ERP.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/MovimientosBancarios.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_match_spei",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_match_spei": {
+    "id": "tes_match_spei",
+    "x": 19388,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Match Movimiento-Pago",
+    "sub": "Emparejamiento",
+    "type": "external",
+    "badge": "Tesorería - Conciliación",
+    "title": "Conciliación",
+    "desc": "<strong>Emparejamiento Transaccional:</strong><br>El Motor Automático de Conciliación Bancaria hace un barrido buscando el cargo saliente (SPEI) del banco y lo vincula contra el folio interno de pago generado en el ERP por fecha, monto exacto y referencia.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/MovimientosBancarios.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "tes_sello_contable",
+        "type": "external"
+      }
+    ]
+  },
+  "tes_sello_contable": {
+    "id": "tes_sello_contable",
+    "x": 19638,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "Sello Contable y Póliza",
+    "sub": "Egreso Definitivo",
+    "type": "external",
+    "badge": "Tesorería - Conciliación",
+    "title": "Egreso",
+    "desc": "<strong>Póliza de Egreso y Firmeza:</strong><br>Al encontrar el 'Match' perfecto, el sistema genera la <em>Póliza de Egreso</em> definitiva, liquidando y cancelando el Pasivo contable en libros. El gasto de esta operación se vuelve irrevocable.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Contabilidad/ConciliacionesBancarias.html</code></span>",
+    "next": [
+      {
+        "label": "→",
+        "to": "fin",
+        "type": "happy"
+      }
+    ]
+  },
+  "fin": {
+    "id": "fin",
+    "x": 19888,
+    "y": 1890,
+    "w": 175,
+    "h": 56,
+    "label": "✅ CONCLUIDA",
+    "sub": "Ciclo Cerrado",
+    "type": "done",
+    "badge": "FIN",
+    "title": "Requisición Concluida",
+    "desc": "<strong>Clausura Transaccional Absoluta:</strong><br>El flujo ha cerrado su ciclo íntegramente. El dinero abandonó el banco amparado en una factura perfecta, el material descansa en el inventario o está depreciándose, y la contabilidad fiscal está cuadrada al centavo para auditorías.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/Requisiciones.html</code></span>",
+    "next": [
+      {
+        "label": "← Nueva Requisición",
+        "to": "nueva_req",
+        "type": "happy"
+      }
+    ]
+  },
+  "tes_bloqueo_fraude": {
+    "id": "tes_bloqueo_fraude",
+    "x": 17638,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Bloqueo Fraude",
+    "sub": "CLABE Alterada",
+    "type": "cancel",
+    "badge": "Seguridad",
+    "title": "Fraude Detectado",
+    "desc": "<strong>Auditoría Fallida:</strong><br>Contraloría detecta manipulación reciente de la CLABE del proveedor. El sistema bloquea el pago inmediatamente y detona una alerta de seguridad al Oficial de Cumplimiento.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Tesoreria/DashboardTesor.html</code></span>",
+    "next": [
+      {
+        "label": "← Volver",
+        "to": "inicio",
+        "type": "loop"
+      }
+    ]
+  },
+  "cxp_bloqueo_montos": {
+    "id": "cxp_bloqueo_montos",
+    "x": 15388,
+    "y": 2110,
+    "w": 175,
+    "h": 56,
+    "label": "Factura Rechazada",
+    "sub": "Montos Diferentes",
+    "type": "cancel",
+    "badge": "Error Match",
+    "title": "Bloqueo 3-Way Match",
+    "desc": "<strong>Discrepancia a 3 Bandas:</strong><br>El ERP bloquea matemáticamente la factura porque el importe o las cantidades facturadas exceden lo autorizado en la Orden de Compra o lo recibido en Almacén.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/CargaMasivadeFacturas.html</code></span>",
+    "next": [
+      {
+        "label": "← Volver",
+        "to": "inicio",
+        "type": "loop"
+      }
+    ]
+  },
+  "surt_parcial": {
+    "id": "surt_parcial",
+    "x": 8388,
+    "y": 1690,
+    "w": 175,
+    "h": 56,
+    "label": "Surtido Parcial",
+    "sub": "Backorder",
+    "type": "loop",
+    "badge": "Almacén",
+    "title": "Surtido y Backorder",
+    "desc": "<strong>Bifurcación Híbrida:</strong><br>Almacén entrega la existencia física actual al usuario, mientras el sistema clona instantáneamente el restante faltante en una Solicitud de Compra (Backorder).<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/AlmacenesInventarios/RegistroSalidaAlmacen.html</code></span>",
+    "next": [
+      {
+        "label": "→ Comprar Restante",
+        "to": "comp_clonacion",
+        "type": "external"
+      }
+    ]
+  },
+  "oc_rechazo_dir": {
+    "id": "oc_rechazo_dir",
+    "x": 12138,
+    "y": 1810,
+    "w": 175,
+    "h": 56,
+    "label": "Rechazo Directivo",
+    "sub": "Cancelación",
+    "type": "cancel",
+    "badge": "Rechazo",
+    "title": "Rechazo de Compra",
+    "desc": "<strong>Veto Financiero:</strong><br>La Dirección General o Finanzas rechaza la compra de capital (Capex) por salir de presupuesto o por cambio de estrategia. Se cancela la Orden de Compra.<br><br><span style=\"color:#58a6ff;font-size:11px;border-top:1px solid rgba(255,255,255,0.1);display:block;padding-top:6px;margin-top:6px;\"><strong>📁 Archivo Técnico:</strong><br><code>/Compras/AutorizarOrdenCompra.html</code></span>",
+    "next": [
+      {
+        "label": "← Iniciar Nueva Req",
+        "to": "nueva_req",
+        "type": "loop"
+      }
+    ]
+  }
+};
+
+// EDGES (from, to, type, label, curve offset)
+const EDGES = [
+  {
+    "from": "login",
+    "to": "empresa",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "empresa",
+    "to": "sucursal",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "sucursal",
+    "to": "inicio",
+    "type": "happy",
+    "label": "→ Módulo Reqs",
+    "curveOffset": -325
+  },
+  {
+    "from": "inicio",
+    "to": "nueva_req",
+    "type": "happy",
+    "label": "→ Nueva",
+    "curveOffset": -325
+  },
+  {
+    "from": "inicio",
+    "to": "seguimiento",
+    "type": "done",
+    "label": "↓ Seguimiento",
+    "curveOffset": 20
+  },
+  {
+    "from": "inicio",
+    "to": "impresion",
+    "type": "done",
+    "label": "↓ Impresión",
+    "curveOffset": 20
+  },
+  {
+    "from": "seguimiento",
+    "to": "inicio",
+    "type": "loop",
+    "label": "← Volver",
+    "curveOffset": -325
+  },
+  {
+    "from": "impresion",
+    "to": "inicio",
+    "type": "loop",
+    "label": "← Volver",
+    "curveOffset": -325
+  },
+  {
+    "from": "nueva_req",
+    "to": "config_campos",
+    "type": "happy",
+    "label": "Normal",
+    "curveOffset": 225
+  },
+  {
+    "from": "nueva_req",
+    "to": "obras_buscador",
+    "type": "external",
+    "label": "Obra/Instalación",
+    "curveOffset": 20
+  },
+  {
+    "from": "obras_buscador",
+    "to": "obras_peticion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "obras_peticion",
+    "to": "obras_extraccion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "obras_extraccion",
+    "to": "obras_inyeccion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "obras_inyeccion",
+    "to": "obras_bloqueo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "obras_bloqueo",
+    "to": "config_campos",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 20
+  },
+  {
+    "from": "config_campos",
+    "to": "insumo_busqueda",
+    "type": "happy",
+    "label": "→ Agregar Insumos",
+    "curveOffset": 0
+  },
+  {
+    "from": "insumo_busqueda",
+    "to": "insumo_cantidades",
+    "type": "happy",
+    "label": "Lo encontró",
+    "curveOffset": 0
+  },
+  {
+    "from": "insumo_busqueda",
+    "to": "alta_deteccion",
+    "type": "cancel",
+    "label": "✗ No existe",
+    "curveOffset": 20
+  },
+  {
+    "from": "insumo_cantidades",
+    "to": "insumo_precios",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "insumo_precios",
+    "to": "insumo_cc",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "insumo_cc",
+    "to": "insumo_servicios",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "insumo_servicios",
+    "to": "activo_motor",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_deteccion",
+    "to": "alta_formulario",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_formulario",
+    "to": "alta_bloqueo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_bloqueo",
+    "to": "alta_ticket",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_ticket",
+    "to": "alta_revision",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_revision",
+    "to": "alta_asignacion_clv",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_asignacion_clv",
+    "to": "alta_contabilidad",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_contabilidad",
+    "to": "alta_notificacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alta_notificacion",
+    "to": "insumo_busqueda",
+    "type": "loop",
+    "label": "← Volver a buscar",
+    "curveOffset": 0
+  },
+  {
+    "from": "activo_motor",
+    "to": "guardar_partida",
+    "type": "happy",
+    "label": "Falso → Consumo",
+    "curveOffset": 0
+  },
+  {
+    "from": "activo_motor",
+    "to": "af_formulario_tec",
+    "type": "external",
+    "label": "True → Activo Fijo",
+    "curveOffset": 20
+  },
+  {
+    "from": "af_formulario_tec",
+    "to": "af_bloqueo_guardado",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "af_bloqueo_guardado",
+    "to": "guardar_partida",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 20
+  },
+  {
+    "from": "guardar_partida",
+    "to": "enviar_req",
+    "type": "happy",
+    "label": "→ Enviar",
+    "curveOffset": 0
+  },
+  {
+    "from": "enviar_req",
+    "to": "presup_check_flag",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_check_flag",
+    "to": "presup_build_json",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_build_json",
+    "to": "presup_call_sp",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_call_sp",
+    "to": "presup_calculo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_calculo",
+    "to": "presup_comparacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_comparacion",
+    "to": "req_pendiente",
+    "type": "happy",
+    "label": "✓ Todo Aprobado",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_comparacion",
+    "to": "presup_bloqueo_deficit",
+    "type": "cancel",
+    "label": "✗ Déficit (Bloqueo)",
+    "curveOffset": 20
+  },
+  {
+    "from": "presup_bloqueo_deficit",
+    "to": "guardar_partida",
+    "type": "loop",
+    "label": "← Reducir/Editar",
+    "curveOffset": 0
+  },
+  {
+    "from": "presup_bloqueo_deficit",
+    "to": "amp_formato",
+    "type": "loop",
+    "label": "→ Tramitar Ampliación",
+    "curveOffset": 20
+  },
+  {
+    "from": "amp_formato",
+    "to": "amp_propuesta",
+    "type": "loop",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "amp_propuesta",
+    "to": "amp_revision_finanzas",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "amp_revision_finanzas",
+    "to": "amp_auditoria",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "amp_auditoria",
+    "to": "amp_decision",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "amp_decision",
+    "to": "amp_ejecucion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "amp_ejecucion",
+    "to": "amp_actualizacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "amp_actualizacion",
+    "to": "enviar_req",
+    "type": "loop",
+    "label": "↑ Re-enviar",
+    "curveOffset": 0
+  },
+  {
+    "from": "req_pendiente",
+    "to": "auth_lectura_req",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_lectura_req",
+    "to": "auth_decision_n1",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_decision_n1",
+    "to": "auth_devolucion",
+    "type": "loop",
+    "label": "Devolver (Error)",
+    "curveOffset": 20
+  },
+  {
+    "from": "auth_decision_n1",
+    "to": "auth_rechazo_fin",
+    "type": "cancel",
+    "label": "Rechazar (Fin)",
+    "curveOffset": 20
+  },
+  {
+    "from": "auth_decision_n1",
+    "to": "auth_n2",
+    "type": "external",
+    "label": "→ Aprobar/Escalar",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_devolucion",
+    "to": "enviar_req",
+    "type": "loop",
+    "label": "← Corrige",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_rechazo_fin",
+    "to": "nueva_req",
+    "type": "loop",
+    "label": "← Iniciar Nueva Req",
+    "curveOffset": -800
+  },
+  {
+    "from": "auth_n2",
+    "to": "auth_n3",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_n3",
+    "to": "auth_autorizada",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_autorizada",
+    "to": "alm_apertura",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "auth_autorizada",
+    "to": "cxp_recepcion_correo",
+    "type": "external",
+    "label": "↘ Es Servicio",
+    "curveOffset": 487.5
+  },
+  {
+    "from": "alm_apertura",
+    "to": "alm_calculo_ext",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alm_calculo_ext",
+    "to": "alm_evaluacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alm_evaluacion",
+    "to": "alm_decision",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "alm_decision",
+    "to": "surt_trazabilidad",
+    "type": "happy",
+    "label": "Surtir Total/Parcial",
+    "curveOffset": 0
+  },
+  {
+    "from": "alm_decision",
+    "to": "comp_clonacion",
+    "type": "external",
+    "label": "Sin Stock → Comprar",
+    "curveOffset": 20
+  },
+  {
+    "from": "alm_decision",
+    "to": "alm_traspaso",
+    "type": "external",
+    "label": "Traspaso",
+    "curveOffset": 20
+  },
+  {
+    "from": "alm_decision",
+    "to": "surt_parcial",
+    "type": "loop",
+    "label": "Surtir Parcial",
+    "curveOffset": 20
+  },
+  {
+    "from": "alm_traspaso",
+    "to": "surt_trazabilidad",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 20
+  },
+  {
+    "from": "surt_trazabilidad",
+    "to": "surt_poliza",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "surt_poliza",
+    "to": "surt_kardex",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "surt_kardex",
+    "to": "surt_vale",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "surt_vale",
+    "to": "surtido_final",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 362.5
+  },
+  {
+    "from": "comp_clonacion",
+    "to": "comp_gen_sc",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "comp_gen_sc",
+    "to": "comp_herencia",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "comp_herencia",
+    "to": "comp_asignacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "comp_asignacion",
+    "to": "cot_seleccion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cot_seleccion",
+    "to": "cot_envio",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cot_envio",
+    "to": "cot_recepcion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cot_recepcion",
+    "to": "compa_captura",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "compa_captura",
+    "to": "compa_resaltado",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "compa_resaltado",
+    "to": "compa_val_transporte",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "compa_val_transporte",
+    "to": "compa_decision",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "compa_decision",
+    "to": "oc_generacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "oc_generacion",
+    "to": "oc_pdf",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "oc_pdf",
+    "to": "oc_auth_eval",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "oc_auth_eval",
+    "to": "oc_auth_firmas",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "oc_auth_firmas",
+    "to": "oc_envio_prov",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "oc_auth_firmas",
+    "to": "oc_rechazo_dir",
+    "type": "cancel",
+    "label": "✗ Rechazar",
+    "curveOffset": 20
+  },
+  {
+    "from": "oc_envio_prov",
+    "to": "rec_llegada",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "rec_llegada",
+    "to": "rec_blind",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "rec_blind",
+    "to": "rec_conteo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "rec_conteo",
+    "to": "rec_surtido_auto",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "rec_surtido_auto",
+    "to": "surtido_final",
+    "type": "external",
+    "label": "↓",
+    "curveOffset": 20
+  },
+  {
+    "from": "surtido_final",
+    "to": "af_responsiva",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "af_responsiva",
+    "to": "cxp_recepcion_correo",
+    "type": "external",
+    "label": "→ Fiscal",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_recepcion_correo",
+    "to": "cxp_carga_erp",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_carga_erp",
+    "to": "cxp_vobo_servicios",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_vobo_servicios",
+    "to": "cxp_val_uuid",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_val_uuid",
+    "to": "cxp_val_rfc",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_val_rfc",
+    "to": "cxp_val_montos",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_val_montos",
+    "to": "cxp_val_fechas",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_val_montos",
+    "to": "cxp_bloqueo_montos",
+    "type": "cancel",
+    "label": "✗ No Cuadra",
+    "curveOffset": 20
+  },
+  {
+    "from": "cxp_val_fechas",
+    "to": "cxp_prov_auth",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_prov_auth",
+    "to": "cxp_prov_poliza",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_prov_poliza",
+    "to": "cxp_prov_pasivo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "cxp_prov_pasivo",
+    "to": "tes_bandeja",
+    "type": "external",
+    "label": "→ Tesorería",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_bandeja",
+    "to": "tes_programacion",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_programacion",
+    "to": "tes_val_clabe",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_val_clabe",
+    "to": "tes_bloqueo_lote",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_bloqueo_lote",
+    "to": "tes_auditoria",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_auditoria",
+    "to": "tes_vobo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_auditoria",
+    "to": "tes_bloqueo_fraude",
+    "type": "cancel",
+    "label": "✗ Fraude",
+    "curveOffset": 20
+  },
+  {
+    "from": "tes_vobo",
+    "to": "tes_analisis_cash",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_analisis_cash",
+    "to": "tes_firma_token",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_firma_token",
+    "to": "tes_gen_layout",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_gen_layout",
+    "to": "tes_carga_banco",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_carga_banco",
+    "to": "tes_descarga_edo",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_descarga_edo",
+    "to": "tes_match_spei",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_match_spei",
+    "to": "tes_sello_contable",
+    "type": "external",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "tes_sello_contable",
+    "to": "fin",
+    "type": "happy",
+    "label": "→",
+    "curveOffset": 0
+  },
+  {
+    "from": "fin",
+    "to": "nueva_req",
+    "type": "happy",
+    "label": "← Nueva Requisición",
+    "curveOffset": -1500
+  },
+  {
+    "from": "tes_bloqueo_fraude",
+    "to": "inicio",
+    "type": "loop",
+    "label": "← Volver",
+    "curveOffset": -1975
+  },
+  {
+    "from": "cxp_bloqueo_montos",
+    "to": "inicio",
+    "type": "loop",
+    "label": "← Volver",
+    "curveOffset": -1750
+  },
+  {
+    "from": "surt_parcial",
+    "to": "comp_clonacion",
+    "type": "external",
+    "label": "→ Comprar Restante",
+    "curveOffset": 20
+  },
+  {
+    "from": "oc_rechazo_dir",
+    "to": "nueva_req",
+    "type": "loop",
+    "label": "← Iniciar Nueva Req",
+    "curveOffset": -1400
+  }
+];
+
+// ─── PATHS (SCENARIOS) ──────────────────────────────────────────────────────
+
+const PATHS = {
+  "happy": {
+    "name": "Happy Path Completo",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_n2",
+      "auth_n3",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El almacén tiene existencias del insumo solicitado y el presupuesto del área es suficiente.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Todo fluye sin interrupciones: el solicitante crea la requisición, el jefe la autoriza, almacén la surte en el mismo día, y CxP/Tesorería cierra con el pago al proveedor.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>✅ Presupuesto suficiente</li><li>✅ Stock disponible en almacén</li><li>✅ Jefe autoriza en N1</li><li>✅ Factura válida ante el SAT</li></ul>"
+  },
+  "no_presupuesto": {
+    "name": "Sin Presupuesto → Bloqueo y Ampliación",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "presup_bloqueo_deficit",
+      "amp_formato",
+      "amp_propuesta",
+      "amp_revision_finanzas",
+      "amp_auditoria",
+      "amp_decision",
+      "amp_ejecucion",
+      "amp_actualizacion",
+      "enviar_req",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>Al enviar la requisición, el motor de presupuestos detecta que el área ya consumió el 100% de su presupuesto asignado para esa cuenta contable.<br><br><strong>💡 ¿Por qué este camino?</strong><br>El sistema bloquea automáticamente el envío. Para desbloquear, el área debe tramitar una Ampliación Presupuestal formal ante Finanzas. Si se aprueba, el presupuesto se incrementa y la requisición puede continuar.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>🚫 Presupuesto = 0 o en déficit</li><li>📋 Solicitud de Ampliación Presupuestal</li><li>👔 Revisión y aprobación de Finanzas</li><li>✅ Presupuesto ampliado → flujo continúa</li></ul>"
+  },
+  "rechazo": {
+    "name": "Rechazo del Jefe → Cancelación",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_rechazo_fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El jefe autorizador decide rechazar definitivamente la requisición (gasto no justificado, fuera de política, duplicado, etc.).<br><br><strong>💡 ¿Por qué este camino?</strong><br>El rechazo es terminal para esa requisición. El sistema notifica al solicitante con el motivo. Si el solicitante aún necesita el bien, debe crear una nueva requisición justificando el gasto correctamente.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>🚫 Gasto no autorizado o fuera de política</li><li>📨 Notificación con motivo de rechazo</li><li>⛔ Requisición queda cancelada</li><li>🆕 Solicitante debe crear nueva si aplica</li></ul>"
+  },
+  "devolucion": {
+    "name": "Devolución del Jefe → Corrección Requerida",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_devolucion"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El jefe autorizador encuentra errores en la requisición (cantidades, centros de costo, partidas incorrectas) pero decide devolvérsela al solicitante para corrección en lugar de rechazarla definitivamente.<br><br><strong>💡 ¿Por qué este camino?</strong><br>La devolución es reversible. El jefe puede devolver con comentarios. El solicitante corrige y re-envía sin necesidad de crear una requisición nueva. El historial queda registrado.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>⚠️ Errores detectados por el autorizador</li><li>🔄 Requisición regresa al solicitante con comentarios</li><li>✏️ Solicitante corrige y re-envía</li><li>🔁 Vuelve a entrar a la cola de autorización</li></ul>"
+  },
+  "sin_stock": {
+    "name": "Sin Stock → Compras → Recepción → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_n2",
+      "auth_n3",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "comp_clonacion",
+      "comp_gen_sc",
+      "comp_herencia",
+      "comp_asignacion",
+      "cot_seleccion",
+      "cot_envio",
+      "cot_recepcion",
+      "compa_captura",
+      "compa_resaltado",
+      "compa_val_transporte",
+      "compa_decision",
+      "oc_generacion",
+      "oc_pdf",
+      "oc_auth_eval",
+      "oc_auth_firmas",
+      "oc_envio_prov",
+      "rec_llegada",
+      "rec_blind",
+      "rec_conteo",
+      "rec_surtido_auto",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>La evaluación de almacén detecta que no hay existencias del insumo en ningún almacén de la sucursal.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Al no poder surtir desde almacén propio, el sistema clona la requisición como Solicitud de Compra. El área de Compras cotiza con proveedores, genera una OC, el proveedor entrega y almacén recibe físicamente antes de cerrar.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>❌ Sin stock en almacén</li><li>🔄 Clonación a SC (Solicitud de Compra)</li><li>📦 Cotización → OC → Recepción física</li><li>💳 CxP valida factura y Tesorería paga</li></ul>"
+  },
+  "activo_fijo": {
+    "name": "Activo Fijo → Autorización → Surtido → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "af_formulario_tec",
+      "af_bloqueo_guardado",
+      "guardar_partida",
+      "enviar_req",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>La requisición es para adquirir un bien que se va a registrar como Activo Fijo en contabilidad (equipo, maquinaria, vehículo, etc.).<br><br><strong>💡 ¿Por qué este camino?</strong><br>El motor detecta el tipo de insumo y activa el formulario de Activos Fijos. Se captura número de serie, clave contable, área responsable y se genera la responsiva digital. El bien se deprecia contablemente a partir de ese momento.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>🖥️ Insumo tipo Activo Fijo</li><li>📋 Formulario de datos técnicos (serie, modelo)</li><li>✍️ Responsiva digital del empleado</li><li>📊 Alta en catálogo de activos para depreciación</li></ul>"
+  },
+  "obras": {
+    "name": "Proyecto / Obra → Requisición → Autorización → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "obras_buscador",
+      "obras_peticion",
+      "obras_extraccion",
+      "obras_inyeccion",
+      "obras_bloqueo",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>La requisición es para un proyecto de inversión o construcción de obra (Capex). Requiere vincular la requisición a un número de obra en el buscador de proyectos.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Las obras tienen un catálogo especial en el sistema. El solicitante busca el proyecto, el sistema inyecta automáticamente los datos de la obra (CC, cuentas contables, aprobadores) para asegurar que el gasto se cargue al proyecto correcto.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>🏗️ Tipo: Capex / Inversión</li><li>🔍 Búsqueda en catálogo de obras</li><li>💉 Inyección automática de datos del proyecto</li><li>📊 Cargado a cuenta de inversión, no gasto</li></ul>"
+  },
+  "alta_insumo": {
+    "name": "Alta de Insumo → Requisición → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "alta_deteccion",
+      "alta_formulario",
+      "alta_bloqueo",
+      "alta_ticket",
+      "alta_revision",
+      "alta_asignacion_clv",
+      "alta_contabilidad",
+      "alta_notificacion",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "guardar_partida",
+      "enviar_req",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El solicitante busca un insumo que no existe en el catálogo del sistema. El sistema no puede avanzar sin una clave de insumo válida.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Se activa un proceso paralelo de Alta de Insumo donde el área de Almacenes revisa y valida el nuevo artículo, lo clasifica, lo registra con su clave única y notifica al solicitante para que pueda continuar la requisición.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>❌ Insumo no encontrado en catálogo</li><li>📋 Solicitud de Alta de Insumo</li><li>🔑 Asignación de clave única por Almacenes</li><li>✅ Insumo disponible → solicitante continúa</li></ul>"
+  },
+  "ampliacion": {
+    "name": "Ampliación Presupuestal → Requisición → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "presup_bloqueo_deficit",
+      "amp_formato",
+      "amp_propuesta",
+      "amp_revision_finanzas",
+      "amp_auditoria",
+      "amp_decision",
+      "amp_ejecucion",
+      "amp_actualizacion",
+      "enviar_req",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El área anticipa que consumirá su presupuesto antes de fin de año y solicita proactivamente una ampliación para no quedar bloqueada.<br><br><strong>💡 ¿Por qué este camino?</strong><br>A diferencia del bloqueo forzado, aquí el área actúa preventivamente. La solicitud pasa por Finanzas y Dirección. Si se aprueba, el presupuesto disponible aumenta y la requisición se puede crear normalmente.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>⚠️ Presupuesto bajo pero no agotado</li><li>📋 Ampliación proactiva</li><li>👔 Finanzas + Dirección aprueban</li><li>✅ Presupuesto actualizado → flujo normal</li></ul>"
+  },
+  "compra_directa": {
+    "name": "Compra Directa → Recepción → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "comp_clonacion",
+      "comp_gen_sc",
+      "comp_herencia",
+      "comp_asignacion",
+      "cot_seleccion",
+      "cot_envio",
+      "cot_recepcion",
+      "compa_captura",
+      "compa_resaltado",
+      "compa_decision",
+      "oc_generacion",
+      "oc_pdf",
+      "oc_auth_eval",
+      "oc_auth_firmas",
+      "oc_envio_prov",
+      "rec_llegada",
+      "rec_blind",
+      "rec_conteo",
+      "rec_surtido_auto",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>Insumo nuevo o urgente que no tiene proceso de almacén previo. El comprador genera la OC directamente sin pasar por el flujo de SC.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Para compras urgentes o de una sola vez, el sistema permite crear la OC directamente. El proveedor entrega, almacén recibe y el flujo termina igual con CxP y Tesorería.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>⚡ Urgencia o insumo nuevo</li><li>🛒 OC directa sin SC previa</li><li>📦 Recepción ciega en almacén</li><li>💳 Cierre normal en CxP y Tesorería</li></ul>"
+  },
+  "cancelacion_compras": {
+    "name": "Proveedor sin Permisos CRE → Cotización Invalidada",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "comp_clonacion",
+      "comp_gen_sc",
+      "comp_herencia",
+      "comp_asignacion",
+      "cot_seleccion",
+      "cot_envio",
+      "cot_recepcion",
+      "compa_captura",
+      "compa_resaltado",
+      "compa_val_transporte"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>Durante el proceso de cotización, el proveedor seleccionado no tiene los permisos CRE vigentes o sus documentos fiscales están vencidos.<br><br><strong>💡 ¿Por qué este camino?</strong><br>El área de Compras no puede emitir una OC a un proveedor sin permisos válidos. La cotización se cancela y se vuelve a hacer el cuadro comparativo con los proveedores restantes o uno nuevo.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>❌ Proveedor sin permisos CRE vigentes</li><li>🚫 Cotización invalidada</li><li>🔄 Nuevo cuadro comparativo con proveedor alternativo</li><li>✅ OC emitida a proveedor válido</li></ul>"
+  },
+  "factura_rechazada": {
+    "name": "Factura Rechazada por el SAT → Bloqueo",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>Al validar la factura del proveedor ante el SAT (validación de UUID), el CFDI aparece como cancelado, no vigente o con errores en RFC/montos.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Una factura inválida ante el SAT no puede provisionar ni pagarse. El proveedor debe cancelar y re-timbrar correctamente. CxP espera la nueva factura válida para continuar el flujo.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>❌ CFDI inválido o cancelado en el SAT</li><li>🚫 No se puede provisionar ni pagar</li><li>📄 Proveedor debe re-timbrar el CFDI</li><li>✅ Factura válida → provisión y pago normal</li></ul>"
+  },
+  "traspaso_logistico": {
+    "name": "Traspaso Inter-Sucursales → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "alm_traspaso",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>La sucursal A tiene el insumo en exceso y la sucursal B lo necesita. El sistema detecta disponibilidad en otra sucursal.<br><br><strong>💡 ¿Por qué este camino?</strong><br>En lugar de comprar, el almacén de la sucursal A genera un movimiento de salida por traspaso y la sucursal B registra la entrada. Evita compras innecesarias.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>❌ Sin stock local</li><li>✅ Stock en otra sucursal</li><li>🔄 Movimiento de traspaso entre almacenes</li><li>📃 Poliza contable de ambos lados</li></ul>"
+  },
+  "fraude_tesoreria": {
+    "name": "Fraude de CLABE → Bloqueo de Pago",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_bloqueo_fraude"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El sistema de Tesorería detecta que la CLABE del proveedor fue modificada recientemente (posible fraude de ingeniería social al proveedor).<br><br><strong>💡 ¿Por qué este camino?</strong><br>El lote de pago se bloquea preventivamente. El analista de Tesorería contacta directamente al proveedor para verificar la CLABE. Si se confirma el fraude, la CLABE se rechaza y se reporta. Si es válida, el pago se libera.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>⚠️ CLABE modificada recientemente</li><li>🔒 Bloqueo preventivo del lote de pago</li><li>📞 Verificación directa con el proveedor</li><li>✅ Confirmado → pago liberado | ❌ Fraude → CLABE bloqueada</li></ul>"
+  },
+  "match_fallido": {
+    "name": "3-Way Match Fallido → Bloqueo CxP",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_trazabilidad",
+      "surt_poliza",
+      "surt_kardex",
+      "surt_vale",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_bloqueo_montos"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>Al hacer el 3-Way Match (OC vs. Factura vs. Entrada de almacén), los montos no coinciden. El proveedor facturó diferente a lo acordado en la OC.<br><br><strong>💡 ¿Por qué este camino?</strong><br>CxP bloquea el pago automáticamente. Se contacta al proveedor para que emita una nota de crédito por la diferencia o corrija la factura. Una vez cuadrado el monto, se libera la provisión y continúa el pago.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>💲 Diferencia entre OC, factura y recepción</li><li>🚫 Bloqueo automático en CxP</li><li>📞 Proveedor emite nota de crédito</li><li>✅ Montos cuadrados → pago liberado</li></ul>"
+  },
+  "servicio_intangible": {
+    "name": "Compra de Servicios (Sin Almacén)",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El insumo no es un bien físico sino un servicio (honorarios, mantenimiento, suscripción, consultoría). No pasa por almacén.<br><br><strong>💡 ¿Por qué este camino?</strong><br>Los servicios no tienen movimiento de almacén. Después de la autorización, la factura del proveedor va directo a CxP donde se valida ante el SAT y se provisiona. No hay recepción física.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>📋 Tipo de insumo: Servicio</li><li>⛔ Salta todo el proceso de almacén</li><li>📄 Factura va directo a CxP</li><li>💳 Tesorería cierra con transferencia SPEI</li></ul>"
+  },
+  "surtido_parcial": {
+    "name": "Surtido Parcial / Backorder → Cierre",
+    "steps": [
+      "login",
+      "empresa",
+      "sucursal",
+      "inicio",
+      "nueva_req",
+      "config_campos",
+      "insumo_busqueda",
+      "insumo_cantidades",
+      "insumo_precios",
+      "insumo_cc",
+      "insumo_servicios",
+      "activo_motor",
+      "guardar_partida",
+      "enviar_req",
+      "presup_check_flag",
+      "presup_build_json",
+      "presup_call_sp",
+      "presup_calculo",
+      "presup_comparacion",
+      "req_pendiente",
+      "auth_lectura_req",
+      "auth_decision_n1",
+      "auth_autorizada",
+      "alm_apertura",
+      "alm_calculo_ext",
+      "alm_evaluacion",
+      "alm_decision",
+      "surt_parcial",
+      "comp_clonacion",
+      "comp_gen_sc",
+      "comp_herencia",
+      "comp_asignacion",
+      "cot_seleccion",
+      "cot_envio",
+      "cot_recepcion",
+      "compa_captura",
+      "compa_resaltado",
+      "compa_decision",
+      "oc_generacion",
+      "oc_pdf",
+      "oc_auth_eval",
+      "oc_auth_firmas",
+      "oc_envio_prov",
+      "rec_llegada",
+      "rec_blind",
+      "rec_conteo",
+      "rec_surtido_auto",
+      "surtido_final",
+      "af_responsiva",
+      "cxp_recepcion_correo",
+      "cxp_carga_erp",
+      "cxp_vobo_servicios",
+      "cxp_val_uuid",
+      "cxp_val_rfc",
+      "cxp_val_montos",
+      "cxp_val_fechas",
+      "cxp_prov_auth",
+      "cxp_prov_poliza",
+      "cxp_prov_pasivo",
+      "tes_bandeja",
+      "tes_programacion",
+      "tes_val_clabe",
+      "tes_bloqueo_lote",
+      "tes_auditoria",
+      "tes_vobo",
+      "tes_analisis_cash",
+      "tes_firma_token",
+      "tes_gen_layout",
+      "tes_carga_banco",
+      "tes_descarga_edo",
+      "tes_match_spei",
+      "tes_sello_contable",
+      "fin"
+    ],
+    "desc": "<strong>🎯 Detonante:</strong><br>El almacén tiene menos unidades de las solicitadas (ej. piden 100 pero solo hay 60). Se surte lo que hay y se deja el resto en backorder.<br><br><strong>💡 ¿Por qué este camino?</strong><br>El sistema permite un surtido parcial para no bloquear la operación. Las unidades faltantes quedan en estatus 'pendiente de surtir' y pasan a una SC automática para completar con una compra.<br><br><strong>Puntos clave:</strong><ul style=\"margin:6px 0 0 16px;padding:0;font-size:12px;line-height:1.7;\"><li>⚠️ Stock parcial en almacén</li><li>🔄 Surtido de lo disponible + SC por el faltante</li><li>📦 Segunda recepción al llegar el complemento</li><li>💳 Dos facturas posibles del proveedor</li></ul>"
+  }
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentPath = 'happy';
+let currentStep = -1;
+let isPlaying = false;
+let playTimer = null;
+let visitedNodes = new Set();
+let visitedEdges = new Set();
+
+// ─── COLORS ───────────────────────────────────────────────────────────────────
+const COLORS = {
+  happy:    '#3fb950',
+  cancel:   '#f85149',
+  loop:     '#d29922',
+  external: '#bc8cff',
+  done:     '#3fb950',
+  neutral:  '#30363d',
+};
+
+const TYPE_COLORS = {
+  happy:    {fill:'#1c2128', stroke:'#3fb950'},
+  cancel:   {fill:'#2a1a1a', stroke:'#f85149'},
+  loop:     {fill:'#2a2010', stroke:'#d29922'},
+  external: {fill:'#1e1a2e', stroke:'#bc8cff'},
+  done:     {fill:'#0f2a1a', stroke:'#3fb950'},
+  neutral:  {fill:'#1c2128', stroke:'#30363d'},
+};
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+const svg = document.getElementById('diagram');
+const edgesLayer = document.getElementById('edges-layer');
+const nodesLayer = document.getElementById('nodes-layer');
+
+function getEdgeKey(from, to) { return `${from}__${to}`; }
+
+function centerOf(node) {
+  return { x: node.x + node.w/2, y: node.y + node.h/2 };
+}
+
+function renderAll() {
+  edgesLayer.innerHTML = '';
+  nodesLayer.innerHTML = '';
+  EDGES.forEach(e => renderEdge(e));
+  Object.values(NODES).forEach(n => renderNode(n));
+}
+
+function renderEdge(e) {
+  const from = NODES[e.from];
+  const to   = NODES[e.to];
+  if (!from || !to) return;
+
+  const fx = from.x + from.w/2;
+  const fy = from.y + from.h/2;
+  const tx = to.x + to.w/2;
+  const ty = to.y + to.h/2;
+
+  // Control points for curves
+  let d;
+  const dx = tx - fx, dy = ty - fy;
+  const offset = e.curveOffset || 0;
+
+  if (offset !== 0) {
+    const midX = (fx+tx)/2;
+    const midY = (fy+ty)/2;
+    d = `M${fx},${fy} Q${midX},${midY + offset} ${tx},${ty}`;
+  } else if (Math.abs(dy) < 10) {
+    // Horizontal
+    const mx = (fx+tx)/2;
+    d = `M${fx},${fy} C${mx},${fy} ${mx},${ty} ${tx},${ty}`;
+  } else if (Math.abs(dx) < 10) {
+    // Vertical
+    const my = (fy+ty)/2;
+    d = `M${fx},${fy} C${fx},${my} ${tx},${my} ${tx},${ty}`;
+  } else {
+    // Curve
+    const cx1 = fx + dx*0.5;
+    const cy1 = fy;
+    const cx2 = tx - dx*0.1;
+    const cy2 = ty;
+    d = `M${fx},${fy} C${cx1},${cy1} ${cx2},${cy2} ${tx},${ty}`;
+  }
+
+  const col = COLORS[e.type] || COLORS.neutral;
+  const markerId = `arrow-${e.type === 'happy' ? 'happy' : e.type === 'cancel' ? 'cancel' : e.type === 'loop' ? 'loop' : 'external'}`;
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill','none');
+  path.setAttribute('stroke', col);
+  path.setAttribute('stroke-width','1.8');
+  path.setAttribute('opacity','0.35');
+  path.setAttribute('marker-end',`url(#arrow-neutral)`);
+  path.setAttribute('data-from', e.from);
+  path.setAttribute('data-to', e.to);
+  path.setAttribute('id', `edge-${getEdgeKey(e.from,e.to)}`);
+  edgesLayer.appendChild(path);
+
+  // Label
+  if (e.label) {
+    const offset = e.curveOffset || 0;
+    let mx = (fx+tx)/2 + (e.type==='loop' ? -20 : 0);
+    let my = (fy+ty)/2 - 8;
+    
+    // Move label along the quadratic curve's true midpoint
+    if (offset !== 0) {
+      my += (offset * 0.5);
+    }
+    
+    if (e.offsetX) mx += e.offsetX;
+    if (e.offsetY) my += e.offsetY;
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x', mx);
+    lbl.setAttribute('y', my);
+    lbl.setAttribute('text-anchor','middle');
+    lbl.setAttribute('font-family','Inter,sans-serif');
+    lbl.setAttribute('font-size','9');
+    lbl.setAttribute('font-weight','500');
+    lbl.setAttribute('fill', col);
+    lbl.setAttribute('opacity','0.5');
+    lbl.textContent = e.label;
+    edgesLayer.appendChild(lbl);
+  }
+}
+
+function renderNode(n) {
+  const colors = TYPE_COLORS[n.type] || TYPE_COLORS.neutral;
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class','node-group');
+  g.setAttribute('id','node-'+n.id);
+  g.setAttribute('data-id', n.id);
+  g.addEventListener('click', () => {
+    if (explorerMode) {
+      const cur = NODES[explorerCurrent];
+      flashNode(n.id);
+      if (cur && cur.next.some(nx => nx.to === n.id)) {
+        explorerMove(n.id);
+      } else if (n.id === explorerCurrent) {
+        explorerShowNode(n.id);
+      } else {
+        inspectNodeInExplorer(n.id);
+      }
+      return;
+    }
+    flashNode(n.id);
+    showNodeInfo(n.id);
+  });
+
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.setAttribute('x', n.x); rect.setAttribute('y', n.y);
+  rect.setAttribute('width', n.w); rect.setAttribute('height', n.h);
+  rect.setAttribute('rx','10'); rect.setAttribute('ry','10');
+  rect.setAttribute('fill', colors.fill);
+  rect.setAttribute('stroke', colors.stroke);
+  rect.setAttribute('stroke-width','1.5');
+  rect.setAttribute('opacity','0.7');
+  g.appendChild(rect);
+
+  const cx = n.x + n.w/2;
+  const cy = n.y + n.h/2;
+
+  const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  txt.setAttribute('x', cx); txt.setAttribute('y', n.sub ? cy - 8 : cy);
+  txt.setAttribute('text-anchor','middle'); txt.setAttribute('dominant-baseline','middle');
+  txt.setAttribute('font-family','Inter,sans-serif'); txt.setAttribute('font-size','11');
+  txt.setAttribute('font-weight','600'); txt.setAttribute('fill','#e6edf3');
+  txt.textContent = n.label;
+  g.appendChild(txt);
+
+  if (n.sub) {
+    const sub = document.createElementNS('http://www.w3.org/2000/svg','text');
+    sub.setAttribute('x', cx); sub.setAttribute('y', cy + 9);
+    sub.setAttribute('text-anchor','middle'); sub.setAttribute('dominant-baseline','middle');
+    sub.setAttribute('font-family','Inter,sans-serif'); sub.setAttribute('font-size','9');
+    sub.setAttribute('font-weight','400'); sub.setAttribute('fill','#7d8590');
+    sub.textContent = n.sub;
+    g.appendChild(sub);
+  }
+
+  nodesLayer.appendChild(g);
+}
+
+function highlightStep(stepIndex) {
+  const path = PATHS[currentPath];
+  const steps = path.steps;
+
+  // Reset all
+  Object.values(NODES).forEach(n => {
+    const g = document.getElementById('node-'+n.id);
+    if (!g) return;
+    const rect = g.querySelector('rect');
+    const colors = TYPE_COLORS[n.type] || TYPE_COLORS.neutral;
+    rect.setAttribute('fill', colors.fill);
+    rect.setAttribute('stroke', colors.stroke);
+    rect.setAttribute('stroke-width','1.5');
+    rect.setAttribute('opacity','0.7');
+    g.style.filter = '';
+  });
+
+  // Reset edges
+  document.querySelectorAll('[id^="edge-"]').forEach(p => {
+    p.setAttribute('opacity','0.25');
+    p.setAttribute('stroke-width','1.8');
+    p.classList.remove('active-edge');
+    p.setAttribute('marker-end','url(#arrow-neutral)');
+  });
+
+  // Mark visited nodes
+  for (let i = 0; i < stepIndex; i++) {
+    const nid = steps[i];
+    const g = document.getElementById('node-'+nid);
+    if (g) {
+      const rect = g.querySelector('rect');
+      rect.setAttribute('fill','rgba(63,185,80,0.12)');
+      rect.setAttribute('stroke','#3fb950');
+      rect.setAttribute('opacity','0.9');
+    }
+  }
+
+  // Mark active node
+  if (stepIndex >= 0 && stepIndex < steps.length) {
+    const nid = steps[stepIndex];
+    const g = document.getElementById('node-'+nid);
+    if (g) {
+      const rect = g.querySelector('rect');
+      rect.setAttribute('fill','rgba(88,166,255,0.25)');
+      rect.setAttribute('stroke','#58a6ff');
+      rect.setAttribute('stroke-width','2.5');
+      rect.setAttribute('opacity','1');
+      g.style.filter = 'drop-shadow(0 0 10px rgba(88,166,255,0.6))';
+      scrollToNode(NODES[nid]);
+    }
+
+    // Mark visited edges
+    for (let i = 0; i < stepIndex; i++) {
+      const fromId = steps[i];
+      const toId = steps[i+1];
+      if (!toId) continue;
+      const key = getEdgeKey(fromId, toId);
+      const ep = document.getElementById('edge-'+key);
+      if (ep) {
+        const edge = EDGES.find(e=>e.from===fromId && e.to===toId);
+        const col = edge ? (COLORS[edge.type]||'#7d8590') : '#3fb950';
+        ep.setAttribute('stroke', col);
+        ep.setAttribute('opacity','0.85');
+        ep.setAttribute('stroke-width','2.5');
+        ep.setAttribute('marker-end',`url(#arrow-${edge?.type||'neutral'})`);
+      }
+    }
+
+    // Active edge
+    if (stepIndex > 0) {
+      const fromId = steps[stepIndex-1];
+      const toId = steps[stepIndex];
+      const key = getEdgeKey(fromId, toId);
+      const ep = document.getElementById('edge-'+key);
+      if (ep) {
+        const edge = EDGES.find(e=>e.from===fromId && e.to===toId);
+        const col = edge ? (COLORS[edge.type]||'#58a6ff') : '#58a6ff';
+        ep.setAttribute('stroke', col);
+        ep.setAttribute('opacity','1');
+        ep.setAttribute('stroke-width','3');
+        ep.classList.add('active-edge');
+        ep.setAttribute('marker-end',`url(#arrow-${edge?.type||'happy'})`);
+      }
+    }
+
+    showNodeInfo(nid);
+  }
+
+  document.getElementById('step-counter').textContent = `${stepIndex+1} / ${steps.length}`;
+  document.getElementById('btn-prev').disabled = stepIndex <= 0;
+  document.getElementById('btn-next').disabled = stepIndex >= steps.length - 1;
+}
+
+function scrollToNode(node) {
+  const area = document.getElementById('diagram-area');
+  const svgW = 2800, svgH = 1100;
+  const areaW = area.clientWidth, areaH = area.clientHeight;
+  const scaleX = areaW / svgW, scaleY = areaH / svgH;
+  const scale = Math.min(scaleX, scaleY, 1);
+
+  const nx = node.x + node.w/2;
+  const ny = node.y + node.h/2;
+
+  area.scrollTo({
+    left: Math.max(0, nx - areaW/2),
+    top: Math.max(0, ny - areaH/2),
+    behavior: 'smooth'
+  });
+}
+
+function showNodeInfo(id) {
+  if (explorerMode) return;
+  const n = NODES[id];
+  if (!n) return;
+
+  const typeNames = {happy:'Happy Path',cancel:'Cancelación / Error',loop:'Retorno / Loop',external:'Proceso Externo',done:'Completado'};
+  const typeColors = {happy:'rgba(63,185,80,0.15);color:#3fb950',cancel:'rgba(248,81,73,0.15);color:#f85149',loop:'rgba(210,153,34,0.15);color:#d29922',external:'rgba(188,140,255,0.15);color:#bc8cff',done:'rgba(63,185,80,0.2);color:#3fb950'};
+
+  document.getElementById('step-badge').style.cssText = `background:${typeColors[n.type]||'rgba(88,166,255,0.15);color:#58a6ff'};display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;`;
+  document.getElementById('step-badge').textContent = n.badge || typeNames[n.type] || n.type;
+  document.getElementById('step-title').textContent = n.title || n.label;
+  document.getElementById('step-desc').innerHTML = n.desc || '';
+}
+
+// Brief visual pulse on the node in its own type color when clicked for inspection
+function flashNode(id) {
+  const typeFlash = {
+    happy:    { stroke: '#3fb950', shadow: 'rgba(63,185,80,0.8)' },
+    cancel:   { stroke: '#f85149', shadow: 'rgba(248,81,73,0.8)' },
+    loop:     { stroke: '#d29922', shadow: 'rgba(210,153,34,0.8)' },
+    external: { stroke: '#bc8cff', shadow: 'rgba(188,140,255,0.8)' },
+    done:     { stroke: '#3fb950', shadow: 'rgba(63,185,80,0.8)' },
+    neutral:  { stroke: '#58a6ff', shadow: 'rgba(88,166,255,0.8)' }
+  };
+
+  const n = NODES[id];
+  if (!n) return;
+  const g = document.getElementById('node-' + id);
+  if (!g) return;
+
+  const rect = g.querySelector('rect');
+  const flash = typeFlash[n.type] || typeFlash.neutral;
+
+  // Save current state
+  const prevStroke      = rect.getAttribute('stroke');
+  const prevStrokeWidth = rect.getAttribute('stroke-width');
+  const prevOpacity     = rect.getAttribute('opacity');
+  const prevFilter      = g.style.filter;
+
+  // Apply flash
+  rect.setAttribute('stroke', flash.stroke);
+  rect.setAttribute('stroke-width', '3');
+  rect.setAttribute('opacity', '1');
+  g.style.filter = `drop-shadow(0 0 14px ${flash.shadow})`;
+  g.style.transition = 'filter 0.15s ease';
+
+  // Restore after 3000ms
+  setTimeout(() => {
+    rect.setAttribute('stroke', prevStroke);
+    rect.setAttribute('stroke-width', prevStrokeWidth);
+    rect.setAttribute('opacity', prevOpacity);
+    g.style.filter = prevFilter;
+  }, 3000);
+}
+
+// ─── CONTROLS ─────────────────────────────────────────────────────────────────
+
+function selectPath(p) {
+  explorerMode = false;
+  document.getElementById('explorer-controls').classList.remove('active');
+  document.getElementById('explorer-breadcrumb').classList.remove('active');
+  document.getElementById('controls').style.display = 'flex';
+
+  currentPath = p;
+  currentStep = 0;
+  stopPlay();
+  document.querySelectorAll('.path-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-'+p).classList.add('active');
+  renderAll();
+  highlightStep(0);
+  document.getElementById('btn-next').disabled = false;
+  document.getElementById('step-counter').textContent = `1 / ${PATHS[p].steps.length}`;
+
+  // Show path description as modal popup
+  const pathData = PATHS[p];
+  if (pathData && pathData.desc) {
+    document.getElementById('modal-title').textContent = pathData.name;
+    document.getElementById('modal-body').innerHTML = pathData.desc;
+    document.getElementById('path-modal').style.display = 'block';
+    document.getElementById('path-modal-backdrop').style.display = 'block';
+  }
+}
+
+function closePathModal() {
+  document.getElementById('path-modal').style.display = 'none';
+  document.getElementById('path-modal-backdrop').style.display = 'none';
+}
+
+function stepForward() {
+  const steps = PATHS[currentPath].steps;
+  if (currentStep < steps.length - 1) {
+    currentStep++;
+    highlightStep(currentStep);
+  }
+}
+
+function stepBack() {
+  if (currentStep > 0) {
+    currentStep--;
+    highlightStep(currentStep);
+  }
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    stopPlay();
+  } else {
+    startPlay();
+  }
+}
+
+function startPlay() {
+  isPlaying = true;
+  const btn = document.getElementById('btn-play');
+  btn.textContent = '⏸ Pausar';
+  btn.classList.add('playing');
+  playStep();
+}
+
+function stopPlay() {
+  isPlaying = false;
+  clearTimeout(playTimer);
+  const btn = document.getElementById('btn-play');
+  btn.textContent = '▶ Iniciar';
+  btn.classList.remove('playing');
+}
+
+function playStep() {
+  if (!isPlaying) return;
+  const steps = PATHS[currentPath].steps;
+  if (currentStep >= steps.length - 1) {
+    stopPlay();
+    return;
+  }
+  currentStep++;
+  highlightStep(currentStep);
+  const delay = 1200;
+  playTimer = setTimeout(playStep, delay);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+renderAll();
+selectPath('happy');
+
+// Hide scroll hint after interaction
+document.getElementById('diagram-area').addEventListener('scroll', () => {
+  document.getElementById('scroll-hint').style.opacity = '0';
+  document.getElementById('scroll-hint').style.transition = 'opacity 0.5s';
+}, {once:true});
+
+// ─── EXPLORER MODE LOGIC ────────────────────────────────────────────────────────
+
+function startExplorer() {
+  stopPlay();
+  explorerMode = true;
+  explorerCurrent = 'login';
+  explorerHistory = [];
+
+  // Update buttons
+  document.querySelectorAll('.path-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-explorer').classList.add('active');
+
+  // Show explorer controls, hide playback controls
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('explorer-controls').classList.add('active');
+  document.getElementById('explorer-breadcrumb').classList.add('active');
+
+  renderAll();
+  explorerShowNode('login');
+}
+
+function resetExplorer() {
+  explorerCurrent = 'login';
+  explorerHistory = [];
+  renderAll();
+  explorerShowNode('login');
+}
+
+function explorerBack() {
+  if (explorerHistory.length === 0) return;
+  explorerCurrent = explorerHistory.pop();
+  renderAll();
+  explorerShowNode(explorerCurrent);
+}
+
+function explorerMove(nodeId) {
+  explorerHistory.push(explorerCurrent);
+  explorerCurrent = nodeId;
+  renderAll();
+  explorerShowNode(nodeId);
+}
+
+function explorerShowNode(nodeId) {
+  const n = NODES[nodeId];
+  if (!n) return;
+
+  // Highlight visited path
+  explorerHistory.forEach(id => {
+    const g = document.getElementById('node-' + id);
+    if (g) {
+      const rect = g.querySelector('rect');
+      rect.setAttribute('fill','rgba(63,185,80,0.12)');
+      rect.setAttribute('stroke','#3fb950');
+      rect.setAttribute('opacity','0.9');
+    }
+  });
+
+  // Highlight edges in history
+  for (let i = 0; i < explorerHistory.length; i++) {
+    const fromId = explorerHistory[i];
+    const toId = explorerHistory[i+1] || (i === explorerHistory.length-1 ? nodeId : null);
+    if (toId) {
+      const key = getEdgeKey(fromId, toId);
+      const ep = document.getElementById('edge-' + key);
+      if (ep) {
+        const edge = EDGES.find(e => e.from===fromId && e.to===toId);
+        const col = edge ? (COLORS[edge.type]||'#3fb950') : '#3fb950';
+        ep.setAttribute('stroke', col);
+        ep.setAttribute('opacity','0.85');
+        ep.setAttribute('stroke-width','2.5');
+        ep.setAttribute('marker-end', `url(#arrow-${edge?.type||'happy'})`);
+      }
+    }
+  }
+
+  // Highlight current node
+  const gCurrent = document.getElementById('node-' + nodeId);
+  if (gCurrent) {
+    const rect = gCurrent.querySelector('rect');
+    rect.setAttribute('fill','rgba(88,166,255,0.28)');
+    rect.setAttribute('stroke','#58a6ff');
+    rect.setAttribute('stroke-width','3');
+    rect.setAttribute('opacity','1');
+    gCurrent.style.filter = 'drop-shadow(0 0 14px rgba(88,166,255,0.7))';
+    scrollToNode(n);
+  }
+
+  // Highlight available next edges
+  n.next.forEach(nx => {
+    const key = getEdgeKey(nodeId, nx.to);
+    const ep = document.getElementById('edge-' + key);
+    if (ep) {
+      const col = COLORS[nx.type] || '#58a6ff';
+      ep.setAttribute('stroke', col);
+      ep.setAttribute('opacity','1');
+      ep.setAttribute('stroke-width','2.5');
+      ep.classList.add('active-edge');
+      ep.setAttribute('marker-end', `url(#arrow-${nx.type||'happy'})`);
+    }
+    // Also glow the target nodes
+    const gNext = document.getElementById('node-' + nx.to);
+    if (gNext) {
+      const rect = gNext.querySelector('rect');
+      const col = COLORS[nx.type] || '#58a6ff';
+      rect.setAttribute('stroke', col);
+      rect.setAttribute('stroke-width','2');
+      rect.setAttribute('opacity','0.85');
+      gNext.style.filter = `drop-shadow(0 0 8px ${col})`;
+      gNext.style.cursor = 'pointer';
+    }
+  });
+
+  // Breadcrumb
+  const crumb = document.getElementById('explorer-breadcrumb');
+  const breadItems = explorerHistory.map(id => `<span style="color:var(--done)">${NODES[id]?.label||id}</span>`).join(' <span style="color:var(--muted)">›</span> ');
+  const currentItem = `<span style="color:var(--happy);font-weight:600">${n.label}</span>`;
+  crumb.innerHTML = breadItems ? breadItems + ` <span style="color:var(--muted)">›</span> ` + currentItem : currentItem;
+
+  // Back button state
+  document.getElementById('btn-exp-back').disabled = explorerHistory.length === 0;
+
+  // Build info panel
+  const typeNames = {happy:'Happy Path', cancel:'Cancelación', loop:'Retorno/Loop', external:'Proceso Externo', done:'Completado'};
+  const typeColors = {
+    happy: 'rgba(63,185,80,0.15);color:#3fb950',
+    cancel:'rgba(248,81,73,0.15);color:#f85149',
+    loop:  'rgba(210,153,34,0.15);color:#d29922',
+    external:'rgba(188,140,255,0.15);color:#bc8cff',
+    done:  'rgba(63,185,80,0.2);color:#3fb950',
+  };
+  const badge = document.getElementById('step-badge');
+  badge.style.cssText = `background:${typeColors[n.type]||'rgba(88,166,255,0.15);color:#58a6ff'};display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;`;
+  badge.textContent = n.badge || typeNames[n.type];
+  document.getElementById('step-title').textContent = n.title || n.label;
+
+  // Terminal check
+  const isTerminal = n.next.length === 0;
+  let choicesHtml = '';
+  if (isTerminal) {
+    choicesHtml = `<div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">🏁 Este es un nodo final. No hay más pasos.</p>
+      <button class="choice-btn type-loop" style="background:rgba(210,153,34,0.08);" onclick="resetExplorer()">↺ Comenzar de nuevo desde Login</button>
+    </div>`;
+  } else {
+    const typeIcons = {happy:'✅', cancel:'❌', loop:'↩️', external:'🔌'};
+    choicesHtml = `<div style="margin-top:16px;">
+      <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;font-weight:600;margin-bottom:10px;">¿Qué sucede aquí?</p>
+      ${n.next.map(nx => `<button class="choice-btn type-${nx.type}" onclick="explorerMove('${nx.to}')">${typeIcons[nx.type]||'→'} <span>${nx.label || '→ '+NODES[nx.to]?.label}</span></button>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('info-panel').scrollTop = 0;
+  const descBlock = n.desc ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(48,54,61,0.7);font-size:13px;line-height:1.65;color:#cdd9e5;">${n.desc}</div>` : '';
+  document.getElementById('step-desc').innerHTML = choicesHtml + descBlock;
+}
+
+function inspectNodeInExplorer(id) {
+  const n = NODES[id];
+  if (!n) return;
+  const typeNames = {happy:'Happy Path', cancel:'Cancelación', loop:'Retorno/Loop', external:'Proceso Externo', done:'Completado'};
+  const typeColors = {
+    happy: 'rgba(63,185,80,0.15);color:#3fb950',
+    cancel:'rgba(248,81,73,0.15);color:#f85149',
+    loop:  'rgba(210,153,34,0.15);color:#d29922',
+    external:'rgba(188,140,255,0.15);color:#bc8cff',
+    done:  'rgba(63,185,80,0.2);color:#3fb950',
+  };
+  const badge = document.getElementById('step-badge');
+  badge.style.cssText = `background:${typeColors[n.type]||'rgba(88,166,255,0.15);color:#58a6ff'};display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;`;
+  badge.textContent = n.badge || typeNames[n.type];
+  document.getElementById('step-title').textContent = (n.title || n.label) + ' (Inspección)';
+  
+  const returnHtml = `<div style="margin-top:16px;padding:12px;background:rgba(88,166,255,0.08);border:1px solid rgba(88,166,255,0.3);border-radius:8px;">
+    <p style="font-size:12px;color:#58a6ff;margin-bottom:10px;">👀 Estás inspeccionando la información de este nodo de forma libre.</p>
+    <button class="choice-btn" style="background:#21262d;border-color:rgba(240,246,252,0.1);" onclick="explorerShowNode('${explorerCurrent}')">← Volver a mis opciones actuales</button>
+  </div>`;
+  
+  document.getElementById('info-panel').scrollTop = 0;
+  const descBlock = n.desc ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(48,54,61,0.7);font-size:13px;line-height:1.65;color:#cdd9e5;">${n.desc}</div>` : '';
+  document.getElementById('step-desc').innerHTML = returnHtml + descBlock;
+}
+</script>
+</body>
+</html>

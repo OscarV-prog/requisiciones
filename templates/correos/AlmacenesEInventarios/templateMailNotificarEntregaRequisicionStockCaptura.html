@@ -1,0 +1,454 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Insumos Disponibles</title>
+    <style type="text/css">
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #edf2f7;
+            font-family: 'DM Sans', Arial, sans-serif;
+            color: #1a1a1a;
+            padding: 40px 20px;
+        }
+
+        .wrapper {
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background-color: #012a54;
+            border-radius: 12px 12px 0 0;
+            padding: 32px 40px 28px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-icon {
+            width: 42px;
+            height: 42px;
+            background-color: #0256a1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .header-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #ffffff;
+        }
+
+        .header-text {
+            line-height: 1.2;
+        }
+
+        .header-label {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #7ab3d9;
+            margin-bottom: 3px;
+        }
+
+        .header-title {
+            font-family: 'DM Serif Display', Georgia, serif;
+            font-size: 20px;
+            color: #ffffff;
+            font-weight: 400;
+        }
+
+        /* ── NOTICE BAND ── */
+        .notice-band {
+            background-color: #0256a1;
+            padding: 11px 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notice-band-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #a8cfe8;
+            flex-shrink: 0;
+        }
+
+        .notice-band-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #d4e8f5;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── BODY ── */
+        .body {
+            background-color: #ffffff;
+            padding: 40px 40px 36px;
+        }
+
+        .greeting {
+            font-family: 'DM Serif Display', Georgia, serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #012a54;
+            margin-bottom: 6px;
+        }
+
+        .greeting span {
+            color: #0256a1;
+        }
+
+        .divider-thin {
+            width: 48px;
+            height: 2px;
+            background-color: #0256a1;
+            margin: 16px 0 20px;
+            border-radius: 2px;
+        }
+
+        .body-text {
+            font-size: 14px;
+            line-height: 1.75;
+            color: #3d3d3d;
+            margin-bottom: 16px;
+        }
+
+        .body-text strong {
+            color: #012a54;
+            font-weight: 600;
+        }
+
+        /* ── REQUISICION CARD ── */
+        .req-card {
+            background-color: #f0f6fc;
+            border: 1px solid #c2d9ee;
+            border-left: 4px solid #0256a1;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .req-field {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .req-field-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #428ac9;
+            margin-bottom: 4px;
+        }
+
+        .req-field-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: #012a54;
+        }
+
+        /* ── INSUMOS TABLE ── */
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #428ac9;
+            margin-bottom: 10px;
+        }
+
+        .insumos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 28px;
+        }
+
+        .insumos-table thead tr {
+            background-color: #0256a1;
+        }
+
+        .insumos-table thead th {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #c8e0f4;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .insumos-table thead th:last-child {
+            text-align: right;
+        }
+
+        .insumos-table tbody tr {
+            border-bottom: 1px solid #e2edf6;
+        }
+
+        .insumos-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .insumos-table tbody tr:hover {
+            background-color: #f0f6fc;
+        }
+
+        .insumos-table tbody td {
+            font-size: 13px;
+            color: #2e2e2e;
+            padding: 12px 14px;
+        }
+
+        .insumos-table tbody td:last-child {
+            text-align: right;
+            font-weight: 600;
+            color: #0256a1;
+        }
+
+        /* ── ALERT BOX ── */
+        .alert-box {
+            background-color: #fff8ed;
+            border: 1px solid #f5c96a;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .alert-box-icon {
+            font-size: 16px;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .alert-box-text {
+            font-size: 13px;
+            line-height: 1.65;
+            color: #6b4e0a;
+        }
+
+        .alert-box-text strong {
+            font-weight: 600;
+        }
+
+        /* ── CONTACT GRID ── */
+        .contact-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #428ac9;
+            margin: 28px 0 12px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .contact-item {
+            background-color: #f0f6fc;
+            border: 1px solid #c2d9ee;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .contact-item-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #428ac9;
+            margin-bottom: 5px;
+        }
+
+        .contact-item-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: #012a54;
+            word-break: break-word;
+        }
+
+        /* ── CLOSING ── */
+        .closing {
+            border-top: 1px solid #d6e6f3;
+            padding-top: 24px;
+            font-size: 14px;
+            color: #4a4a4a;
+            line-height: 1.65;
+        }
+
+        .closing strong {
+            color: #012a54;
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            background-color: #012a54;
+            border-radius: 0 0 12px 12px;
+            padding: 22px 40px;
+            text-align: center;
+        }
+
+        .footer-eco {
+            font-size: 11px;
+            color: #7ab3d9;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .footer-auto {
+            font-size: 10px;
+            letter-spacing: 0.06em;
+            color: #3a6a8a;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 7H4C2.9 7 2 7.9 2 9v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-1 12H5V9h14v10zm-7-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM7 3h10v2H7z"/>
+            </svg>
+        </div>
+        <div class="header-text">
+            <div class="header-label">Sistema de Almacén</div>
+            <div class="header-title">Insumos Disponibles para Surtir</div>
+        </div>
+    </div>
+
+    <!-- NOTICE BAND -->
+    <div class="notice-band">
+        <div class="notice-band-dot"></div>
+        <div class="notice-band-text">Acción requerida &mdash; Plazo de retiro: <strong>3 días hábiles</strong></div>
+    </div>
+
+    <!-- BODY -->
+    <div class="body">
+
+        <div class="greeting">
+            Estimado/a, <span><cfoutput>#variables.parametros.nb_Requisitante#</cfoutput></span>
+        </div>
+        <div class="divider-thin"></div>
+
+        <p class="body-text">
+            Se le informa que los siguientes insumos de su requisición con folio: <strong><cfoutput>#variables.parametros.id_Requisicion#</cfoutput></strong> están disponibles para surtir en el almacén.
+            <br>
+            <br>
+            Favor de revisar los detalles a continuación y acudir a recogerlos dentro del plazo establecido.
+        </p>
+
+        <!-- Requisición Card -->
+        <div class="req-card">
+            <div class="req-field">
+                <div class="req-field-label">No. Requisición</div>
+                <div class="req-field-value"><cfoutput>#variables.parametros.id_Requisicion#</cfoutput></div>
+            </div>
+            <div class="req-field">
+                <div class="req-field-label">Empresa</div>
+                <div class="req-field-value"><cfoutput>#variables.parametros.nb_Empresa#</cfoutput></div>
+            </div>
+            <div class="req-field">
+                <div class="req-field-label">Sucursal</div>
+                <div class="req-field-value"><cfoutput>#variables.parametros.nb_Sucursal#</cfoutput></div>
+            </div>
+        </div>
+
+        <!-- Insumos -->
+        <div class="section-label">Insumos disponibles</div>
+        <table class="insumos-table">
+            <thead>
+                <tr>
+                    <th>Descripción del Insumo</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <cfoutput>
+                    <cfloop array="#variables.parametros.Insumos#" index="insumo">
+                        <tr>
+                            <td>#insumo.NB_NOMBREINSUMO#</td>
+                            <td>#insumo.NU_CANTIDADSURTIR# uds.</td>
+                        </tr>
+                    </cfloop>
+                </cfoutput>
+            </tbody>
+        </table>
+
+        <!-- Alert -->
+        <div class="alert-box">
+            <div class="alert-box-icon">⚠</div>
+            <div class="alert-box-text">
+              A partir de esta notificación contara con un plazo de <strong>3 días hábiles</strong> para recoger los insumos en el almacén correspondiente.
+              <br>
+              <br>
+              En caso de no recogerlos dentro de este plazo, los insumos podrán ser liberados para atender otras requisiciones pendiente.            </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="contact-section-label">Información de contacto y entrega</div>
+        <div class="contact-grid">
+            <div class="contact-item">
+                <div class="contact-item-label">Encargado de Almacén</div>
+                <div class="contact-item-value"><cfoutput>#variables.parametros.nb_Almacenista#</cfoutput></div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-item-label">Correo Electrónico</div>
+                <div class="contact-item-value"><cfoutput>#variables.parametros.de_Contacto#</cfoutput></div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-item-label">Horario de Entrega</div>
+                <div class="contact-item-value"><cfoutput>#variables.parametros.de_Horario#</cfoutput></div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-item-label">Dirección de Entrega</div>
+                <div class="contact-item-value"><cfoutput>#variables.parametros.de_Direccion#</cfoutput></div>
+            </div>
+        </div>
+
+        <!-- Cierre -->
+        <div class="closing">
+            Si necesita asistencia adicional o tiene alguna duda, no dude en comunicarse directamente con el encargado de almacén.<br><br>
+            <strong>Agradecemos su pronta atención y colaboración.</strong>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div class="footer-eco">
+            🌿 Antes de imprimir este correo, considera si es realmente necesario y su impacto ambiental.
+        </div>
+        <div class="footer-auto">Este mensaje fue generado automáticamente — No responder</div>
+    </div>
+
+</div>
+</body>
+</html>

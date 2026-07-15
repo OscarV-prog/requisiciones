@@ -1,0 +1,207 @@
+<div  ng-app="appsalidaporconsumo" ng-controller="ctrlRegistroSalidaAlmacen">
+    <red-Toolbar titulo="Registro Salida de Almacén">
+    <!--  <button class="btn-icon25p btn-agregar25p" ng-click="hola()"></button>  -->
+    </red-Toolbar>
+    <br>
+    <div red-panel>
+        <div class="row">
+           <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-2">
+                    Requisición de Material:
+                    <input type="text"
+                            id="Requisicion"
+                            ng-model="id_Requisicion"
+                            class="form-control contenido_numerico"
+                            placeholder="Clave"
+                            ng-blur="listar()"
+                            maxlength="9">
+                </div>
+                <div class="col-md-1" style="text-align:left;padding-top: 18px;padding-left: 0px;">
+                    <button class="btn-icon25p btn-buscar25p" ng-model="buscar" ng-click="abrirModal()"></button>
+                </div>
+                <div class="col-md-5">
+                    <table width="100%">
+                        <tr>
+                            Empleado Solicita:
+                            <td style= "width: 80px; padding-right: 10px;">
+                                <input type="text"
+                                ng-model="id_Empleado"
+                                class="form-control"
+                                placeholder="Clave"
+                                ng-disabled="true"
+                                >
+                            </td>
+                            <td>
+                                <input type="text"
+                                ng-model="nb_Empleado"
+                                class="form-control"
+                                placeholder="Empleado"
+                                ng-disabled="true"
+                                >
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    Sucursal(Plaza):
+                    <input type="text"
+                            ng-model="nb_Sucursal"
+                            class="form-control"
+                            placeholder="Sucursal"
+                            ng-disabled="true"
+                            >
+                </div>
+                <div class="col-md-4">
+                    Departamento:
+                    <input type="text"
+                            ng-model="nb_Departamento"
+                            class="form-control"
+                            placeholder="Departamento"
+                            ng-disables="true"
+                            >
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-4">
+                    Clasificado:
+                    <input type="text"
+                            ng-model="nb_Clasificado"
+                            class="form-control"
+                            placeholder="Clasificado"
+                            ng-disabled="true"
+                            >
+                </div>
+                <div class="col-md-4">
+                    Fecha Requerida/Aplicada:
+                    <input type="text"
+                            ng-model="fh_Requerida"
+                            class="form-control"
+                            placeholder="Fecha Requerida"
+                            ng-disabled="true"
+                            >
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2">
+                </div>
+                <div class="col-md-8">
+                    Comentarios:
+                    <textarea
+                            type="text"
+                            ng-model="de_Comentarios"
+                            class="form-control"
+                            placeholder="Comentarios"
+                            ng-disabled="true"
+                            >
+                    </textarea>
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div >
+        <div style="padding-bottom:20px;" ng-grid="RequisicionesSalidaData" class="gridStyle" red-grid></div>
+
+        <div style = "text-align: right;">
+            <button ng-model="btnGuardar" ng-click="Surtir()" class="btn btn-primary">Surtir</button>
+            <button ng-model="btnLimpiar" ng-click="Limpiar()" class="btn btn-primary">Limpiar</button>
+        </div>
+    </div>
+    <br>
+
+    <red-modal name="modal" titulo="Requisiciones Pendientes de Surtir" width="750px" height="100px">
+        <div class="row">
+            <div class="col-md-12" red-panel>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        Empleado:
+                        <input  type="text"
+                                class="form-control"
+                                placeholder="Nombre Empleado"
+                                ng-model="nb_EmpleadoFiltro">
+                    </div>
+                    <div class="col-md-4" style="padding-left: 0px;">
+                        Sucursal:
+                        <input type="text"
+                                class="form-control"
+                                placeholder="Nombre Sucursal"
+                                ng-model="nb_SucursalFiltro">
+                    </div>
+                    <div class="col-md-3" style="padding-left: 0px;">
+                        Fecha:
+                        <red-calendar
+                                    ng-model="fh_FechaFiltro"
+                                    open-focus="false"
+                                    format="dd/MM/yyyy"
+                                    red-validatorName="fechas"
+                                    >
+                    </red-calendar>
+                    </div>
+                    <div class="col-md-1" style="text-align:  left;padding-top: 18px;">
+                        <button ng-model="buscar" class="btn-icon25p btn-buscar25p" ng-click="listarRequisicionesFiltrado()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div style="height:300px; width:700px;  padding-bottom: 20px;" ng-grid="RequisicionesFiltroData" class="gridStyle" red-grid ></div>
+    </red-modal>
+
+    <red-modal name="modalseries" titulo="Informacion de los insumos" width="900px" height="100px">
+            <div ng-show="sn_seriados" class="form-group" style="text-align:center; color:green; min-height:18px; margin-left:15px;">
+                <span ng-show="showMsg">{{msg}}</span>
+            </div>
+
+            <div ng-show="sn_seriados"><label style="color:black;font-size: 10pt;">Series</label>
+                <div style="height:300px; padding-bottom: 25px;" ng-grid="gridseries"></div>
+            </div>
+
+            <div ng-show="sn_destino"><label style="color:black;font-size: 10pt;">Detalle de gastos</label></div>
+            <div  ng-grid="gridgastos" class="gridStyle" red-grid ></div>
+
+            <div ng-show="detalleinsumos.length" style="margin-top: 25px;">
+                <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid ></div>
+                    </div>
+                    <div class="col-md-7" ng-show="sn_detalle">
+                        <div ng-repeat="(key, detalle) in camposdetalles">
+                            <div class="row">
+                                <div class="col-md-4" style="margin-top: 10px;">
+                                    {{detalle.NB_CAMPODETALLE}}
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE" style="height: 27px;margin-bottom: 3px;" class="form-control" id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="checkbox checkbox-primary" ng-show="detalleinsumos.length > 1">
+                            <input type="checkbox" checkbox
+                                   id="checkbox4"
+                                   ng-model="sn_asignarmismodetalle">
+                            <label for="checkbox4">
+                                Asignar el detalle a los series del mismo insumo
+                            </label>
+                        </div>
+                        <div style="text-align:right;" ng-model="btnasignar2">
+                            <button  tabindex="15" ng-model="btnasignar2" ng-click="asignardetalle()" class="btn btn-success">Asignar detalle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <div class="modal-footer">
+            <button  tabindex="15" ng-model="btnGuardar" ng-click="guardar2()" class="btn btn-primary">Guardar</button>
+        </div>
+    </red-modal>
+</div>

@@ -1,0 +1,177 @@
+<html>
+  <head>
+    <style type="text/css">
+      @page {
+        size: letter landscape;
+        margin: 0.5cm;
+        @bottom-center {
+          content: "Pagina " counter(page) " de " counter(pages);
+        }
+      }
+
+      /* ——— Estilo base igual al reporte de referencia ——— */
+      body {
+        margin: auto;
+        width: 95%;
+        font-family: arial, sans-serif;
+        color: rgb(0, 0, 0);
+        font-size: 12pt;
+      }
+
+      .panelHeader {
+        background-color: #f5f5f5;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+        padding: 10px;
+      }
+
+      .text {
+        font-size: 12pt;
+        color: rgb(0, 0, 0);
+      }
+
+      /* Tabla estilo .grid del ejemplo */
+      .grid {
+        border: solid 1px #e5e5e5;
+        border-spacing: 0px;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .grid th {
+        border: solid 1px #b5aeae;
+        padding: 6px 8px;
+        background: #fafafa;
+        text-align: center;
+      }
+      .grid td {
+        border: solid 1px #b5aeae;
+        padding: 6px 8px;
+      }
+      .noGrid td {
+        border: none;
+        border-spacing: 0px;
+        padding: 6px 8px;
+      }
+
+       .titulo-centrado {
+          text-align: center;
+          font-family: arial, sans-serif;
+          font-weight: bold;
+          font-size: 22pt;   
+          color: rgb(0, 0, 0);
+          margin: 6px 0 0 0;  
+        }
+
+      /* Utilidades ligeras */
+      .w-100 { width: 100%; }
+      .mt-8 { margin-top: 8px; }
+      .mb-8 { margin-bottom: 8px; }
+      .mb-16 { margin-bottom: 16px; }
+      .text-right { text-align: right; }
+      .text-left { text-align: left; }
+      .text-center { text-align: center; }
+    </style>
+  </head>
+  <body>
+
+    <!-- ================== ENCABEZADO (alineado al diseño del reporte ejemplo) ================== -->
+  <div class="panelHeader">
+  <table width="100%">
+    <tr>
+      <td align="left">
+        <cfif isDefined('Arguments.ar_ImagenReporte')>
+          <cfoutput>
+            <img id="logo" class="media" src="#Arguments.ar_ImagenReporte#" style="width:30%" align="left">
+          </cfoutput>
+        <cfelse>
+          <cfoutput>
+            <img id="logo" class="media" src="#session.AR_IMAGENREPORTE#" style="width:30%" align="left">
+          </cfoutput>
+        </cfif>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="titulo-centrado">Solicitud de compra</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+    <br>
+
+    <!-- ================== DATOS GENERALES (mismo tono tipográfico) ================== -->
+    <cfoutput query="local.rsEncabezado" maxrows="1">
+      <div class="text mb-16">
+        Detalle de la solicitud presentada.
+      </div>
+
+      <table class="grid w-100 mb-16">
+        <tr>
+          <th style="width:22%">Folio Solicitud</th>
+          <td>#ID_SOLICITUDCOMPRA# - #NB_EMPRESA# #NB_SUCURSAL#</td>
+
+          <th style="width:22%">Fecha registro</th>
+          <td>#dateFormat(FH_REGISTRO,'dd/mm/yyyy')#</td>
+        </tr>
+        <tr>
+          <th>Folio Requisición Origen</th>
+          <td>#ID_REQUISICION#</td>
+
+          <cfif ID_CLASIFICADOREQUISICION EQ 7>
+            <th>Nro. de Siniestro</th>
+            <td>#NU_SINIESTRO#</td>
+          <cfelse>
+            <th>&nbsp;</th>
+            <td>&nbsp;</td>
+          </cfif>
+        </tr>
+        <tr>
+          <th>Comentarios</th>
+          <td colspan="3" class="text-left">
+            #reReplace( htmlEditFormat(DE_OBSERVACIONES), "(.{50})", "\1<br>", "all")#
+          </td>
+        </tr>
+      </table>
+    </cfoutput>
+
+    <!-- ================== DETALLE DE INSUMOS (misma tabla .grid del ejemplo) ================== -->
+    <div class="text mb-8">Insumos de la solicitud de compra</div>
+    <table class="grid w-100">
+      <thead>
+        <tr>
+          <th style="width:8%">ID</th>
+          <th style="width:18%">Insumo</th>
+          <th style="width:22%">Características</th>
+          <th style="width:10%">Unidad</th>
+          <th style="width:10%">Grupo CC</th>
+          <th style="width:12%">Centro Costo</th>
+          <th style="width:8%">Cantidad</th>
+          <th style="width:8%">Comprado</th>
+          <th style="width:10%">Pendiente</th>
+          <th style="width:14%">Colaborador</th>
+        </tr>
+      </thead>
+      <tbody>
+        <cfoutput query="local.rsInsumos">
+          <tr>
+            <td class="text-center">#ID_INSUMO#</td>
+            <td class="text-left">#NB_NOMBREINSUMO#</td>
+            <td class="text-left">#VALORESDETALLE#</td>
+            <td class="text-center">#NB_UNIDADMEDIDA#</td>
+            <td class="text-center">#NB_GRUPOCENTROCOSTO#</td>
+            <td class="text-left">#NB_CENTROCOSTO#</td>
+            <td class="text-center">#NU_CANTIDADSOLICITADA#</td>
+            <td class="text-center">#NU_CANTIDADCOMPRADA#</td>
+            <td class="text-center">#NU_CANTIDADPENDIENTECOMPRA#</td>
+            <td class="text-left">#DE_COLABORADOR#</td>
+          </tr>
+        </cfoutput>
+      </tbody>
+    </table>
+
+
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style type="text/css">
+            @page {
+                size:letter;
+                margin: 0.5cm;
+
+                @bottom-center{
+                    content: "Pagina " counter(page) " de " counter(pages);
+                }
+            }
+            .panelHeader {
+                /*background-color: #f5f5f5;*/
+                border: 1px solid #e5e5e5;
+                border-radius: 4px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                padding: 10px;
+            }
+            /* body{
+                margin: auto;
+                width: 95%;;
+            } */
+            .grid{
+                border: solid 1px #e5e5e5;
+                border-spacing: 0px;
+            }
+            .grid th{
+                border: solid 1px #B5AEAE;
+            }
+            .grid td{
+                border: solid 1px #B5AEAE;
+            }
+            .noGrid td{
+                border: none;
+                border-spacing: 0px;
+            }
+            .text{
+                font-size: 12pt;
+                font-family: arial;
+                color: rgb(37, 37, 139);
+            }
+        </style>
+    </head>
+    <body>
+        <cfoutput>
+        <div class="panelHeader">
+            <table width="100%">
+                <tr>
+                    <td colspan="2" align="left">
+                        <img id='logo' class='media' src="#session.AR_IMAGENREPORTE#" style='width: 30%' align="left">
+                    <td>
+                </tr>
+                <tr>
+                    <td align="right" style="width:51px"><b>Asunto:</b></td>
+                    <td align="left">Imprimir Movimiento</td>
+
+                    <td align="right" style="width:100px"><b>Estatus:</b></td>
+                    <td align="left">#datos.nb_Estatus#</td>
+                </tr>
+            </table>
+        </div>
+            <table width="100%">
+                <tr>
+                    <td align="right" style="width:20%"><b>Movimiento:</b></td>
+                    <td align="left"  style="width:20%">#datos.id_movimiento#</td>
+                    <td align="left"  style="width:30%"><b>Entrada de Servicio</b></td>
+                    <td align="right" style="width:30%">#datos.FH_MOVIMIENTO#<br/><br/></td>
+                </tr>
+            </table>
+            <table width="100%">
+                <tr>
+                    <td align="right" style="width:100px"><b>Empresa:</b></td>
+                    <td align="left">#datos.nb_empresa#</td>
+
+                    <td align="right" style="width:100px"><b>Sucursal:</b></td>
+                    <td align="left">#datos.nb_Sucursal#</td>
+                </tr>
+
+                <tr>
+                    <td align="right" style="width:100px"><b>OC:</b></td>
+                    <td align="left">#datos.id_OrdenDeCompra#</td>
+
+                    <td align="right" style="width:100px"><b>Fecha OC:</b></td>
+                    <td align="left">#datos.fh_RegistroOrdenCompra#</td>
+                </tr>
+                <tr>
+                    <td align="right" style="width:100px"><b>Solicitante:</b></td>
+                    <td align="left">#datos.de_usuarioSolicitoOC#</td>
+                </tr>
+                <!-- Entrada Por OC -->
+                <tr>
+                    <td align="right" style="width:100px"><b>Recibio:</b></td>
+                    <td align="left" colspan="3">#datos.de_usuarioRecibio#</td>
+                </tr>
+                <cfif #datos.id_ClasificadoRequisicion# EQ 7>
+                    <tr>
+                        <td align="right" style="width:100px"><b>Numero Siniestro:</b></td>
+                        <td align="left" colspan="3"><cfif #datos.nu_Siniestro# EQ ''>N/A<cfelse>#datos.nu_Siniestro#</cfif></td>
+                    </tr>
+                </cfif>
+                <cfif #datos.de_Comentarios# NEQ ''>
+                    <tr>
+                        <td align="right" style="width:100px"><b>Comentarios:</b></td>
+                        <td align="left" colspan="3">#datos.de_Comentarios#</td>
+                    </tr>
+                </cfif>
+
+                <!-- Salida por Consumo -->
+            </table>
+        </cfoutput>
+        <br>
+        <div class="text">Detalle de insumos:</div>
+        <table class="panelHeader grid" width="100%" style="font-size: 10px">
+            <tr style="text-align:center;">
+                <th style="width:28%;">Insumo</th>
+                <th style="width:7%;">Unidad Medida</th>
+                <th style="width:7%;">Cantidad Surtida</th>
+                <th style="width:12%;">Centro Costo</th>
+                <th style="width:12%;">Grupo Gasto</th>
+                <th style="width:12%;">Concepto de gasto</th>
+                <th style="width:11%;">Precio Unitario MN</th>
+                <th style="width:11%;">Importe MN</th>
+            </tr>
+                <cfoutput query="detalle">
+                    <tr>
+                        <td style="text-align:left;">#detalle.NB_NOMBREINSUMO#</td>
+                        <td style="text-align:center;">#detalle.NB_UNIDADMEDIDA#</td>
+                        <td style="text-align:center;">#detalle.NU_CANTIDAD#</td>
+                        <td style="text-align:left;">#detalle.nb_centrocosto#</td>
+                        <td style="text-align:left;">#detalle.nb_GrupoGasto#</td>
+                        <td style="text-align:left;">#detalle.nb_ConceptoGasto#</td>
+                        <td style="text-align:right;">#detalle.IM_PRECIOUNITARIOENTRADA * detalle.im_TipoCambioEntrada#</td>
+                        <td style="text-align:right;">#LsCurrencyFormat(detalle.IM_TOTALMN)#</td>
+                    </tr>
+                </cfoutput>
+            <tr>
+                <td style="text-align:left;" colspan="7"></td>
+                <td style="text-align:right;"><cfoutput>#LsCurrencyFormat(detalle.TOT_MOVIMIENTO)#</cfoutput></td>
+            </tr>
+        </table>
+    </body>
+</html>

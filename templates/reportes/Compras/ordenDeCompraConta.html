@@ -1,0 +1,344 @@
+<html>
+
+<head>
+  <title></title>
+  <style type="text/css">
+    @page {
+      size: letter;
+      margin: 0.5cm;
+
+      @bottom-center {
+        content: "Pagina "counter(page) " de "counter(pages);
+      }
+    }
+
+    .panelHeader {
+      /*background-color: #f5f5f5;*/
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+      box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+      padding: 10px;
+    }
+
+    body {
+      margin: auto;
+      width: 95%;
+      ;
+    }
+
+    .grid {
+      border: solid 1px #e5e5e5;
+      border-spacing: 0px;
+    }
+
+    .grid th {
+      border: solid 1px #B5AEAE;
+    }
+
+    .grid td {
+      border: solid 1px #B5AEAE;
+    }
+
+    .noGrid td {
+      border: none;
+      border-spacing: 0px;
+    }
+
+    .text {
+      font-size: 12pt;
+      font-family: arial;
+      color: rgb(37, 37, 139);
+    }
+
+    table {
+      font-size: 9pt;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="panelHeader" style="border-radius: 0px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td colspan="2" align="left">
+          <cfoutput>
+            <!-- <div id='logo' class='media' data-src="#expandPath('../#Local.ordenDeCompra.ar_ImagenReporte#')#" style='width: 95%' align="left" ></div> -->
+            <img id="logo" class="media"
+              src="https://storage.googleapis.com/#Application.RENV.getProperty('SIPP_STORAGE_BUCKET')#/#Local.ordenDeCompra.ar_ImagenReporte#"
+              style='width: 95%' align="left">
+          </cfoutput>
+        </td>
+        <td colspan="2" align="center" style="font-size: 12px;font-weight: bold;">
+          <cfoutput>#Local.ordenDeCompra.nb_RazonSocial#</cfoutput>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </td>
+      </tr>
+      <tr>
+        <td align="right" style="width:8%"><b>Asunto:</b></td>
+        <td align="left" style="width:17%">Orden de Compra</td>
+        <td align="right" style="width:50%">&nbsp;</td>
+        <td align="right" style="width:20%">
+          <cfoutput>#dateFormat(Local.ordenDeCompra.fh_RegistroOrdenCompra,'dd/mm/yyyy')#</cfoutput>
+        </td>
+
+      </tr>
+    </table>
+  </div>
+  <cfoutput>
+    <br>
+    <table width="100%">
+      <tr>
+        <td align="right"><b>Provedor:</b></td>
+        <td align="left" colspan="6">#Local.ordenDeCompra.id_proveedor# - #Local.ordenDeCompra.nb_proveedor#</td>
+        <!-- <td align="right"><b>Centro Costo:</b></td>
+                        <td align="left" colspan="2">#Local.ordenDeCompra.nb_CentroCosto#</td>       -->
+
+      </tr>
+      <tr>
+        <td align="right"><b>Sucursal:</b></td>
+        <td align="left">#Local.ordenDeCompra.nb_Sucursal#</td>
+        <td align="right" style="white-space: nowrap"><b>Almacen:</b></td>
+        <td align="left">#Local.ordenDeCompra.id_TipoRequisicion#</td>
+        <td align="right" style="white-space: nowrap"><b>Fecha Probable Entrega:</b></td>
+        <td align="left">#Local.ordenDeCompra.fh_EntregaOrdenDeCompra#</td>
+        <cfif #Local.ordenDeCompra.id_TipoRequisicion# EQ 1>
+          <td align="right"><b>Clasificado:</b></td>
+          <td align="left">#Local.ordenDeCompra.de_ClasificadoRequisicion#</td>
+        </cfif>
+      </tr>
+
+      <tr>
+        <td align="right"><b>Requisicion:</b></td>
+        <td align="left">
+          <cfif #Local.ordenDeCompra.id_requisicion# EQ ''>N/A<cfelse>#Local.ordenDeCompra.id_requisicion#</cfif>
+        </td>
+
+        <td align="right"><b>Solicitud Compra:</b></td>
+        <td align="left">#Local.ordenDeCompra.id_solicitudCompra#</td>
+
+        <td align="right"><b>Orden Compra:</b></td>
+        <td align="left">#Local.ordenDeCompra.id_ordenDeCompra#</td>
+
+        <td align="right" style="width:15%;"><b>Estatus OC:</b></td>
+        <td align="left" style="width:18%;">#Local.ordenDeCompra.de_EstatusAutorizacionOrdenCompra#</td>
+      </tr>
+      <cfif #Local.ordenDeCompra.id_ClasificadoRequisicion# EQ 7>
+        <tr>
+          <td align="right"><b>Numero Siniestro:</b></td>
+          <td align="left">
+            <cfif #Local.ordenDeCompra.nu_Siniestro# EQ ''>N/A<cfelse>#Local.ordenDeCompra.nu_Siniestro#</cfif>
+          </td>
+        </tr>
+      </cfif>
+
+      <tr>
+        <td align="right"><b>Solicitud Compra:</b></td>
+        <td align="left" colspan="3">#Local.ordenDeCompra.nb_empleadoSC#</td>
+        <td align="left" colspan="3">#Local.ordenDeCompra.nb_PuestoSC#</td>
+        <td align="left"><b>
+            <cfif #Local.ordenDeCompra.id_requisicion# EQ ''>STOCK</cfif>
+          </b></td>
+
+      </tr>
+      <cfif #Local.ordenDeCompra.id_requisicion# NEQ ''>
+        <tr>
+          <td align="right"><b>Requisitante:</b></td>
+          <td align="left" colspan="3">#Local.ordenDeCompra.nb_empleadoRequisito#</td>
+          <td align="left" colspan="3">#Local.ordenDeCompra.nb_PuestoRequisito#</td>
+        </tr>
+      </cfif>
+    </table>
+  </cfoutput>
+
+  <br>
+  <div style="border: 1px #e5e5e5 solid ">
+    <table class="" width="100%">
+      <tr class="panelHeader">
+
+        <th width="10%" align="left">Insumo</th>
+        <th width="8%" align="left">Caracteristicas</th>
+        <th width="8%" align="left">Unidad Medida</th>
+        <th width="8%" align="center">Cantidad</th>
+        <th width="8%" align="center">Precio Unitario</th>
+        <th width="8%" align="center">%Desc</th>
+        <th width="10%" align="center">Sub Total</th>
+        <th width="15%" align="center">Grupo CC</th>
+        <th width="15%" align="center">CC</th>
+        <th width="10%" align="center">Estatus Surtido</th>
+      </tr>
+      <cfoutput>
+        <cfset #countColor#=0>
+      </cfoutput>
+      <cfoutput query="Local.ordenDeCompra">
+
+        <cfif #countColor# EQ 1>
+          <tr style="background-color:##F5F5F5">
+            <cfelse>
+          <tr style="background-color:##fff">
+        </cfif>
+
+        <td width="10%" align="left">#Local.ordenDeCompra.nb_NombreInsumo#</td>
+        <td width="10%" align="left">#Local.ordenDeCompra.ValoresDetalle#</td>
+        <td width="10%" align="left">#Local.ordenDeCompra.nb_unidadMedida#</td>
+        <td width="10%" align="right">#Local.ordenDeCompra.nu_cantidad#</td>
+        <td width="10%" align="right">#Local.ordenDeCompra.im_precioUnitario#</td>
+        <td width="10%" align="right">#Local.ordenDeCompra.pj_descuento#</td>
+        <td width="10%" align="right">#Local.ordenDeCompra.im_SubtotalInsumo#</td>
+        <td width="10%" align="left">#Local.ordenDeCompra.nb_GrupoCentroCosto#</td>
+        <td width="10%" align="left">#Local.ordenDeCompra.nb_CentroCosto#</td>
+        <td width="10%" align="left">#Local.ordenDeCompra.de_estatusSurtidoODCD#</td>
+        </tr>
+        <cfif #countColor# EQ 0>
+          <cfset #countColor#=1>
+            <cfelse>
+              <cfset #countColor#=0>
+        </cfif>
+      </cfoutput>
+    </table>
+  </div>
+
+  <br>
+  <cfoutput>
+    <table class="" width="35%" align="right">
+      <!-- <tr>
+                        <td width="55%" align="right">Moneda:</td>
+                        <td align="right">#Local.ordenDeCompra.nb_Moneda#</td>
+                        <td align="right">#numberFormat(Local.ordenDeCompra.im_TipoCambio,"$___,___.__")#</td>
+                    </tr> -->
+      <tr>
+        <td align="right">SUBTOTAL:</td>
+        <td colspan="2" align="right">#Local.ordenDeCompra.de_SimboloMoneda#
+          #numberFormat(Local.ordenDeCompra.im_subTotal,"___,___.__")#</td>
+      </tr>
+      <tr>
+        <td align="right">DESCUENTO:</td>
+        <td colspan="2" align="right">#Local.ordenDeCompra.de_SimboloMoneda#
+          #numberFormat(Local.ordenDeCompra.im_Descuento,"___,___.__")#</td>
+      </tr>
+  </cfoutput>
+  <cfoutput query="Local.Impuestos">
+    <tr>
+      <td align="right">#Local.Impuestos.NB_IMPUESTO# (#numberFormat(Local.Impuestos.NU_TAZA,"__.__")#%):</td>
+      <td colspan="2" align="right">#Local.ordenDeCompra.de_SimboloMoneda#
+        #numberFormat(Local.Impuestos.IM_APLICACIONIMPUESTO,"___,___.__")#</td>
+    </tr>
+  </cfoutput>
+  <cfoutput>
+    <tr>
+      <td align="right">GASTOS DE ENVIO:</td>
+      <td colspan="2" align="right">#Local.ordenDeCompra.de_SimboloMoneda#
+        #numberFormat(Local.ordenDeCompra.im_envio,"___,___.__")#</td>
+    </tr>
+    <tr>
+      <td align="right">TOTAL:</td>
+      <td colspan="2" align="right">#Local.ordenDeCompra.de_SimboloMoneda#
+        #numberFormat(Local.ordenDeCompra.im_total,"___,___.__")#</td>
+    </tr>
+    <!-- <tr>
+                        <td align="right">Fecha Probable Entrega:</td>
+                        <td colspan="2" align="right">#Local.ordenDeCompra.fh_EntregaOrdenDeCompra#</td>
+                    </tr> -->
+    </table>
+  </cfoutput>
+
+  <cfoutput>
+    <table class="" width="65%" align="left" style="clear:both">
+      <tr>
+        <td align="left">Moneda: #Local.ordenDeCompra.nb_Moneda#</td>
+      </tr>
+      <!-- <tr>
+                        <td align="left">Tipo Cambio: #numberFormat(Local.ordenDeCompra.im_TipoCambio,"$___,___.__")#</td>
+                    </tr> -->
+    </table>
+    <p>&nbsp;</p>
+    <table class="" width="65%" align="left" style="clear:both">
+      <tr>
+        <td align="left">Importe con letra:</td>
+      </tr>
+      <tr>
+        <td align="left">#Local.ordenDeCompra.im_totalLetra#</td>
+      </tr>
+    </table>
+  </cfoutput>
+
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <cfoutput>
+    <table class="" width="65%" align="left" style="clear:both">
+      <tr>
+        <td align="left">Observaciones OC: #Local.ordenDeCompra.de_Observaciones#</td>
+      </tr>
+    </table>
+  </cfoutput>
+
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <cfoutput>
+    <table class="" width="100%">
+      <tr>
+        <cfif #Local.ordenDeCompra.id_EstatusAutorizacionOrdenDeCompra# LTE 2>
+          <cfif #Local.ordenDeCompra.id_EstatusPreAutorizacionOrdenDeCompra# GT 0>
+            <td align="center" width="50%">Autoriz&oacute;:</td>
+            <cfelse>
+              <td align="center" width="50%"></td>
+          </cfif>
+          <td align="center" width="50%">Autoriz&oacute;:</td>
+          <cfelse>
+            <cfif #Local.ordenDeCompra.id_EstatusPreAutorizacionOrdenDeCompra# GT 1>
+              <td align="center" width="50%">Rechazo:</td>
+              <cfelse>
+                <td align="center" width="50%"></td>
+            </cfif>
+            <td align="center" width="50%">Rechazo:</td>
+        </cfif>
+      </tr>
+      <tr width="100%">
+        <cfif #Local.ordenDeCompra.id_EstatusPreAutorizacionOrdenDeCompra# GT 1>
+          <td align="center" width="50%">#Local.ordenDeCompra.nb_empleadoPreAutorizo#</td>
+          <cfelse>
+            <td align="center" width="50%"></td>
+        </cfif>
+        <cfif #Local.ordenDeCompra.id_EstatusAutorizacionOrdenDeCompra# GT 1>
+          <td align="center" width="50%">#Local.ordenDeCompra.nb_empleadoAutorizo#</td>
+          <cfelse>
+            <td align="center" width="50%"></td>
+        </cfif>
+
+
+      </tr>
+      <tr width="100%">
+        <cfif #Local.ordenDeCompra.id_EstatusPreAutorizacionOrdenDeCompra# GT 1>
+          <td align="center" width="50%">#Local.ordenDeCompra.fh_AutorizacionPre#</td>
+          <cfelse>
+            <td align="center" width="50%"></td>
+        </cfif>
+        <cfif #Local.ordenDeCompra.id_EstatusAutorizacionOrdenDeCompra# GT 1>
+          <td align="center" width="50%">#Local.ordenDeCompra.fh_Autorizacion#</td>
+          <cfelse>
+            <td align="center" width="50%"></td>
+        </cfif>
+
+
+      </tr>
+    </table>
+  </cfoutput>
+  <p>&nbsp;</p>
+  <hr>
+  <cfoutput>
+    <table style="font-size: 10px" cellspacing="0" cellpadding="0">
+      <tr>
+        <td style="width: 50%">#Local.ordenDeCompra.nb_razonSocial#</td>
+        <td rowspan="2" style="width: 50%">#Local.ordenDeCompra.de_DomFiscal#</td>
+      </tr>
+      <tr>
+        <td style="width: 50%">#Local.ordenDeCompra.de_RFC#</td>
+
+      </tr>
+    </table>
+  </cfoutput>
+
+</body>
+
+</html>

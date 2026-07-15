@@ -1,0 +1,551 @@
+<style>
+    .outline-primary {
+        color: #428bca;
+        background-color: #fff;
+        border: 2px solid #428bca;
+        transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    .outline-primary:hover {
+        background-color: #428bca;
+        color: #f2f2f2;
+        border: 2px solid #428bca;
+    }
+
+    .btn-format {
+        height: 25px !important;
+        width: 25px !important;
+        line-height: 25px;
+
+        color: #13467f;
+    }
+    .btn-format:hover {
+        cursor: pointer;
+    }
+</style>
+<div  ng-app="appRequisicionesEditar" ng-controller="ctrlRequisicionesEditar">
+    <red-Toolbar titulo="{{changetitulo}}">
+        <button ng-show="sn_FiltrosPrincipal" class="btn-icon25p btn-regresar25p" ng-click="regresar()" title="Regresar (ALT+R)"></button>
+        <span style="margin-left: 5px" ng-click="copyRequisicion()" ng-show="(RequisicionData[0].ID_ESTATUSAUTORIZACION == 3 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 9)"><i class="btn-format fas fa-copy"></i></span>
+    </red-Toolbar>
+    <br>
+
+    <div red-panel  class="row col-md-12" ng-show="sn_FiltrosPrincipal">
+        <div  class="col-md-1"></div>
+        <div class="col-md-10">
+            <!-- izquierda -->
+            <div clasS="col-md-5">
+                <div class="col-md-12" style="margin-bottom:10px;">
+                    <label>Empresa:</label>
+                    <select ng-model="id_Empresa"
+                            class="form-control"
+                            ng-options="item.ID_EMPRESA as item.NB_EMPRESA for item in Empresas | unique:'NB_EMPRESA'"
+                            alias="id_Empresa"
+                            red-validatorname="agregar"
+                            red-validator
+                            required
+                            ng-change="getSucursalEmpleado()"
+                            ng-disabled="true">
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <!---setTipoSolicitud()--->
+                <div class="col-md-12">
+                    <label>Tipo de requisici&oacute;n:</label>
+                    <select ng-model="tipoRequisicion"
+                            class="form-control"
+                            ng-change=""
+                            alias="tipo de requisición"
+                            red-validatorname="agregar"
+                            red-validator
+                            required
+                            ng-options="tp.DE_TIPOREQUISICION for tp in tipoRequisiones track by tp.ID_TIPOREQUISICION"
+                            ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                        <option value="0">Seleccione tipo de requisición</option>
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <label>Divisi&oacute;n:</label>
+                    <select ng-model="id_tipoDivision"
+                            class="form-control"
+                            ng-change=resetGruposCostosDetalle()
+                            ng-options="item.ID_TIPODIVISION as item.DE_TIPODIVISION for item in Divisiones | filter : filterDivisiones()"
+                            ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                        <option value="">Seleccionar tipo de División</option>
+                    </select>
+                </div>
+                <div class="col-md-12" style="margin-bottom: 10px;" ng-show="sn_ObraEnProceso">
+                    <label>Grupo Centro de Costo:</label>
+                    <select ng-model="id_GrupoCentroCostoGeneral"
+                        chosen
+                        class="form-control"
+                        id="grupocentro"
+                        ng-options="item.ID_GRUPOCENTROCOSTO as item.NB_GRUPOCENTROCOSTO for item in gruposCentroCostoObras"
+                        alias="id_GrupoCentroCosto2"
+                        red-validatorname="agregar"
+                        ng-change="setCentrosCostoObras(true);"
+                        ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                        >
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>    
+                <div class="col-md-12" style="margin-bottom: 10px;" ng-show="sn_ObraEnProceso">
+                    <label>Dirección: </label>
+                    <select ng-model="id_DireccionGeneral"
+                        chosen
+                        id="direccion"
+                        class="form-control"
+                        ng-options="d.ID_DOMICILIO as d.NB_DIRECCION for d in DireccionesObras"
+                        alias="id_Direccion"
+                        red-validatorname="agregar"
+                        ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                        >
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+
+                <div class="col-md-12">
+                    <label>Solicita:</label>
+                    <input class="form-control" ng-model="session.NB_EMPLEADOCOMPLETO" disabled>
+                </div>
+                <div class="col-md-12">
+                    <label>Departamento:</label>
+                    <select class="form-control" ng-model="departamento" disabled
+                            ng-options="op.ID_DEPARTAMENTO as op.NB_DEPARTAMENTO for op in Depas">
+                        <option value="">Seleccionar</option>
+                    </select>
+                    <input type="text"
+                            ng-show="false"
+                           ng-model="txt_departamento"
+                           class="form-control"
+                           placeholder="Departamento"
+                           ui-autocomplete="optionDepartamentos"
+                           alias="departamento "
+                           red-validatorname="agregar"
+                           red-validator
+                           required
+                           ng-disabled="sn_requisicionAutorizada || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                </div>
+
+                <!-- <div class="col-md-12" style="margin-top: 5px; margin-bottom: 10px;" ng-show="sn_tipoInstalacion">
+                    <label>Tipo de instalaci&oacute;n:</label>
+                    <select ng-model="id_TipoInstalacion"
+                            class="form-control"
+                            ng-change="setInstalacion()"
+                            ng-options="item.ID_TIPOINSTALACION as item.NB_TIPOINSTALACION for item in tipoInstalaciones"
+                            red-validatorname="agregar"
+                            red-validator
+                             ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10"
+                            >
+                        <option value="">Seleccionar tipo de instalación</option>
+                    </select>
+                </div> -->
+            </div>
+
+            <!-- derecha -->
+            <div class="col-md-5">
+                <div class="col-md-12" style="margin-bottom:20px;">
+                        <label>Sucursal (Plaza):</label>
+                                <select ng-model="id_Sucursal"
+                                chosen
+                                class="form-control"
+                                alias="id_Sucursal"
+                                red-validatorname="agregar"
+                                red-validator
+                                required
+                                ng-disabled="detalleRequisicion.length>0"
+                                ng-options="item.ID_SUCURSAL as item.NB_SUCURSAL for item in SucursalesEmpleado | unique:'NB_SUCURSAL'">
+                            <option value="">Seleccionar sucursal</option>
+                        </select>
+                </div>
+                <div class="col-md-12">
+                    <label>Clasificación:</label>
+                    <select ng-model="clasificacion"
+                            class="form-control"
+                            alias="clasificación"
+                            red-validatorname="agregar"
+                            red-validator
+                            required
+                            ng-change="siniestro(clasificacion)"
+                            ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10"
+                            ng-options="clasificado.DE_CLASIFICADOREQUISICION for clasificado in ClasificadosRequisiciones track by clasificado.ID_CLASIFICADOREQUISICION"
+                            >
+                        <option value="">Seleccionar clasificación</option>
+                    </select>
+                </div>
+
+                <div class="col-md-12" style="margin-bottom: 10px;">
+                    <label>Fecha expedici&oacute;n:</label>
+                    <red-calendar ng-model="fh_expedicion"
+                                  format="dd/MM/yyyy"
+                                  focus-open="false"
+                                  alias="fecha expedición"
+                                  red-validatorname="agregar"
+                                  red-validator="DATEDMY"
+                                  required
+                                  ng-disabled="true">
+                    </red-calendar>
+                </div>
+                <div class="col-md-12" style="margin-bottom: 10px;" ng-show="sn_ObraEnProceso">
+                    <label>Utilizarse en:</label>
+                    <select ng-model="id_CentroCostoGeneral"
+                        chosen
+                        class="form-control"
+                        id="centro"
+                        ng-options="item.ID_CENTROCOSTO as item.NB_CENTROCOSTO for item in CentroCostoGeneral"
+                        alias="CentroCosto2"
+                        red-validatorname="agregar"
+                        ng-change="setDireccionObras();"
+                        ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                        >
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div> 
+                <div class="col-md-12">
+                    <br>
+                    <div class="col-md-12">
+                        <label>Archivo:</label>
+                    </div>
+                    <br>
+                    <div class="col-md-9">
+                        <input ng-model="ar_ArchivoSoporte" id="ar_ArchivoSoporte"
+                            placeholder="Archivo de Soporte"
+                            type="file"
+                            class="form-control"
+                            ng-change="subirArchivo()"
+                            red-filemodel="ar_ArchivoSoporte"
+                            ng-disabled="
+                                sn_requisicionAutorizada ||
+                                RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 ||
+                                RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 ||
+                                RequisicionData[0].ID_ESTATUSAUTORIZACION == 10 ||
+                                RequisicionData[0].ID_ESTATUSAUTORIZACION == 7"
+                            >
+                        </div>
+                        <div class="col-md-3">
+                            <div ng-show="ar_ArchivoSoporte" class="cell" style="float:rigth">
+                                <ver-archivo dir="ArchivoSoporteRequisicion" ng-show="ar_ArchivoSoporte" ng-model="btnEl3">
+                                </ver-archivo>
+                                <button class="btn-icon15p btn-eliminar15p" ng-model="btnEl3"
+                                    id="btnEl3"
+                                    ng-click="borrarar_archivo()"
+                                    title="Eliminar archivo de Soporte"
+                                    ng-hide="
+                                    sn_requisicionAutorizada ||
+                                    RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 ||
+                                    RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 ||
+                                    RequisicionData[0].ID_ESTATUSAUTORIZACION == 10 ||
+                                    RequisicionData[0].ID_ESTATUSAUTORIZACION == 7"
+                                    >
+                                </button>
+                            </div>
+                        </div>
+                </div>
+                <div class="col-md-12" ng-show="clasificacion == 7 || sn_Siniestro" style="margin-top: 10px;">
+                        <label>Nro. de Siniestro:</label>
+                        <input ng-model="nu_siniestro"
+                            red-validatorname="nu_siniestro"
+                            red-validator
+                            required="true"
+                            class="form-control contenido_alfanumerico_con_espacios"
+                            ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                </div>
+
+
+                <div class="col-md-6" style="margin-top: 15px;">
+                        <div class="checkbox checkbox-primary" ng-show="tipoRequisicion.ID_TIPOREQUISICION==2" >
+                          <input type="checkbox" checkbox
+                                 id="checkbox1"
+                                 ng-change="cambiarTransporte()"
+                                 ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10"
+                                 ng-model="sn_Transporte">
+                                <label for="checkbox1">
+                                    Equipo <span style="text-decoration:underline;">T</span>ransporte
+                                </label>
+                        </div>
+                </div>
+                <div class="col-md-12" ng-show="nu_Viaje || sn_Viaje" style="margin-top: 10px;">
+                    <label>No. de Viaje</label>
+                    <input ng-model="nu_Viaje" class="form-control contenido_numerico" ng-disabled="sn_requisicionAutorizada  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7">
+                </div>
+            </div>
+
+            <div class="col-md-10">
+                <div class="col-md-12">
+                    <label for="de_Requisicion">Nombre de la Requisición:</label>
+                    <input type="text"
+                        class="form-control"
+                        ng-model="de_Requisicion"
+                        id="de_Requisicion"
+                        placeholder="Descripción de la requisición"
+                        ng-disabled="sn_requisicionAutorizada || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10"
+                        maxlength="250">
+                </div>
+                <div class="col-md-12">
+                    <label>Observaciones:</label>
+                    <textarea ng-model="de_observaciones"
+                        class="form-control"
+                        placeholder="Observaciones"
+                        ng-disabled="sn_requisicionAutorizada || RequisicionData[0].ID_ESTATUSAUTORIZACION == 10"
+                        style="resize:none; min-height:100px;"
+                        maxlength="1000"
+                        rows="{{1 + (de_observaciones.length / 100)}}">
+                    </textarea>
+                <div ng-show="RequisicionData[0].ID_ESTATUSAUTORIZACION == 4 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7">
+                    <label>Comentarios Rechazo:</label>
+                    <textarea ng-model="de_Comentarios"
+                        class="form-control"
+                        placeholder="Observaciones"
+                        style="height:100px"
+                        ng-disabled="sn_requisicionAutorizada || RequisicionData[0].ID_ESTATUSAUTORIZACION == 4  || RequisicionData[0].ID_ESTATUSAUTORIZACION == 5 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 6 || RequisicionData[0].ID_ESTATUSAUTORIZACION == 7">
+                    </textarea>
+                </div>
+                <div ng-show="RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                    <label>Comentarios de Devolución:</label>
+                    <textarea ng-model="de_Comentarios"
+                        class="form-control"
+                        placeholder="Observaciones"
+                        style="height:100px"
+                        ng-disabled="RequisicionData[0].ID_ESTATUSAUTORIZACION == 10">
+                    </textarea>
+                </div>
+                </div>
+            </div>
+
+        </div><!-- div 10 -->
+
+
+        <div class="col-md-5">
+        </div>
+    </div>
+
+     <div class="row" ng-show="sn_Finalizada">
+        <div class="col-md-12">
+            <div class="bs-callout bs-callout-primary">
+                <div>
+                    <span class="glyphicon glyphicon-exclamation-sign parpadea" aria-hidden="true" style="color:#FFA500"></span>
+                    <label >Requisición Finalizada.</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="clear:left;height:20px;"></div>
+    <fieldset>
+        <div class="row col-md-12">
+            <div class="row" ng-show="sn_AyudaRequisicion">
+        <div class="col-md-12">
+            <div class="col-md-12">
+                <legend>Insumos</legend>
+            </div>
+            <div class="col-md-2">
+                <label>Cve Insumo:</label>
+                <input type="text"
+                       ng-model="filtros.id_Insumo"
+                       id="id_Insumo"
+                       class="form-control contenido_numerico"
+                       change-focus>
+            </div>
+            <div class="col-md-3">
+                <label>Nombre Insumo:</label>
+                <input type="text"
+                       ng-model="filtros.nb_Nombre"
+                       id="nb_Nombre"
+                       class="form-control"
+                       change-focus>
+            </div>
+            <div class="col-md-3">
+                <label>Familia Insumo:</label>
+                <select ng-model="filtros.id_FamiliaInsumo"
+                        chosen
+                        class="form-control"
+                        ng-options="item.ID_FAMILIAINSUMO as item.NB_FAMILIAINSUMO for item in FamiliaInsumo | unique:'NB_FAMILIAINSUMO'">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>SubFamilia Insumo:</label>
+                <select ng-model="filtros.id_SubFamiliaInsumo"
+                        chosen
+                        class="form-control"
+                        ng-options="item.ID_SUBFAMILIAINSUMO as item.NB_SUBFAMILIAINSUMO for item in FamiliaInsumo | filter:filterSubFamilia() | unique:'NB_SUBFAMILIAINSUMO'">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-1" style="text-align: center;padding-top: 17px;">
+                <button ng-model="botonsini" class="btn-icon25p btn-buscar25p" ng-click="listarInsumos()"></button>
+            </div>
+        </div>
+        <div class="col-md-12">
+
+            <div class="col-md-12" >
+                <fieldset>
+                    </legend>
+                    <div ng-grid="gridAyudaRequisicion"  class="gridStyle" id="gridAyudaRequisicion" style="height:300px;"></div>
+                </fieldset>
+            </div>
+        </div>
+        <!--<div class="col-md-12">
+            <div class="col-md-10">
+            </div>
+            <div class="col-md-2">
+                Cantidad:
+                <input type="text"
+                       ng-model="filtros.id_requisicion"
+                       id="folio3"
+                       class="form-control contenido_numerico"
+                       change-focus>
+            </div>
+        </div>-->
+
+    </div>
+    <div class="row col-md-12" ng-show="!sn_FiltrosPrincipal">
+        <div style="text-align:right; padding-top:10px" >
+            <button class="btn btn-warning" ng-click="regresarFiltros()">Cerrar Ayuda</button>
+        </div>
+    </div>
+
+    <div class="row col-md-12" style="margin-top: 25px">
+        <div class="col-md-12">
+            <div >
+                <fieldset>
+                    <legend>Detalles de requisición
+                        <button ng-show="sn_FiltrosPrincipal" class="btn-icon25p btn-agregar25p" id="agregar" ng-click="agregar_insumos()" ng-hide="sn_requisicionAutorizada" style="float:right;margin-top:-5px; margin-left: 5px;"></button>
+                        <button class="btn outline-primary" ng-click="showHistorial()" style="float:right;margin-top:-10px;">Historial de Cambios</button>
+                    </legend>
+                    <div ng-grid="gridRequisiciones"  class="gridStyle" id="gridRequisiciones" style="height:300px;"></div>
+                    <!-- <div ng-grid="gridRequisicionesServicio"  class="gridStyle" ng-show="!divMaterial"></div> -->
+                </fieldset>
+            </div>
+            <div style="text-align:right;"  >
+                <button class="btn btn-primary" id="guardar" ng-click="guardar()"  ng-show="!sn_requisicionAutorizada">Guardar</button>
+                <button class="btn btn-warning" ng-click="regresar()" ng-show="sn_FiltrosPrincipal">Regresar</button>
+                <!-- <button class="btn btn-danger" ng-click="limpiar()" ng-show="!sn_requisicionAutorizada">Limpiar</button> -->
+            </div>
+
+        </div>
+
+        <red-modal name="activosfijos"  width="900px" height="100px">
+            <div ng-show="detalleinsumos.length" style="margin-top:10px;">
+                <label style="color:black;font-size: 10pt;">Información detalle insumo</label>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div ng-grid="griddetalleinsumos" class="gridStyle" red-grid ></div>
+                    </div>
+                    <div class="col-md-7" ng-show="sn_detalle">
+                        <div ng-repeat="(key, detalle) in camposdetalles">
+                            <div class="row">
+                                <div class="col-md-4" style="margin-top: 5px;">
+                                    {{detalle.NB_CAMPODETALLE}}
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" ng-model="detalle.DE_VALORCAMPODETALLE" style="height: 27px;margin-bottom: 3px;" class="form-control" id="{{detalle.VARIABLE}}{{key}}" placeholder="{{detalle.NB_CAMPODETALLE}}" ng-disabled="!verDetalle">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="checkbox checkbox-primary" ng-show="detalleinsumos.length > 1">
+                            <input type="checkbox" checkbox
+                                   id="checkbox4"
+                                   ng-model="sn_asignarmismodetalle">
+                            <label for="checkbox4">
+                                Asignar el detalle a los series del mismo insumo
+                            </label>
+                        </div> -->
+                        <div style="text-align:right;" ng-model="btnasignar2">
+                            <button  tabindex="15" ng-model="btnasignar2" ng-click="asignardetalle()" class="btn btn-success" ng-show="verDetalle">Asignar detalle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button  tabindex="15" ng-model="btnGuardar" ng-click="editar2(true)" class="btn btn-primary" ng-show="verDetalle">Guardar</button>
+            </div>
+        </red-modal>
+    </div>
+    <div style="height:50px;clear:left;"></div>
+
+    <red-modal name="modalHistorialRequisicion" titulo="Historial de Cambios" width="1100px">
+        <div class="row" red-panel>
+            <div class="col-md-4">
+                <label for="id_InsumoHC">Insumos:</label>
+                <select chosen multiple
+                    id="id_InsumoHC"
+                    class="form-control"
+                    ng-model="filtros.Insumos"
+                    data-placeholder="Seleccionar"
+                    ng-options="item.ID_INSUMO as item.NB_NOMBREINSUMO for item in InsumosHistorialCambios">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="id_EmpleadoHC">Empleados:</label>
+                <select chosen multiple
+                    id="id_EmpleadoHC"
+                    class="form-control"
+                    ng-model="filtros.Empleados"
+                    data-placeholder="Seleccionar"
+                    ng-options="item.ID_EMPLEADO as item.NB_USUARIO for item in EmpleadosHistorialCambios">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="id_TipoMovimientoHC">Tipo Movimiento:</label>
+                <select chosen
+                    id="id_TipoMovimientoHC"
+                    class="form-control"
+                    ng-model="filtros.id_TipoMovimiento"
+                    ng-options="item.ID_TIPOMOVIMIENTO as item.DE_TIPOMOVIMIENTO for item in TipoMovimientoHistorialCambios">
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn-icon25p btn-buscar25p" style="margin-top: 21px;" ng-click="buscarCambios()"></button>
+            </div>
+        </div>
+        <br>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div ng-grid="HistorialCambiosGrid" class="gridStyle" id="id_HistorialCambiosGrid"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+        </div>
+    </red-modal>
+
+    <red-hotkey key="r" altkey="true" action="regresar"/>
+    <red-hotkey key="t" altkey="true" action="foco_transporte"/>
+
+    <red-modal name="modalCentroCosto" titulo="Buscar Centro de Costo" width="1200px">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                <label>ID Centro de Costo</label>
+                <input class="form-control contenido_numerico" ng-model="centroCosto.id_CentroCosto">
+                </div>
+                <div class="col-md-8">
+                <label>Nombre Centro de Costo</label>
+                <input class="form-control contenido_alfanumerico_con_espacios" ng-model="centroCosto.nb_CentroCosto">
+                </div>
+                <div class="col-md-1">
+                <button ng-click="listarCentrosCostos()" class="btn-icon25p btn-buscar25p" style="margin-top: 22px"></button>
+                </div>
+            </div>
+            </div>
+
+            <br>
+
+            <div style="height:500px;"
+                ui-grid="gridCentrosCostos"
+                class="grid-ui"
+                ui-grid-pinning
+                ui-grid-selection
+                ui-grid-pagination
+                ui-grid-auto-resize>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" ng-click="cerrarModalCentroCosto()">Cancelar</button>
+            </div>
+    </red-modal>
+</div>

@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Requisición</title>
+  <style type="text/css">
+    /* Paginación */
+    @page{
+      size: letter;
+      margin: 12mm;
+      /* Algunos builds no soportan counter(pages). Si ves vacío, usa solo counter(page). */
+      @bottom-center{
+        content: "Página " counter(page) " de " counter(pages);
+      }
+    }
+
+    /* Tipos y tokens (hard-coded, sin variables CSS) */
+    body{
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1f2937; /* ink */
+      font-size: 10pt;
+    }
+    .wrap{ padding: 0; }
+
+    /* Utilería de tablas */
+    table{ border-collapse: collapse; width: 100%; }
+    .b{ border:1px solid #e6e8ee; }
+    .p4{ padding: 4pt 6pt; }
+    .p6{ padding: 6pt; }
+    /* .muted{ color:#667085; } */
+    .ink{ color:#1f2937; }
+    .headfg{ color:#0f2471; }
+    .bg-head{ background:#e7eefc; }   /* sustituto del gradiente */
+    .bg-alt{ background:#f7f9fc; }
+    /* .bd-b{ border-bottom:1px solid #e9edf3; }
+    .bd-t{ border-top:1px solid #e9edf3; } */
+    .ta-r{ text-align:right; }
+    .ta-c{ text-align:center; }
+    .fw-b{ font-weight:bold; }
+    .no-break{ page-break-inside: avoid; }
+
+    /* Repetición de encabezado/pie en tablas del detalle */
+    thead{ display: table-header-group; }
+    tfoot{ display: table-footer-group; }
+
+    /* Para cortes de palabras largos */
+    .wrapword{ word-wrap: break-word; overflow-wrap: break-word; }
+
+    /* Zebra simple: si tu build no soporta nth-child, quítalo sin problema */
+    /* tbody tr:nth-child(even) td{ background:#f7f9fc; } */
+
+    /* Zebra + borde SOLO en la tabla de detalle */
+    .detail tbody tr td {
+      border-bottom: 1px solid #e6e8ee; /* línea divisoria suave */
+    }
+
+    .detail tbody tr:nth-child(even) td {
+      background: #f7f9fc; /* gris claro en las filas pares */
+    }
+
+    /* Hover solo en tabla de detalle */
+    .detail tbody tr:hover td {
+      background: #eef3ff;   /* azul claro de ejemplo */
+      cursor: default;       /* opcional: muestra cursor normal */
+    }
+
+    /* Celdas numéricas/centradas en detalle */
+    .c-num{ text-align:right; }
+    .c-id, .c-mid{ text-align:center; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Header (por tabla, sin grid) ===== -->
+  <table class="b" style="margin-bottom:8pt;">
+    <tr>
+      <td class="p6" style="width:220pt; vertical-align:middle;">
+        <cfoutput><img src="#Arguments.imagenRequisicion#" alt="Logo" style="height:36pt; display:block;" /></cfoutput>
+      </td>
+      <td class="p6 ta-c headfg fw-b" style="vertical-align:middle;">
+        <cfoutput>#Arguments.requisicion.nb_RazonSocial#</cfoutput>
+      </td>
+      <td class="p6 ta-r muted" style="width:120pt; vertical-align:middle;">
+        <cfoutput>#dateFormat(Arguments.requisicion.fh_Expedicion,'dd/mm/yyyy')#</cfoutput>
+      </td>
+    </tr>
+  </table>
+
+  <!-- ===== Meta (pares clave:valor por tabla) ===== -->
+  <table class="b" style="margin-bottom:10pt; font-size:9.5pt;">
+    <tbody>
+      <cfoutput>
+        <tr class="bd-b">
+          <th class="p4 ta-r muted" style="width:18%;">Asunto:</th>
+          <td class="p4 fw-b ink" style="width:32%;">Requisición</td>
+          <th class="p4 ta-r muted" style="width:18%;">Requisición:</th>
+          <td class="p4 fw-b ink" style="width:32%;">
+            <cfif Arguments.requisicion.id_requisicion EQ ''>N/A<cfelse>#Arguments.requisicion.id_requisicion#</cfif>
+          </td>
+        </tr>
+
+        <tr class="bd-b">
+          <th class="p4 ta-r muted">División:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.de_TipoDivision#</td>
+          <th class="p4 ta-r muted">Fecha:</th>
+          <td class="p4 fw-b ink">#dateFormat(Arguments.requisicion.fh_Expedicion,'dd/mm/yyyy')#</td>
+        </tr>
+
+        <tr class="bd-b">
+          <th class="p4 ta-r muted">Clasificado:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.de_ClasificadoRequisicion#</td>
+          <th class="p4 ta-r muted">Tipo:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.de_TipoRequisicion#</td>
+        </tr>
+
+        <tr class="bd-b">
+          <th class="p4 ta-r muted">Empresa:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.nb_Empresa#</td>
+          <th class="p4 ta-r muted">Sucursal:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.nb_Sucursal#</td>
+        </tr>
+
+        <tr class="bd-b">
+          <th class="p4 ta-r muted">Estatus:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.de_EstatusAutorizacionRequisicion#</td>
+          <th class="p4 ta-r muted">Departamento:</th>
+          <td class="p4 fw-b ink">#Arguments.requisicion.nb_departamento#</td>
+        </tr>
+
+        <tr class="bd-b">
+          <th class="p4 ta-r muted">Requisitante:</th>
+          <td class="p4 fw-b ink" colspan="3">#Arguments.requisicion.nb_empleado#</td>
+        </tr>
+
+        <cfif Arguments.requisicion.id_ClasificadoRequisicion EQ 7>
+          <tr class="bd-b">
+            <th class="p4 ta-r muted">Núm. Siniestro:</th>
+            <td class="p4 fw-b ink" colspan="3">
+              <cfif Arguments.requisicion.nu_Siniestro EQ ''>N/A<cfelse>#Arguments.requisicion.nu_Siniestro#</cfif>
+            </td>
+          </tr>
+        </cfif>
+      </cfoutput>
+    </tbody>
+  </table>
+
+  <!-- ===== Detalle ===== -->
+  <table class="b detail" style="font-size:9.5pt;">
+    <thead>
+      <tr class="bg-head">
+        <th class="p6 c-num headfg">Cantidad</th>
+        <th class="p6 c-id headfg" style="width:8%;">ID</th>
+        <th class="p6 headfg">Insumo Descripción</th>
+        <th class="p6 c-num headfg">Precio Unitario</th>
+        <th class="p6 c-mid headfg">Moneda</th>
+        <th class="p6 c-num headfg">Tipo Cambio</th>
+        <th class="p6 c-num headfg">Total Insumo</th>
+        <th class="p6 c-mid headfg">Usarse en:</th>
+        <th class="p6 headfg"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <cfoutput query="requisicionDetalle">
+        <tr>
+          <td class="p6 c-num">#nu_cantidad#</td>
+          <td class="p6 c-id">#id_Insumo#</td>
+          <td class="p6 wrapword">#nb_insumo#</td>
+          <td class="p6 c-num">#numberFormat(im_precioUnitario,"$___,___.__")#</td>
+          <td class="p6 c-mid">#nb_moneda#</td>
+          <td class="p6 c-num">#numberFormat(im_TipoCambio,"$___,___.__")#</td>
+          <td class="p6 c-num">#numberFormat(im_totalInsumo,"$___,___.__")#</td>
+          <td class="p6 c-mid"><i>#nb_centroCostoFormat#</i></td>
+          <td class="p6">
+            <cfif nu_kilometraje NEQ ''>
+              #nu_kilometraje# K.M.
+            </cfif>
+            <cfif de_colaborador NEQ ''>
+              <br />[Colaborador] #de_colaborador#
+            </cfif>
+          </td>
+        </tr>
+
+        <cfif ValoresDetalle NEQ ''>
+          <tr class="row-notes no-break">
+            <td class="p6 bd-b" colspan="9" style="font-size:9pt; color:##334155;">
+              <strong>Características:</strong> #ValoresDetalle#
+            </td>
+          </tr>
+        </cfif>
+      </cfoutput>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td class="p6 bd-t ta-r muted fw-b" colspan="6">Total:</td>
+        <td class="p6 bd-t c-num">
+          <cfoutput>#numberFormat(Arguments.requisicion.im_PrecioTotal,"$___,___.__")#</cfoutput>
+        </td>
+        <td class="p6 bd-t" colspan="2"></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- ===== Observaciones ===== -->
+  <cfoutput>
+    <cfif Arguments.requisicion.de_Observaciones NEQ ''>
+      <table class="b" style="margin-top:8pt; font-size:9.5pt; background:##ffffff;">
+        <tr>
+          <td class="p6">
+            <span class="headfg fw-b">Observaciones:</span>
+            #Arguments.requisicion.de_Observaciones#
+          </td>
+        </tr>
+      </table>
+    </cfif>
+  </cfoutput>
+
+</div>
+</body>
+</html>

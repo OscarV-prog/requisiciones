@@ -1,0 +1,163 @@
+<html>
+        <head>
+            <title></title>
+            <style type="text/css">
+                @page {
+                    size:letter;
+                    margin: 0.5cm;
+
+                    @bottom-center{
+                        content: "Pagina " counter(page) " de " counter(pages);
+                    }
+                }
+                .myTable{
+                   border-collapse: collapse;
+                   border:1px solid black;
+                }
+                .hd{
+                    padding: 8px;
+                    text-align: left;
+                }
+                .panelHeader {
+                    background-color: #f5f5f5;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 4px;
+                    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+                    padding: 10px;
+                }
+                .border{
+                  border: 1px solid #f2e7e7;   
+                }
+                body{
+                    margin: auto;
+                    width: 95%;;
+                }
+                .grid{
+                    border: solid 1px #e5e5e5;
+                    border-spacing: 0px;
+                }
+                .grid th{
+                    border: solid 1px #B5AEAE;
+                }
+                .grid td{
+                    border: solid 1px #B5AEAE;
+                }
+                .noGrid td{
+                    border: none;
+                    border-spacing: 0px;
+                }
+                .text{
+                    font-size: 12pt; 
+                    font-family: arial;
+                    color: rgb(37, 37, 139);
+                }
+                .mt-10{
+                    margin-top: 5px;
+                }
+                table{ 
+                    font-size: 9pt;
+                }
+                .pl-5{
+                    padding-left: 5px;
+                }
+                .text-center{
+                    text-align: center;
+                }
+                
+            </style>
+        </head>
+        <body>
+            <div class="panelHeader" style="border-radius: 0px;">
+                <table width="100%" cellpadding="5" cellspacing="0">
+                    <tr>
+                        <td colspan="2" align="left">
+                            <cfoutput><img id='logo' class='media' src="#Arguments.imagenRequisicion#" style='width: 95%' align="left" ></cfoutput>
+                        </td>
+                        <td colspan="2" align="center" style="font-size: 12px;font-weight: bold;">
+                            <cfoutput>#Arguments.resumen.nb_RazonSocial#</cfoutput>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </td>
+                    </tr>
+                    <br>
+                    <tr class="mt-10">
+                        <td align="right" style="width:8%"><b>Asunto:</b></td>
+                        <td align="left"  style="width:17%">Solicitud de Recursos</td>
+                        <td align="right" style="width:50%">&nbsp;</td>
+                        <td align="right" style="width:20%"><cfoutput>#dateFormat(Arguments.resumen.fh_Registro,'dd/mm/yyyy')#</cfoutput></td>
+
+                    </tr>
+                </table>
+            </div>
+            
+
+            <cfoutput>
+            <br>
+                <table class="text-center"  width="100%" cellpadding="0" cellspacing="0">
+                    
+                    <tr>
+                        <td align="right"><b>Folio:</b></td>
+                        <td align="left"class="pl-5" style="text-align: justify;"> #Arguments.resumen.id_Solicitud# </td>
+                        <td align="right"><b>Fecha:</b></td>
+                        <td align="left" class="pl-5 " style="text-align: justify";>#dateFormat(Arguments.resumen.fh_Registro,'dd/mm/yyyy')#</td>
+                        <td align="right"><b>Tipo:</b></td>
+                        <td align="left" class="pl-5" style="text-align: justify";>#Arguments.resumen.nb_TipoSolicitud#</td>
+                                    
+                    </tr>
+                    <br>
+                    <tr>
+                        <td align="right"><b>Empresa:</b></td>
+                        <td align="left" class="pl-5" style="text-align: justify">#Arguments.resumen.nb_Empresa#<b></td> 
+                        <td align="right"><b>Sucursal:</b></td>
+                        <td align="left" class="pl-5" style="text-align: justify"></b>#arguments.resumen.nb_Sucursal#</td>               
+                        <td align="right"><b>Departamento:</b></td>
+                        <td align="left" class="pl-5" style="text-align: justify">#Arguments.resumen.nb_departamento#</td>
+                    </tr>
+                    <br>
+                    <tr>
+                        <td align="right"><b>Solicitante:</b></td>
+                        <td align="left" class="pl-5" style="text-align: justify">#Arguments.resumen.nb_EmpleadoSolicita#</td>
+                        <td align="right" ><b>Estatus:</b></td>
+                        <td align="left" class="pl-5" style="text-align: justify" >#Arguments.resumen.nb_EstatusSolicitud#</td>    
+                        <td align="right"></td>
+                        <td align="left"></td>              
+                                                 
+                    </tr>
+                    <br>
+                      
+                </table>
+                <br>
+            </cfoutput>
+
+            <cfoutput>
+            
+                <br>   
+            <table  width="100%" class="myTable">
+                    <tr class="hd">
+                        <td align="center" class="border"><b>Código</b></td>
+                        <td align="center" class="border"><b>Nombre</b></td>
+                        <td align="center" class="border"><b>Descripción</b></td>
+                        <td align="center" class="border"><b>Destino</b></td>
+                        <td align="center" class="border"><b>Familia</b></td>
+                        <td align="center" class="border"><b>Sub familia</b></td>
+                    
+                    </tr>
+                <cfloop query="#arguments.detalles#" >
+                    <tr class="hd" >
+                        <td  align="center" class="border">#arguments.detalles.id_Insumo#</td>
+                        <td  align="center" class="border text-center">#arguments.detalles.nb_Insumo#</td>
+                        <td  align="center" class="border text-center">#arguments.detalles.de_Especificaciones#</td>
+                        <td  align="center" class="border">#arguments.detalles.nb_TipoDestino#</td>
+                        <td  align="center" class="border">#arguments.detalles.nb_FamiliaInsumo#</td>
+                        <td  align="center" class="border">#arguments.detalles.nb_SubFamiliaInsumo#</td>
+                    </tr> 
+                </cfloop> 
+            </table>
+            
+            </cfoutput>
+        
+        
+
+        </body>
+    </html>

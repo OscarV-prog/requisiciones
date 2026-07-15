@@ -1,0 +1,71 @@
+<script type="text/javascript"src="/js/services/reportes/AlmacenRefacciones/SeguimientoDeFrecuenciaDeRequisiciones/rptSeguimientoDeFrecuenciaDeRequisiciones.js"></script>
+<div ng-app="appSeguimientoDeFrecuenciaDeRequisiciones" ng-controller="ctrlSeguimientoDeFrecuenciaDeRequisiciones"
+  ng-init="init()">
+
+  <red-Toolbar titulo="Reporte de Seguimiento de Frecuencia de Requisiciones">
+    <div>
+      <ng-excel name="Seguimiento De Frecuencia De Requisiciones" extension="xlsx" scale="80" ng-click="generarExcel(true)" button-type="icon">
+        <ng-sheet name="Listado Requisiciones" dataset="dataReporte"></ng-sheet>
+      </ng-excel>
+    </div>
+  </red-Toolbar>
+  <br>
+
+  <div red-panel>
+    <fieldset class="cajas border-lightblue" style="border-color: #428bca;">
+      <label class="fieldset-label"
+        style="color: #ffffff;background-color:  #428bca;border-radius: 2px;">Filtros</label>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="col-md-6 ">
+            <label>Empleado:</label>
+            <select id="id_Empleado" ng-model="filtro.id_Empleado" class="form-control"
+              ng-options="item.ID_EMPLEADO as item.NB_NOMBREEMPLEADO +' '+ item.NB_APELLIDOPATERNO +' '+ item.NB_APELLIDOMATERNO  for item in Empleados | orderBy:'ID_EMPLEADO'"
+              chosen>
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label>Insumo:</label>
+            <input type="text" placeholder="Descripción del Insumo" id="nb_NombreInsumo" ng-model="filtro.nb_NombreInsumo"
+              class="form-control" maxlength="150">
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+  <br>
+  <div red-panel>
+    <fieldset class="cajas border-lightblue" style="border-color: #428bca;">
+      <label class="fieldset-label"
+        style="color: #ffffff;background-color:  #428bca;border-radius: 2px;">Periodo</label>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="col-md-3">
+            <label>Fecha Inicio:</label>
+            <red-calendar ng-model="fh_inicio" format="dd/MM/yyyy" focus-open="false" alias="Fecha Inicio" required>
+            </red-calendar>
+          </div>
+          <div class="col-md-3">
+            <label>Fecha Fin:</label>
+            <red-calendar ng-model="fh_fin" format="dd/MM/yyyy" focus-open="false" alias="Fecha Fin" required>
+            </red-calendar>
+          </div>
+          <div class="col-md-1"> <button ng-model="buscar" class="btn-icon25p btn-buscar25p" style="margin-top:23px"
+              ng-click="listar()"></button> </div>
+
+        </div>
+      </div>
+    </fieldset>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-md-12">
+      <div ng-grid="GridRequisiciones" class="gridStyle" red-grid></div>
+    </div>
+  </div>
+
+
+
+
+</div>

@@ -1,1 +1,12 @@
-PLACEHOLDER_READ_FROM_DISK
+<style>
+    /* Modal Seguimiento */
+    .hiddenBtn { visibility: hidden; } 
+    .timeline { list-style: none; padding: 0 0 20px; position: relative; margin-top: -15px; } 
+    .timeline:before { top: 30px !important; bottom: 25px; position: absolute; content: ""; width: 2px; background-color: #d6dbe3; left: 27px !important; } 
+    .timeline > li { margin-bottom: 10px; position: relative; } 
+</style>
+<div ng-app="appRequisiciones" ng-controller="ctrlRequisiciones" ng-init="init()">
+    <!-- Listado principal de requisiciones -->
+    <red-Toolbar titulo="Requisiciones - Listado">
+    </red-Toolbar>
+</div>
